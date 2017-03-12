@@ -3,16 +3,73 @@
 <head>
 	<title>Grid Test</title>
 	<script type="text/javascript" src="dist/bundle.js"></script>
+	<style>
+		.pgrid .cell {
+			position: absolute;
+			border-bottom: 1px solid pink;
+			border-right: 1px solid pink;
+			box-sizing: border-box;
+		}
+	</style>
 </head>
 <body>
-<div id="gridDiv" style="width: 600px; height: 300px; background-color: red;">
+<div id="gridDiv" class="pgrid" style="width: 650px; height: 300px; position: relative; overflow: hidden; background-color: black;">
+	<div style="background-color: green; width: 100px; height: 32px; position: absolute;"></div>
+	<div style="background-color: red; width: calc(100% - 100px); height: 32px; position: absolute; margin-left: 100px;">
+		<div id="titleBarScrollPane" style="width: 100%; height: 32px; overflow: auto;">
+			<div class="cell" style="left: 0px; top: 0px; width: 100px; height: 32px;"></div>
+			<div class="cell" style="left: 100px; top: 0px; width: 100px; height: 32px;"></div>
+			<div class="cell" style="left: 200px; top: 0px; width: 100px; height: 32px;"></div>
+			<div class="cell" style="left: 300px; top: 0px; width: 100px; height: 32px;"></div>
+			<div class="cell" style="left: 400px; top: 0px; width: 100px; height: 32px;"></div>
+			<div class="cell" style="left: 500px; top: 0px; width: 100px; height: 32px;"></div>
+			<div class="cell" style="left: 600px; top: 0px; width: 100px; height: 32px;"></div>
+			<div class="cell" style="left: 700px; top: 0px; width: 100px; height: 32px;"></div>
+		</div>
+	</div>
+	<div style="background-color: blue; width: 100px; height: 500px; position: absolute; top: 0px; left: 0px; margin-top: 32px; margin-bottom: 32px;"></div>
+	<div style="background-color: yellow; width: 100px; height: 32px; position: absolute; bottom: 0px; left: 0px;"></div>
 </div>
 
 <script>
+	
 	var options = {
-
+		rowHeight: 32,
+		freezePane: {
+			top: 1,
+			bottom: 2,
+			left: 2
+		},
+		columns: [
+			{width: 100, alignment: 'left', titleAlignment: 'left', cssClass: 'headerColumn'},
+			{width: 100},
+			{width: 100},
+			{width: 100},
+		],
+		rows: [
+			{cssClass: 'headerRow'},
+			{cssClass: 'demandRow'},
+			{cssClass: 'editableRow'},
+			{cssClass: 'forecastRow'},
+			{cssClass: 'summaryRow'},
+			{cssClass: 'summaryRow'}
+		],
+		cells: [
+			{r: 0, c: 0, editable: true, cssClass: 'testCell'}
+		],
+		data: [
+			["A","B","C","D"],
+			["AB1", "BC1", 100, 200],
+			["AB2", "BC2", 0, 0],
+			["AB3", "BC3", 0, 0],
+			["AB4", "BC4", 0, 0],
+			["Summary", "", 0, 0]
+		]
 	};
-	var grid = new PGrid(document.getElementById('gridDiv'), options);
+	
+	var grid = new PGrid(options);
+	grid.render(document.getElementById('gridDiv'));
+
 </script>
 
 </body>
