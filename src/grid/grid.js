@@ -1,24 +1,33 @@
-class PGrid {
+import View from './view';
+import Model from './model';
+import Data from './data';
+import EventDispatcher from './event';
+import Utils from './utils';
 
-	constructor(options) {
-		this._options = options;
+class PGrid extends EventDispatcher {
+
+	constructor(config) {
+		super();
+
+		let defaultConfig = {
+			rowHeight: 32,
+			columnWidth: 100
+		};
+
+		this._config = Utils.mixin(config, defaultConfig);
+		this._data = new Data(this._config.dataModel);
+		this._model = new Model(this._config, this._data);
+		this._view = new View(this._model, this._data);
+	}
+
+	get view() {
+		return this._view;
 	}
 
 	render(element) {
-		this._setContainer(element);
-
-		//Create pane for top-left, top, left, bottom-left, bottom, center
-		this._paneTopLeft = this._createPane()
-	}
-
-	_setContainer(element) {
-		this._container = element;
-	}
-
-	_createPane(panePosition) {
-		let pane = document.createElement('div');
+		this._view.render(element);
 	}
 
 }
 
-module.exports = PGrid;
+module.exports = PGrid; 

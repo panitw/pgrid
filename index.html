@@ -2,7 +2,8 @@
 <html>
 <head>
 	<title>Grid Test</title>
-	<script type="text/javascript" src="dist/bundle.js"></script>
+	<link rel="stylesheet" type="text/css" href="dist/pgrid.css">
+	<script type="text/javascript" src="dist/pgrid.js"></script>
 	<style>
 
 		body {
@@ -10,297 +11,46 @@
 			font-size: 13px;
 		}
 
-		.pgrid .cell {
-			position: absolute;
-			border-bottom: 1px solid pink;
-			border-right: 1px solid pink;
-			box-sizing: border-box;
-		}
-
-		.pgrid .cell .cell-content {
-			position: absolute;
-			top: 50%;
-			transform: translateY(-50%);
-			padding-left: 5px;
-		}
-
-		.pgrid ::-webkit-scrollbar {
-		  width: 8px;
-		  height: 8px;
-		}
-		.pgrid ::-webkit-scrollbar-button {
-		}
-		.pgrid ::-webkit-scrollbar-thumb {
-		  background: #e0e1dd;
-		  border: 0px none #ffffff;
-		  border-radius: 6px;
-		}
-		.pgrid ::-webkit-scrollbar-thumb:hover {
-		  background: #ffffff;
-		}
-		.pgrid ::-webkit-scrollbar-thumb:active {
-		  background: #7c7880;
-		}
-		.pgrid ::-webkit-scrollbar-track {
-		  background: #666666;
-		  border: 0px none #ffffff;
-		  border-radius: 8px;
-		}
-		.pgrid ::-webkit-scrollbar-track:hover {
-		  background: #666666;
-		}
-		.pgrid ::-webkit-scrollbar-track:active {
-		  background: #333333;
-		}
-		.pgrid ::-webkit-scrollbar-corner {
-		  background: transparent;
-		}
-
 	</style>
 </head>
 <body>
-<div id="gridDiv" class="pgrid" style="width: 650px; height: 200px; position: relative; overflow: hidden; background-color: black;">
-	<div style="width: calc(100% - 8px); height: calc(100% - 8px); position: relative;">
-		<div style="background-color: green; width: 100px; height: 32px; position: absolute;">
-			<div class="cell" style="left: 0px; top: 0px; width: 100px; height: 32px;"></div>
-		</div>
-		<div style="background-color: red; width: calc(100% - 100px); height: 32px; position: absolute; left: 100px;">
-			<div id="topScrollPane" style="width: 100%; height: 32px; overflow: hidden; position: relative;">
-				<div class="cell" style="left: 0px; top: 0px; width: 100px; height: 32px;">
-					<div class="cell-content">Col0</div>
-				</div>
-				<div class="cell" style="left: 100px; top: 0px; width: 100px; height: 32px;">
-					<div class="cell-content">Col1</div>				
-				</div>
-				<div class="cell" style="left: 200px; top: 0px; width: 100px; height: 32px;">
-					<div class="cell-content">Col2</div>				
-				</div>
-				<div class="cell" style="left: 300px; top: 0px; width: 100px; height: 32px;">
-					<div class="cell-content">Col3</div>				
-				</div>
-				<div class="cell" style="left: 400px; top: 0px; width: 100px; height: 32px;">
-					<div class="cell-content">Col4</div>				
-				</div>
-				<div class="cell" style="left: 500px; top: 0px; width: 100px; height: 32px;">
-					<div class="cell-content">Col5</div>				
-				</div>
-				<div class="cell" style="left: 600px; top: 0px; width: 100px; height: 32px;">
-					<div class="cell-content">Col6</div>				
-				</div>
-				<div class="cell" style="left: 700px; top: 0px; width: 100px; height: 32px;">
-					<div class="cell-content">Col7</div>				
-				</div>
-			</div>
-		</div>
-		<div style="background-color: blue; width: 100px; height: calc(100% - 64px); position: absolute; top: 32px; left: 0px;">
-			<div id="leftScrollPane" style="width: 100px; height: 100%; overflow: hidden; position: relative;">
-				<div class="cell" style="left: 0px; top: 0px; width: 100px; height: 32px;">
-					<div class="cell-content">Row0</div>
-				</div>
-				<div class="cell" style="left: 0px; top: 32px; width: 100px; height: 32px;">
-					<div class="cell-content">Row1</div>				
-				</div>
-				<div class="cell" style="left: 0px; top: 64px; width: 100px; height: 32px;">
-					<div class="cell-content">Row2</div>
-				</div>
-				<div class="cell" style="left: 0px; top: 96px; width: 100px; height: 32px;">
-					<div class="cell-content">Row3</div>				
-				</div>
-				<div class="cell" style="left: 0px; top: 128px; width: 100px; height: 32px;">
-					<div class="cell-content">Row4</div>				
-				</div>
-				<div class="cell" style="left: 0px; top: 160px; width: 100px; height: 32px;">
-					<div class="cell-content">Row5</div>				
-				</div>
-				<div class="cell" style="left: 0px; top: 192px; width: 100px; height: 32px;">
-					<div class="cell-content">Row6</div>				
-				</div>
-				<div class="cell" style="left: 0px; top: 224px; width: 100px; height: 32px;">
-					<div class="cell-content">Row7</div>				
-				</div>
-			</div>
-		</div>
-		<div style="background-color: orange; width: calc(100% - 100px); height: calc(100% - 64px); position: absolute; top: 32px; left: 100px;">
-			<div id="centerScrollPane" style="width: 100%; height: 100%; overflow: hidden; position: relative;">
-				<div class="cell" style="left: 0px; top: 0px; width: 100px; height: 32px;">
-					<div class="cell-content">Data0,0</div>
-				</div>
-				<div class="cell" style="left: 100px; top: 0px; width: 100px; height: 32px;">
-					<div class="cell-content">Data0,1</div>				
-				</div>
-				<div class="cell" style="left: 200px; top: 0px; width: 100px; height: 32px;">
-					<div class="cell-content">Data0,2</div>				
-				</div>
-				<div class="cell" style="left: 300px; top: 0px; width: 100px; height: 32px;">
-					<div class="cell-content">Data0,3</div>				
-				</div>
-				<div class="cell" style="left: 400px; top: 0px; width: 100px; height: 32px;">
-					<div class="cell-content">Data0,4</div>				
-				</div>
-				<div class="cell" style="left: 500px; top: 0px; width: 100px; height: 32px;">
-					<div class="cell-content">Data0,5</div>				
-				</div>
-				<div class="cell" style="left: 600px; top: 0px; width: 100px; height: 32px;">
-					<div class="cell-content">Data0,6</div>				
-				</div>
-				<div class="cell" style="left: 700px; top: 0px; width: 100px; height: 32px;">
-					<div class="cell-content">Data0,7</div>				
-				</div>
 
-				<div class="cell" style="left: 0px; top: 32px; width: 100px; height: 32px;">
-					<div class="cell-content">Data1,0</div>				
-				</div>
-				<div class="cell" style="left: 100px; top: 32px; width: 100px; height: 32px;"></div>
-				<div class="cell" style="left: 200px; top: 32px; width: 100px; height: 32px;"></div>
-				<div class="cell" style="left: 300px; top: 32px; width: 100px; height: 32px;"></div>
-				<div class="cell" style="left: 400px; top: 32px; width: 100px; height: 32px;"></div>
-				<div class="cell" style="left: 500px; top: 32px; width: 100px; height: 32px;"></div>
-				<div class="cell" style="left: 600px; top: 32px; width: 100px; height: 32px;"></div>
-				<div class="cell" style="left: 700px; top: 32px; width: 100px; height: 32px;"></div>
-
-				<div class="cell" style="left: 0px; top: 64px; width: 100px; height: 32px;">
-					<div class="cell-content">Data2,0</div>								
-				</div>
-				<div class="cell" style="left: 100px; top: 64px; width: 100px; height: 32px;"></div>
-				<div class="cell" style="left: 200px; top: 64px; width: 100px; height: 32px;"></div>
-				<div class="cell" style="left: 300px; top: 64px; width: 100px; height: 32px;"></div>
-				<div class="cell" style="left: 400px; top: 64px; width: 100px; height: 32px;"></div>
-				<div class="cell" style="left: 500px; top: 64px; width: 100px; height: 32px;"></div>
-				<div class="cell" style="left: 600px; top: 64px; width: 100px; height: 32px;"></div>
-				<div class="cell" style="left: 700px; top: 64px; width: 100px; height: 32px;"></div>
-
-				<div class="cell" style="left: 0px; top: 96px; width: 100px; height: 32px;">
-					<div class="cell-content">Data3,0</div>
-				</div>
-				<div class="cell" style="left: 100px; top: 96px; width: 100px; height: 32px;"></div>
-				<div class="cell" style="left: 200px; top: 96px; width: 100px; height: 32px;"></div>
-				<div class="cell" style="left: 300px; top: 96px; width: 100px; height: 32px;"></div>
-				<div class="cell" style="left: 400px; top: 96px; width: 100px; height: 32px;"></div>
-				<div class="cell" style="left: 500px; top: 96px; width: 100px; height: 32px;"></div>
-				<div class="cell" style="left: 600px; top: 96px; width: 100px; height: 32px;"></div>
-				<div class="cell" style="left: 700px; top: 96px; width: 100px; height: 32px;"></div>
-
-				<div class="cell" style="left: 0px; top: 128px; width: 100px; height: 32px;">
-					<div class="cell-content">Data4,0</div>
-				</div>
-				<div class="cell" style="left: 100px; top: 128px; width: 100px; height: 32px;"></div>
-				<div class="cell" style="left: 200px; top: 128px; width: 100px; height: 32px;"></div>
-				<div class="cell" style="left: 300px; top: 128px; width: 100px; height: 32px;"></div>
-				<div class="cell" style="left: 400px; top: 128px; width: 100px; height: 32px;"></div>
-				<div class="cell" style="left: 500px; top: 128px; width: 100px; height: 32px;"></div>
-				<div class="cell" style="left: 600px; top: 128px; width: 100px; height: 32px;"></div>
-				<div class="cell" style="left: 700px; top: 128px; width: 100px; height: 32px;"></div>
-
-				<div class="cell" style="left: 0px; top: 160px; width: 100px; height: 32px;">
-					<div class="cell-content">Data5,0</div>
-				</div>
-				<div class="cell" style="left: 100px; top: 160px; width: 100px; height: 32px;"></div>
-				<div class="cell" style="left: 200px; top: 160px; width: 100px; height: 32px;"></div>
-				<div class="cell" style="left: 300px; top: 160px; width: 100px; height: 32px;"></div>
-				<div class="cell" style="left: 400px; top: 160px; width: 100px; height: 32px;"></div>
-				<div class="cell" style="left: 500px; top: 160px; width: 100px; height: 32px;"></div>
-				<div class="cell" style="left: 600px; top: 160px; width: 100px; height: 32px;"></div>
-				<div class="cell" style="left: 700px; top: 160px; width: 100px; height: 32px;"></div>
-
-				<div class="cell" style="left: 0px; top: 192px; width: 100px; height: 32px;">
-					<div class="cell-content">Data6,0</div>
-				</div>
-				<div class="cell" style="left: 100px; top: 192px; width: 100px; height: 32px;"></div>
-				<div class="cell" style="left: 200px; top: 192px; width: 100px; height: 32px;"></div>
-				<div class="cell" style="left: 300px; top: 192px; width: 100px; height: 32px;"></div>
-				<div class="cell" style="left: 400px; top: 192px; width: 100px; height: 32px;"></div>
-				<div class="cell" style="left: 500px; top: 192px; width: 100px; height: 32px;"></div>
-				<div class="cell" style="left: 600px; top: 192px; width: 100px; height: 32px;"></div>
-				<div class="cell" style="left: 700px; top: 192px; width: 100px; height: 32px;"></div>
-
-
-				<div class="cell" style="left: 0px; top: 224px; width: 100px; height: 32px;">
-					<div class="cell-content">Data7,0</div>
-				</div>
-				<div class="cell" style="left: 100px; top: 224px; width: 100px; height: 32px;"></div>
-				<div class="cell" style="left: 200px; top: 224px; width: 100px; height: 32px;"></div>
-				<div class="cell" style="left: 300px; top: 224px; width: 100px; height: 32px;"></div>
-				<div class="cell" style="left: 400px; top: 224px; width: 100px; height: 32px;"></div>
-				<div class="cell" style="left: 500px; top: 224px; width: 100px; height: 32px;"></div>
-				<div class="cell" style="left: 600px; top: 224px; width: 100px; height: 32px;"></div>
-				<div class="cell" style="left: 700px; top: 224px; width: 100px; height: 32px;"></div>
-
-			</div>
-		</div>
-		<div style="background-color: yellow; width: 100px; height: 32px; position: absolute; bottom: 0px; left: 0px;">
-			<div class="cell" style="left: 0px; top: 0px; width: 100px; height: 32px;"></div>		
-		</div>
-		<div style="background-color: magenta; width: calc(100% - 100px); height: 32px; position: absolute; bottom: 0px; left: 100px;">
-			<div id="bottomScrollPane" style="width: 100%; height: 32px; overflow: hidden; position: relative;">
-				<div class="cell" style="left: 0px; top: 0px; width: 100px; height: 32px;">
-					<div class="cell-content">Footer0</div>
-				</div>
-				<div class="cell" style="left: 100px; top: 0px; width: 100px; height: 32px;">
-					<div class="cell-content">Footer1</div>
-				</div>
-				<div class="cell" style="left: 200px; top: 0px; width: 100px; height: 32px;">
-					<div class="cell-content">Footer2</div>
-				</div>
-				<div class="cell" style="left: 300px; top: 0px; width: 100px; height: 32px;">
-					<div class="cell-content">Footer3</div>
-				</div>
-				<div class="cell" style="left: 400px; top: 0px; width: 100px; height: 32px;">
-					<div class="cell-content">Footer4</div>
-				</div>
-				<div class="cell" style="left: 500px; top: 0px; width: 100px; height: 32px;">
-					<div class="cell-content">Footer5</div>
-				</div>
-				<div class="cell" style="left: 600px; top: 0px; width: 100px; height: 32px;">
-					<div class="cell-content">Footer6</div>
-				</div>
-				<div class="cell" style="left: 700px; top: 0px; width: 100px; height: 32px;">
-					<div class="cell-content">Footer7</div>
-				</div>
-			</div>
-		</div>
-	</div>
-	<div class="hscroll-bar" style="width: calc(100% - 8px); height: 8px; position: absolute; bottom: 0px; background-color: lightblue; overflow-y: hidden; overflow-x: scroll;">
-		<div style="height: 8px; width: 900px; background-color: green;"></div>		
-	</div>
-	<div class="vscroll-bar" style="width: 8px; height: calc(100% - 8px); position: absolute; right: 0px; top: 0px; background-color: lightblue; overflow-y: scroll; overflow-x: hidden;">
-		<div style="height: 320px; width: 8px; background-color: green;"></div>
-	</div>
-</div>
+<div id="gridDiv" style="width: 650px; height: 200px;"></div>
 
 <script>
 	
 	var options = {
+		columnCount: 4,
+		rowCount: 6,
 		rowHeight: 32,
+		columnWidth: 80,
 		freezePane: {
 			top: 1,
-			bottom: 2,
-			left: 2
+			bottom: 1,
+			left: 1
 		},
 		columns: [
-			{width: 100, alignment: 'left', titleAlignment: 'left', cssClass: 'headerColumn'},
-			{width: 100},
-			{width: 100},
-			{width: 100},
+			{i: 0, width: 100, alignment: 'left', titleAlignment: 'left', cssClass: 'headerColumn'},
 		],
 		rows: [
-			{cssClass: 'headerRow'},
-			{cssClass: 'demandRow'},
-			{cssClass: 'editableRow'},
-			{cssClass: 'forecastRow'},
-			{cssClass: 'summaryRow'},
-			{cssClass: 'summaryRow'}
+			{i: 0, cssClass: 'headerRow', height: 40},
+			{i: 5, cssClass: 'footerRow', height: 70}
 		],
 		cells: [
 			{r: 0, c: 0, editable: true, cssClass: 'testCell'}
 		],
-		data: [
-			["A","B","C","D"],
-			["AB1", "BC1", 100, 200],
-			["AB2", "BC2", 0, 0],
-			["AB3", "BC3", 0, 0],
-			["AB4", "BC4", 0, 0],
-			["Summary", "", 0, 0]
-		]
+		dataModel: {
+			headerRows: 1,
+			footerRows: 1,
+			data: [
+				["A","B","C","D"],
+				["AB1", "BC1", 100, 200],
+				["AB2", "BC2", 0, 0],
+				["AB3", "BC3", 0, 0],
+				["AB4", "BC4", 0, 0],
+				["Summary", "", 0, 0]
+			]
+		}
 	};
 	
 	var grid = new PGrid(options);
@@ -350,13 +100,13 @@
 		leftPane.scrollTop = y;
 	}
 
-	document.querySelector('#gridDiv .vscroll-bar').addEventListener('scroll', function (e) {
-		setScrollY(e.target.scrollTop);
-	});
+	// document.querySelector('.pgrid .vscroll-bar').addEventListener('scroll', function (e) {
+	// 	setScrollY(e.target.scrollTop);
+	// });
 
-	document.querySelector('#gridDiv .hscroll-bar').addEventListener('scroll', function (e) {
-		setScrollX(e.target.scrollLeft);
-	});
+	// document.querySelector('.pgrid .hscroll-bar').addEventListener('scroll', function (e) {
+	// 	setScrollX(e.target.scrollLeft);
+	// });
 
 </script>
 
