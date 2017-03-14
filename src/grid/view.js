@@ -25,11 +25,11 @@ class View extends EventDispatcher {
 							'		<div class="bottom-inner" style="width: 100%; height: 100%; overflow: hidden; position: relative;"></div>' +
 							'	</div>' +
 							'</div>' +
-							'<div class="hscroll" style="width: calc(100% - 8px); height: 8px; position: absolute; bottom: 0px; background-color: lightblue; overflow-y: hidden; overflow-x: scroll;">' +
-							'	<div style="height: 8px; width: 900px; background-color: green;"></div>' +
+							'<div class="hscroll" style="position: absolute; bottom: 0px; background-color: lightblue; overflow-y: hidden; overflow-x: scroll;">' +
+							'	<div class="hscroll-thumb" style="background-color: green;"></div>' +
 							'</div>' +
-							'<div class="vscroll" style="width: 8px; height: calc(100% - 8px); position: absolute; right: 0px; top: 0px; background-color: lightblue; overflow-y: scroll; overflow-x: hidden;">' +
-							'	<div style="height: 320px; width: 8px; background-color: green;"></div>' +
+							'<div class="vscroll" style="position: absolute; right: 0px; top: 0px; background-color: lightblue; overflow-y: scroll; overflow-x: hidden;">' +
+							'	<div class="vscroll-thumb" style="background-color: green;"></div>' +
 							'</div>';
 	}
 
@@ -54,14 +54,21 @@ class View extends EventDispatcher {
 		this._bottomLeftPane = this._element.querySelector('.bottom-left-pane');
 		this._bottomLeftInner = this._element.querySelector('.bottom-left-inner');
 
+		this._scrollWidth = this._measureScrollbarWidth();
+
 		this._hScroll = this._element.querySelector('.hscroll');
 		this._vScroll = this._element.querySelector('.vscroll');
+		this._hScrollThumb = this._element.querySelector('.hscroll-thumb');
+		this._vScrollThumb = this._element.querySelector('.vscroll-thumb');
+		this._hScroll.style.height = this._scrollWidth + 'px';
+		this._vScroll.style.width = this._scrollWidth + 'px';
+		this._hScrollThumb.style.height = this._scrollWidth + 'px';
+		this._vScrollThumb.style.width = this._scrollWidth + 'px';
 
 		this.resturecture();
 	}
 
 	resturecture () {
-		this._scrollWidth = this._measureScrollbarWidth();
 		this._contentPane.style.width = 'calc(100% - ' + this._scrollWidth + 'px)';
 		this._contentPane.style.height = 'calc(100% - ' + this._scrollWidth + 'px)';
 
@@ -93,6 +100,14 @@ class View extends EventDispatcher {
 		this._bottomPane.style.bottom = '0px';
 		this._bottomPane.style.width = 'calc(100% - ' + leftFreezeSize + 'px)';
 		this._bottomPane.style.height = bottomFreezeSize + 'px';
+
+		let totalWidth = this._model.getTotalWidth();
+		let totalHeight = this._model.getTotalHeight();
+
+		this._hScroll.style.width = 'calc(100% - ' + this._scrollWidth + 'px)';
+		this._vScroll.style.height = 'calc(100% - ' + this._scrollWidth + 'px)';
+		this._hScrollThumb.style.width = totalWidth;
+		this._vScrollThumb.style.height = totalHeight;
 	}
 
 	_measureScrollbarWidth () {

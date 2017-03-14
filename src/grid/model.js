@@ -20,6 +20,8 @@ class Model extends EventDispatcher {
 				this._rowModel[this._config.rows[i].i] = this._config.rows[i];
 			}
 		}
+
+		this._calcTotalSize();
 	}
 
 	getTopFreezeSize () {
@@ -67,6 +69,56 @@ class Model extends EventDispatcher {
 		}
 		return this._config.rowHeight;
 	}
+
+	getTotalWidth () {
+		return this._totalWidth;
+	}
+
+	getTotalHeight () {
+		return this._totalHeight;
+	}
+
+	
+
+	_calcTotalSize() {
+		this._calcTotalWidth();
+		this._calcTotalHeight();		
+	}
+
+	_calcTotalWidth () {
+		let colModelCount = Object.keys(this._columnModel);
+		this._totalWidth = this._config.columnWidth * (this._config.columnCount - colModelCount);
+		foreach (let index in this._columnModel) {
+			if (this._columnModel[index].width !== undefined) {
+				this._totalWidth += this._columnModel[index].width;
+			} else {
+				this._totalWidth += this._config.columnWidth;
+			}
+		}
+
+		let rowModelCount = Object.keys(this._rowModel);
+		this._totalHeight = this._config.rowHeight * (this._config.rowCount - rowModelCount);
+		foreach (let index in this._columnModel) {
+			if (this._columnModel[index].height !== undefined) {
+				this._totalHeight += this._columnModel[index].height;
+			} else {
+				this._totalHeight += this._config.rowHeight;
+			}
+		}
+	}
+
+	_calcTotalHeight () {
+		let rowModelCount = Object.keys(this._rowModel);
+		this._totalHeight = this._config.rowHeight * (this._config.rowCount - rowModelCount);
+		foreach (let index in this._columnModel) {
+			if (this._columnModel[index].height !== undefined) {
+				this._totalHeight += this._columnModel[index].height;
+			} else {
+				this._totalHeight += this._config.rowHeight;
+			}
+		}
+	}
+
 }
 
 module.exports = Model;
