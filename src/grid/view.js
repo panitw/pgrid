@@ -6,23 +6,23 @@ class View extends EventDispatcher {
 		super();
 		this._model = model;
 		this._template = 	'<div class="content-pane" style="position: relative;">' +
-							'	<div class="top-left-pane" style="background-color: green; width: 100px; height: 32px; position: absolute;">' +
-							'		<div class="top-left-inner" style="width: 100%; height: 32px; overflow: hidden; position: relative;"></div>' +
+							'	<div class="top-left-pane" style="background-color: green; position: absolute;">' +
+							'		<div class="top-left-inner" style="width: 100%; height: 100%; overflow: hidden; position: relative;"></div>' +
 							'	</div>' +
-							'	<div class="top-pane" style="background-color: red; width: calc(100% - 100px); height: 32px; position: absolute; left: 100px;">' +
-							'		<div class="top-inner" style="width: 100%; height: 32px; overflow: hidden; position: relative;"></div>' +
+							'	<div class="top-pane" style="background-color: red; position: absolute;">' +
+							'		<div class="top-inner" style="width: 100%; height: 100%; overflow: hidden; position: relative;"></div>' +
 							'	</div>' +
-							'	<div class="left-pane" style="background-color: blue; width: 100px; height: calc(100% - 64px); position: absolute; top: 32px; left: 0px;">' +
+							'	<div class="left-pane" style="background-color: blue;position: absolute;">' +
 							'		<div class="left-inner" style="width: 100px; height: 100%; overflow: hidden; position: relative;"></div>' +
 							'	</div>' +
-							'	<div class="center-pane" style="background-color: orange; width: calc(100% - 100px); height: calc(100% - 64px); position: absolute; top: 32px; left: 100px;">' +
+							'	<div class="center-pane" style="background-color: orange; position: absolute;">' +
 							'		<div class="center-inner" style="width: 100%; height: 100%; overflow: hidden; position: relative;"></div>' +
 							'	</div>' +
-							'	<div class="bottom-left-pane" style="background-color: yellow; width: 100px; height: 32px; position: absolute; bottom: 0px; left: 0px;">' +
-							'		<div class="bottom-left-inner" style="width: 100%; height: 32px; overflow: hidden; position: relative;"></div>' +
+							'	<div class="bottom-left-pane" style="background-color: yellow; position: absolute;">' +
+							'		<div class="bottom-left-inner" style="width: 100%; height: 100%; overflow: hidden; position: relative;"></div>' +
 							'	</div>' +
-							'	<div class="bottom-pane" style="background-color: magenta; width: calc(100% - 100px); height: 32px; position: absolute; bottom: 0px; left: 100px;">' +
-							'		<div class="bottom-inner" style="width: 100%; height: 32px; overflow: hidden; position: relative;"></div>' +
+							'	<div class="bottom-pane" style="background-color: magenta; position: absolute;">' +
+							'		<div class="bottom-inner" style="width: 100%; height: 100%; overflow: hidden; position: relative;"></div>' +
 							'	</div>' +
 							'</div>' +
 							'<div class="hscroll" style="width: calc(100% - 8px); height: 8px; position: absolute; bottom: 0px; background-color: lightblue; overflow-y: hidden; overflow-x: scroll;">' +
@@ -68,6 +68,31 @@ class View extends EventDispatcher {
 		let topFreezeSize = this._model.getTopFreezeSize();
 		let bottomFreezeSize = this._model.getBottomFreezeSize();
 		let leftFreezeSize = this._model.getLeftFreezeSize();
+
+		this._topLeftPane.style.left = '0px';
+		this._topLeftPane.style.top = '0px';
+		this._topLeftPane.style.width = leftFreezeSize + 'px';
+		this._topLeftPane.style.height = topFreezeSize + 'px';
+		this._topPane.style.left = leftFreezeSize + 'px';
+		this._topPane.style.top = '0px';
+		this._topPane.style.width = 'calc(100% - ' + leftFreezeSize + 'px)';
+		this._topPane.style.height = topFreezeSize + 'px';
+		this._leftPane.style.left = '0px';
+		this._leftPane.style.top = topFreezeSize + 'px';
+		this._leftPane.style.width = leftFreezeSize + 'px';
+		this._leftPane.style.height = 'calc(100% - ' + (topFreezeSize + bottomFreezeSize) + 'px)';
+		this._centerPane.style.left = leftFreezeSize + 'px';
+		this._centerPane.style.top = topFreezeSize + 'px';
+		this._centerPane.style.width = 'calc(100% - ' + leftFreezeSize + 'px)';
+		this._centerPane.style.height = 'calc(100% - ' + (topFreezeSize + bottomFreezeSize) + 'px)';
+		this._bottomLeftPane.style.left = '0px';
+		this._bottomLeftPane.style.bottom = '0px';
+		this._bottomLeftPane.style.width = leftFreezeSize + 'px';
+		this._bottomLeftPane.style.height = bottomFreezeSize + 'px';
+		this._bottomPane.style.left = leftFreezeSize + 'px';
+		this._bottomPane.style.bottom = '0px';
+		this._bottomPane.style.width = 'calc(100% - ' + leftFreezeSize + 'px)';
+		this._bottomPane.style.height = bottomFreezeSize + 'px';
 	}
 
 	_measureScrollbarWidth () {
