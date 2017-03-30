@@ -101,13 +101,48 @@ class View extends EventDispatcher {
 		this._bottomPane.style.width = 'calc(100% - ' + leftFreezeSize + 'px)';
 		this._bottomPane.style.height = bottomFreezeSize + 'px';
 
+		this.updateScrollBar();
+	}
+
+	updateScrollBar () {
 		let totalWidth = this._model.getTotalWidth();
 		let totalHeight = this._model.getTotalHeight();
-
-		this._hScroll.style.width = 'calc(100% - ' + this._scrollWidth + 'px)';
-		this._vScroll.style.height = 'calc(100% - ' + this._scrollWidth + 'px)';
 		this._hScrollThumb.style.width = totalWidth;
 		this._vScrollThumb.style.height = totalHeight;
+
+		let gridRect = this._element.getBoundingClientRect();
+		let scrollBarState = this._model.determineScrollbarState(gridRect.width, gridRect.height, this._scrollWidth);
+
+		switch (scrollBarState) {
+			case 'n':
+				this._hScroll.style.display = 'none';
+				this._vScroll.style.display = 'none';
+				this._contentPane.style.width = '100%';
+				this._contentPane.style.height = '100%';
+				break;
+			case 'h':
+				this._hScroll.style.display = 'block';
+				this._vScroll.style.display = 'none';
+				this._hScroll.style.width = '100%';
+				this._contentPane.style.width = '100%';
+				this._contentPane.style.height = 'calc(100% - ' + this._scrollWidth + 'px)';
+				break;
+			case 'v':
+				this._hScroll.style.display = 'none';
+				this._vScroll.style.display = 'block';
+				this._vScroll.style.height = '100%';
+				this._contentPane.style.width = 'calc(100% - ' + this._scrollWidth + 'px)';
+				this._contentPane.style.height = '100%';
+				break;
+			case 'b':
+				this._vScroll.style.display = 'block';
+				this._vScroll.style.display = 'block';
+				this._hScroll.style.width = 'calc(100% - ' + this._scrollWidth + 'px)';
+				this._vScroll.style.height = 'calc(100% - ' + this._scrollWidth + 'px)';
+				this._contentPane.style.width = 'calc(100% - ' + this._scrollWidth + 'px)';
+				this._contentPane.style.height = 'calc(100% - ' + this._scrollWidth + 'px)';
+				break;
+		}
 	}
 
 	_measureScrollbarWidth () {

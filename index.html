@@ -21,7 +21,7 @@
 	
 	var options = {
 		columnCount: 4,
-		rowCount: 6,
+		rowCount: 50,
 		rowHeight: 32,
 		columnWidth: 80,
 		freezePane: {
@@ -55,58 +55,6 @@
 	
 	var grid = new PGrid(options);
 	grid.render(document.getElementById('gridDiv'));
-
-	function getScrollbarWidth() {
-		var outer = document.createElement("div");
-		outer.style.visibility = "hidden";
-		outer.style.width = "100px";
-		outer.style.msOverflowStyle = "scrollbar"; // needed for WinJS apps
-
-		document.body.appendChild(outer);
-
-		var widthNoScroll = outer.offsetWidth;
-		// force scrollbars
-		outer.style.overflow = "scroll";
-
-		// add innerdiv
-		var inner = document.createElement("div");
-		inner.style.width = "100%";
-		outer.appendChild(inner);        
-
-		var widthWithScroll = inner.offsetWidth;
-
-		// remove divs
-		outer.parentNode.removeChild(outer);
-
-		return widthNoScroll - widthWithScroll;
-	}	
-
-	function setScrollX(x) {
-		var topPane = document.getElementById('topScrollPane');
-		topPane.scrollLeft = x;
-
-		var centerPane = document.getElementById('centerScrollPane');
-		centerPane.scrollLeft = x;
-
-		var bottomPane = document.getElementById('bottomScrollPane');
-		bottomPane.scrollLeft = x;
-	}
-
-	function setScrollY(y) {
-		var centerPane = document.getElementById('centerScrollPane');
-		centerPane.scrollTop = y;
-
-		var leftPane = document.getElementById('leftScrollPane');
-		leftPane.scrollTop = y;
-	}
-
-	// document.querySelector('.pgrid .vscroll-bar').addEventListener('scroll', function (e) {
-	// 	setScrollY(e.target.scrollTop);
-	// });
-
-	// document.querySelector('.pgrid .hscroll-bar').addEventListener('scroll', function (e) {
-	// 	setScrollX(e.target.scrollLeft);
-	// });
 
 </script>
 

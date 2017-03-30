@@ -78,7 +78,28 @@ class Model extends EventDispatcher {
 		return this._totalHeight;
 	}
 
-	
+	determineScrollbarState (viewWidth, viewHeight, scrollbarSize) {
+		let needH = this._totalWidth > viewWidth;
+		let needV = this._totalHeight > viewHeight;
+
+		if (needH && !needV) {
+			needV = this._totalHeight > (viewHeight - scrollbarSize);
+		} else
+		if (!needH && needV) {
+			needH = this._totalWidth > (viewWidth - scrollbarSize);
+		}
+
+		if (needH && needV) {
+			return 'b';
+		} else
+		if (!needH && needV) {
+			return 'v';
+		} else
+		if (needH && !needV) {
+			return 'h';
+		}
+		return 'n';
+	}
 
 	_calcTotalSize() {
 		this._calcTotalWidth();
@@ -87,30 +108,20 @@ class Model extends EventDispatcher {
 
 	_calcTotalWidth () {
 		let colModelCount = Object.keys(this._columnModel);
-		this._totalWidth = this._config.columnWidth * (this._config.columnCount - colModelCount);
-		foreach (let index in this._columnModel) {
+		this._totalWidth = this._config.columnWidth * (this._config.columnCount - colModelCount.length);
+		for (let index in this._columnModel) {
 			if (this._columnModel[index].width !== undefined) {
 				this._totalWidth += this._columnModel[index].width;
 			} else {
 				this._totalWidth += this._config.columnWidth;
 			}
 		}
-
-		let rowModelCount = Object.keys(this._rowModel);
-		this._totalHeight = this._config.rowHeight * (this._config.rowCount - rowModelCount);
-		foreach (let index in this._columnModel) {
-			if (this._columnModel[index].height !== undefined) {
-				this._totalHeight += this._columnModel[index].height;
-			} else {
-				this._totalHeight += this._config.rowHeight;
-			}
-		}
 	}
 
 	_calcTotalHeight () {
 		let rowModelCount = Object.keys(this._rowModel);
-		this._totalHeight = this._config.rowHeight * (this._config.rowCount - rowModelCount);
-		foreach (let index in this._columnModel) {
+		this._totalHeight = this._config.rowHeight * (this._config.rowCount - rowModelCount.length);
+		for (let index in this._columnModel) {
 			if (this._columnModel[index].height !== undefined) {
 				this._totalHeight += this._columnModel[index].height;
 			} else {
