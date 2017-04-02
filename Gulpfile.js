@@ -28,4 +28,4 @@ gulp.task('watch', ['build'], function () {
     gulp.watch('styles/**/*.less', ['build:css']);
 });
 
-gulp.task('default', ['watch']);
+gulp.task('default', ['build', 'build:css', 'watch']);
