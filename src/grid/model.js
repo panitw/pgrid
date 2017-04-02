@@ -43,6 +43,7 @@ class Model extends EventDispatcher {
 			}
 			return sum;
 		}
+		return 0;
 	}
 
 	getBottomFreezeSize () {
