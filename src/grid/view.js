@@ -67,6 +67,31 @@ class View extends EventDispatcher {
 		this._vScrollThumb.style.width = this._scrollWidth + 'px';
 
 		this._resturecture();
+		this._attachHandlers();
+	}
+
+	setScrollX (x) {
+		this._topInner.scrollLeft = x;
+		this._centerInner.scrollLeft = x;
+		this._bottomInner.scrollLeft = x;
+	}
+
+	setScrollY (y) {
+		this._centerInner.scrollTop = y;
+		this._leftInner.scrollTop = y;
+	}
+
+	_attachHandlers () {
+		this._vScrollHandler = (e) => {
+			this.setScrollY(e.target.scrollTop);
+		};
+
+		this._hScrollHandler = (e) => {
+			this.setScrollX(e.target.scrollLeft);
+		};
+
+		this._vScroll.addEventListener('scroll', this._vScrollHandler);
+		this._hScroll.addEventListener('scroll', this._hScrollHandler);
 	}
 
 	_resturecture () {
@@ -165,14 +190,14 @@ class View extends EventDispatcher {
 			leftRunner = 0;
 			for (let i=0; i<leftFreeze; i++) {
 				colWidth[i] = this._model.getColumnWidth(i);
-				this._renderCell(j, i, this._topLeftPane, leftRunner, topRunner, colWidth[i], rowHeight);
+				this._renderCell(j, i, this._topLeftInner, leftRunner, topRunner, colWidth[i], rowHeight);
 				leftRunner += colWidth[i];
 			}
 			//Render top cells
 			leftRunner = 0;
 			for (let i=leftFreeze; i<columnCount; i++) {
 				colWidth[i] = this._model.getColumnWidth(i);
-				this._renderCell(j, i, this._topPane, leftRunner, topRunner, colWidth[i], rowHeight);
+				this._renderCell(j, i, this._topInner, leftRunner, topRunner, colWidth[i], rowHeight);
 				leftRunner += colWidth[i];
 			}
 			topRunner += rowHeight;
@@ -185,13 +210,13 @@ class View extends EventDispatcher {
 			//Render left cells
 			leftRunner = 0;
 			for (let i=0; i<leftFreeze; i++) {
-				this._renderCell(j, i, this._leftPane, leftRunner, topRunner, colWidth[i], rowHeight);
+				this._renderCell(j, i, this._leftInner, leftRunner, topRunner, colWidth[i], rowHeight);
 				leftRunner += colWidth[i];
 			}
 			//Render center cells
 			leftRunner = 0;
 			for (let i=leftFreeze; i<columnCount; i++) {
-				this._renderCell(j, i, this._centerPane, leftRunner, topRunner, colWidth[i], rowHeight);
+				this._renderCell(j, i, this._centerInner, leftRunner, topRunner, colWidth[i], rowHeight);
 				leftRunner += colWidth[i];
 			}
 			topRunner += rowHeight;
@@ -204,13 +229,13 @@ class View extends EventDispatcher {
 			//Render left cells
 			leftRunner = 0;
 			for (let i=0; i<leftFreeze; i++) {
-				this._renderCell(j, i, this._bottomLeftPane, leftRunner, topRunner, colWidth[i], rowHeight);
+				this._renderCell(j, i, this._bottomLeftInner, leftRunner, topRunner, colWidth[i], rowHeight);
 				leftRunner += colWidth[i];
 			}
 			//Render center cells
 			leftRunner = 0;
 			for (let i=leftFreeze; i<columnCount; i++) {
-				this._renderCell(j, i, this._bottomPane, leftRunner, topRunner, colWidth[i], rowHeight);
+				this._renderCell(j, i, this._bottomInner, leftRunner, topRunner, colWidth[i], rowHeight);
 				leftRunner += colWidth[i];
 			}
 			topRunner += rowHeight;
@@ -233,7 +258,6 @@ class View extends EventDispatcher {
 		}
 		cell.appendChild(cellContent);
 		pane.appendChild(cell);
-		console.log('render data=' + data + ' r=' + rowIndex + ' c=' + colIndex + ' at ' + x + ',' + y);
 	}
 
 	_measureScrollbarWidth () {
@@ -260,7 +284,6 @@ class View extends EventDispatcher {
 		document.body.removeChild (outmost);
 		return (w1 - w2);
 	}
-
 }
 
 module.exports = View;
