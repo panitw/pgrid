@@ -7,29 +7,29 @@ class View extends EventDispatcher {
 		this._model = model;
 		this._data = data;
 		this._template = 	'<div class="content-pane" style="position: relative;">' +
-							'	<div class="top-left-pane" style="background-color: green; position: absolute;">' +
+							'	<div class="top-left-pane" style="position: absolute;">' +
 							'		<div class="top-left-inner" style="width: 100%; height: 100%; overflow: hidden; position: relative;"></div>' +
 							'	</div>' +
-							'	<div class="top-pane" style="background-color: red; position: absolute;">' +
+							'	<div class="top-pane" style="position: absolute;">' +
 							'		<div class="top-inner" style="width: 100%; height: 100%; overflow: hidden; position: relative;"></div>' +
 							'	</div>' +
-							'	<div class="left-pane" style="background-color: blue;position: absolute;">' +
+							'	<div class="left-pane" style="position: absolute;">' +
 							'		<div class="left-inner" style="width: 100px; height: 100%; overflow: hidden; position: relative;"></div>' +
 							'	</div>' +
-							'	<div class="center-pane" style="background-color: orange; position: absolute;">' +
+							'	<div class="center-pane" style="position: absolute;">' +
 							'		<div class="center-inner" style="width: 100%; height: 100%; overflow: hidden; position: relative;"></div>' +
 							'	</div>' +
-							'	<div class="bottom-left-pane" style="background-color: yellow; position: absolute;">' +
+							'	<div class="bottom-left-pane" style="position: absolute;">' +
 							'		<div class="bottom-left-inner" style="width: 100%; height: 100%; overflow: hidden; position: relative;"></div>' +
 							'	</div>' +
-							'	<div class="bottom-pane" style="background-color: magenta; position: absolute;">' +
+							'	<div class="bottom-pane" style="position: absolute;">' +
 							'		<div class="bottom-inner" style="width: 100%; height: 100%; overflow: hidden; position: relative;"></div>' +
 							'	</div>' +
 							'</div>' +
-							'<div class="hscroll" style="position: absolute; bottom: 0px; background-color: lightblue; overflow-y: hidden; overflow-x: scroll;">' +
+							'<div class="hscroll" style="position: absolute; bottom: 0px; overflow-y: hidden; overflow-x: scroll;">' +
 							'	<div class="hscroll-thumb" style="background-color: green;"></div>' +
 							'</div>' +
-							'<div class="vscroll" style="position: absolute; right: 0px; top: 0px; background-color: lightblue; overflow-y: scroll; overflow-x: hidden;">' +
+							'<div class="vscroll" style="position: absolute; right: 0px; top: 0px; overflow-y: scroll; overflow-x: hidden;">' +
 							'	<div class="vscroll-thumb" style="background-color: green;"></div>' +
 							'</div>';
 	}

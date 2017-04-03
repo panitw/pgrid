@@ -1,11 +1,15 @@
+@import "theme.less";
+@import "utils.less";
+
 .cell() {
 	
 	.cell {
 
 		position: absolute;
-		border-bottom: 1px solid pink;
-		border-right: 1px solid pink;
+		border-bottom: 1px solid @grid-cell-border;
+		border-right: 1px solid @grid-cell-border;
 		box-sizing: border-box;
+		background-color: @grid-cell-bg;
 
 		.cell-content {
 			position: absolute;
@@ -13,6 +17,8 @@
 			transform: translateY(-50%);
 			padding-left: 5px;
 		}
+
+		.noselect();
 	
 	}
 }
