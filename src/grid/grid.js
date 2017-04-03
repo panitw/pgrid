@@ -10,6 +10,8 @@ class PGrid extends EventDispatcher {
 		super();
 
 		let defaultConfig = {
+			rowCount: 0,
+			columnCount: 0,
 			rowHeight: 32,
 			columnWidth: 100
 		};

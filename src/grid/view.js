@@ -2,9 +2,10 @@ import EventDispatcher from './event'
 
 class View extends EventDispatcher {
 
-	constructor (model) {
+	constructor (model, data) {
 		super();
 		this._model = model;
+		this._data = data;
 		this._template = 	'<div class="content-pane" style="position: relative;">' +
 							'	<div class="top-left-pane" style="background-color: green; position: absolute;">' +
 							'		<div class="top-left-inner" style="width: 100%; height: 100%; overflow: hidden; position: relative;"></div>' +
@@ -65,10 +66,10 @@ class View extends EventDispatcher {
 		this._hScrollThumb.style.height = this._scrollWidth + 'px';
 		this._vScrollThumb.style.width = this._scrollWidth + 'px';
 
-		this.resturecture();
+		this._resturecture();
 	}
 
-	resturecture () {
+	_resturecture () {
 		this._contentPane.style.width = 'calc(100% - ' + this._scrollWidth + 'px)';
 		this._contentPane.style.height = 'calc(100% - ' + this._scrollWidth + 'px)';
 
@@ -101,10 +102,11 @@ class View extends EventDispatcher {
 		this._bottomPane.style.width = 'calc(100% - ' + leftFreezeSize + 'px)';
 		this._bottomPane.style.height = bottomFreezeSize + 'px';
 
-		this.updateScrollBar();
+		this._renderCells();
+		this._updateScrollBar();
 	}
 
-	updateScrollBar () {
+	_updateScrollBar () {
 		let totalWidth = this._model.getTotalWidth();
 		let totalHeight = this._model.getTotalHeight();
 		this._hScrollThumb.style.width = totalWidth + 'px';
@@ -143,6 +145,95 @@ class View extends EventDispatcher {
 				this._contentPane.style.height = 'calc(100% - ' + this._scrollWidth + 'px)';
 				break;
 		}
+	}
+
+	_renderCells () {
+		let topFreeze = this._model.getTopFreezeRows();
+		let leftFreeze = this._model.getLeftFreezeRows();
+		let bottomFreeze = this._model.getBottomFreezeRows();
+		let rowCount = this._model.getRowCount();
+		let columnCount = this._model.getColumnCount();
+		let topRunner = 0;
+		let leftRunner = 0;
+		let colWidth = [];
+
+		//Render top rows
+		topRunner = 0;
+		for (let j=0; j<topFreeze; j++) {
+			let rowHeight = this._model.getRowHeight(j);
+			//Render top left cells
+			leftRunner = 0;
+			for (let i=0; i<leftFreeze; i++) {
+				colWidth[i] = this._model.getColumnWidth(i);
+				this._renderCell(j, i, this._topLeftPane, leftRunner, topRunner, colWidth[i], rowHeight);
+				leftRunner += colWidth[i];
+			}
+			//Render top cells
+			leftRunner = 0;
+			for (let i=leftFreeze; i<columnCount; i++) {
+				colWidth[i] = this._model.getColumnWidth(i);
+				this._renderCell(j, i, this._topPane, leftRunner, topRunner, colWidth[i], rowHeight);
+				leftRunner += colWidth[i];
+			}
+			topRunner += rowHeight;
+		}
+
+		//Render middle rows
+		topRunner = 0;
+		for (let j=topFreeze; j<(rowCount-bottomFreeze); j++) {
+			let rowHeight = this._model.getRowHeight(j);
+			//Render left cells
+			leftRunner = 0;
+			for (let i=0; i<leftFreeze; i++) {
+				this._renderCell(j, i, this._leftPane, leftRunner, topRunner, colWidth[i], rowHeight);
+				leftRunner += colWidth[i];
+			}
+			//Render center cells
+			leftRunner = 0;
+			for (let i=leftFreeze; i<columnCount; i++) {
+				this._renderCell(j, i, this._centerPane, leftRunner, topRunner, colWidth[i], rowHeight);
+				leftRunner += colWidth[i];
+			}
+			topRunner += rowHeight;
+		}
+
+		//Render bottom rows
+		topRunner = 0;
+		for (let j=(rowCount-bottomFreeze); j<rowCount; j++) {
+			let rowHeight = this._model.getRowHeight(j);
+			//Render left cells
+			leftRunner = 0;
+			for (let i=0; i<leftFreeze; i++) {
+				this._renderCell(j, i, this._bottomLeftPane, leftRunner, topRunner, colWidth[i], rowHeight);
+				leftRunner += colWidth[i];
+			}
+			//Render center cells
+			leftRunner = 0;
+			for (let i=leftFreeze; i<columnCount; i++) {
+				this._renderCell(j, i, this._bottomPane, leftRunner, topRunner, colWidth[i], rowHeight);
+				leftRunner += colWidth[i];
+			}
+			topRunner += rowHeight;
+		}
+	}
+
+	_renderCell (rowIndex, colIndex, pane, x, y, width, height) {
+		let data = this._data.getDataAt(rowIndex, colIndex);
+		let cell = document.createElement('div');
+		cell.className = 'cell';
+		cell.style.left = x + 'px';
+		cell.style.top = y + 'px';
+		cell.style.width = width + 'px';
+		cell.style.height = height + 'px';
+
+		let cellContent = document.createElement('div');
+		cellContent.className = 'cell-content';
+		if (data !== undefined) {
+			cellContent.innerHTML = data;
+		}
+		cell.appendChild(cellContent);
+		pane.appendChild(cell);
+		console.log('render data=' + data + ' r=' + rowIndex + ' c=' + colIndex + ' at ' + x + ',' + y);
 	}
 
 	_measureScrollbarWidth () {

@@ -2,10 +2,10 @@ import EventDispatcher from './event';
 
 class Model extends EventDispatcher {
 
-	constructor (config, dataModel) {
+	constructor (config, data) {
 		super();
 		this._config = config;
-		this._dataModel = dataModel;
+		this._data = data;
 
 		this._columnModel = {};
 		this._rowModel = {};
@@ -24,6 +24,39 @@ class Model extends EventDispatcher {
 		this._calcTotalSize();
 	}
 
+	getColumnWidth (colIndex) {
+		let colModel = this._columnModel[colIndex];
+		if (colModel && colModel.width !== undefined) {
+			return colModel.width;
+		} else {
+			return this._config.columnWidth;
+		}
+	}
+
+	getRowHeight (rowIndex) {
+		let rowModel = this._rowModel[rowIndex];
+		if (rowIndex && rowIndex.height !== undefined) {
+			return rowModel.height;
+		} else {
+			return this._config.rowHeight;
+		}
+	}
+
+	getColumnCount () {
+		return this._config.columnCount;
+	}
+
+	getRowCount () {
+		return this._config.rowCount;
+	}
+
+	getTopFreezeRows () {
+		if (this._config.freezePane && this._config.freezePane.top > 0) {
+			return this._config.freezePane.top;
+		}
+		return 0;
+	}
+
 	getTopFreezeSize () {
 		if (this._config.freezePane && this._config.freezePane.top > 0) {
 			let sum = 0;
@@ -35,6 +68,13 @@ class Model extends EventDispatcher {
 		return 0;
 	}
 
+	getLeftFreezeRows () {
+		if (this._config.freezePane && this._config.freezePane.left > 0) {
+			return this._config.freezePane.left;
+		}
+		return 0;
+	}
+
 	getLeftFreezeSize () {
 		if (this._config.freezePane && this._config.freezePane.left > 0) {
 			let sum = 0;
@@ -42,6 +82,13 @@ class Model extends EventDispatcher {
 				sum += this.getColumnWidth(i);
 			}
 			return sum;
+		}
+		return 0;
+	}
+
+	getBottomFreezeRows () {
+		if (this._config.freezePane && this._config.freezePane.bottom > 0) {
+			return this._config.freezePane.bottom;
 		}
 		return 0;
 	}
