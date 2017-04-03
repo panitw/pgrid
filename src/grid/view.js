@@ -107,8 +107,8 @@ class View extends EventDispatcher {
 	updateScrollBar () {
 		let totalWidth = this._model.getTotalWidth();
 		let totalHeight = this._model.getTotalHeight();
-		this._hScrollThumb.style.width = totalWidth;
-		this._vScrollThumb.style.height = totalHeight;
+		this._hScrollThumb.style.width = totalWidth + 'px';
+		this._vScrollThumb.style.height = totalHeight + 'px';
 
 		let gridRect = this._element.getBoundingClientRect();
 		let scrollBarState = this._model.determineScrollbarState(gridRect.width, gridRect.height, this._scrollWidth);
