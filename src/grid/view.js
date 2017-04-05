@@ -6,31 +6,31 @@ class View extends EventDispatcher {
 		super();
 		this._model = model;
 		this._data = data;
-		this._template = 	'<div class="content-pane" style="position: relative;">' +
-							'	<div class="top-left-pane" style="position: absolute;">' +
-							'		<div class="top-left-inner" style="width: 100%; height: 100%; overflow: hidden; position: relative;"></div>' +
+		this._template = 	'<div class="pgrid-content-pane" style="position: relative;">' +
+							'	<div class="pgrid-top-left-pane" style="position: absolute;">' +
+							'		<div class="pgrid-top-left-inner" style="width: 100%; height: 100%; overflow: hidden; position: relative;"></div>' +
 							'	</div>' +
-							'	<div class="top-pane" style="position: absolute;">' +
-							'		<div class="top-inner" style="width: 100%; height: 100%; overflow: hidden; position: relative;"></div>' +
+							'	<div class="pgrid-top-pane" style="position: absolute;">' +
+							'		<div class="pgrid-top-inner" style="width: 100%; height: 100%; overflow: hidden; position: relative;"></div>' +
 							'	</div>' +
-							'	<div class="left-pane" style="position: absolute;">' +
-							'		<div class="left-inner" style="width: 100px; height: 100%; overflow: hidden; position: relative;"></div>' +
+							'	<div class="pgrid-left-pane" style="position: absolute;">' +
+							'		<div class="pgrid-left-inner" style="width: 100px; height: 100%; overflow: hidden; position: relative;"></div>' +
 							'	</div>' +
-							'	<div class="center-pane" style="position: absolute;">' +
-							'		<div class="center-inner" style="width: 100%; height: 100%; overflow: hidden; position: relative;"></div>' +
+							'	<div class="pgrid-center-pane" style="position: absolute;">' +
+							'		<div class="pgrid-center-inner" style="width: 100%; height: 100%; overflow: hidden; position: relative;"></div>' +
 							'	</div>' +
-							'	<div class="bottom-left-pane" style="position: absolute;">' +
-							'		<div class="bottom-left-inner" style="width: 100%; height: 100%; overflow: hidden; position: relative;"></div>' +
+							'	<div class="pgrid-bottom-left-pane" style="position: absolute;">' +
+							'		<div class="pgrid-bottom-left-inner" style="width: 100%; height: 100%; overflow: hidden; position: relative;"></div>' +
 							'	</div>' +
-							'	<div class="bottom-pane" style="position: absolute;">' +
-							'		<div class="bottom-inner" style="width: 100%; height: 100%; overflow: hidden; position: relative;"></div>' +
+							'	<div class="pgrid-bottom-pane" style="position: absolute;">' +
+							'		<div class="pgrid-bottom-inner" style="width: 100%; height: 100%; overflow: hidden; position: relative;"></div>' +
 							'	</div>' +
 							'</div>' +
-							'<div class="hscroll" style="position: absolute; bottom: 0px; overflow-y: hidden; overflow-x: scroll;">' +
-							'	<div class="hscroll-thumb" style="background-color: green;"></div>' +
+							'<div class="pgrid-hscroll" style="position: absolute; bottom: 0px; overflow-y: hidden; overflow-x: scroll;">' +
+							'	<div class="pgrid-hscroll-thumb" style="background-color: green;"></div>' +
 							'</div>' +
-							'<div class="vscroll" style="position: absolute; right: 0px; top: 0px; overflow-y: scroll; overflow-x: hidden;">' +
-							'	<div class="vscroll-thumb" style="background-color: green;"></div>' +
+							'<div class="pgrid-vscroll" style="position: absolute; right: 0px; top: 0px; overflow-y: scroll; overflow-x: hidden;">' +
+							'	<div class="pgrid-vscroll-thumb" style="background-color: green;"></div>' +
 							'</div>';
 	}
 
@@ -41,26 +41,26 @@ class View extends EventDispatcher {
 		this._element.style.position = 'relative';
 		this._element.style.overflow = 'hidden';
 
-		this._contentPane = this._element.querySelector('.content-pane');
-		this._topLeftPane = this._element.querySelector('.top-left-pane');
-		this._topLeftInner = this._element.querySelector('.top-left-inner');
-		this._topPane = this._element.querySelector('.top-pane');
-		this._topInner = this._element.querySelector('.top-inner');
-		this._leftPane = this._element.querySelector('.left-pane');
-		this._leftInner = this._element.querySelector('.left-inner');
-		this._centerPane = this._element.querySelector('.center-pane');
-		this._centerInner = this._element.querySelector('.center-inner');
-		this._bottomPane = this._element.querySelector('.bottom-pane');
-		this._bottomInner = this._element.querySelector('.bottom-inner');
-		this._bottomLeftPane = this._element.querySelector('.bottom-left-pane');
-		this._bottomLeftInner = this._element.querySelector('.bottom-left-inner');
+		this._contentPane = this._element.querySelector('.pgrid-content-pane');
+		this._topLeftPane = this._element.querySelector('.pgrid-top-left-pane');
+		this._topLeftInner = this._element.querySelector('.pgrid-top-left-inner');
+		this._topPane = this._element.querySelector('.pgrid-top-pane');
+		this._topInner = this._element.querySelector('.pgrid-top-inner');
+		this._leftPane = this._element.querySelector('.pgrid-left-pane');
+		this._leftInner = this._element.querySelector('.pgrid-left-inner');
+		this._centerPane = this._element.querySelector('.pgrid-center-pane');
+		this._centerInner = this._element.querySelector('.pgrid-center-inner');
+		this._bottomPane = this._element.querySelector('.pgrid-bottom-pane');
+		this._bottomInner = this._element.querySelector('.pgrid-bottom-inner');
+		this._bottomLeftPane = this._element.querySelector('.pgrid-bottom-left-pane');
+		this._bottomLeftInner = this._element.querySelector('.pgrid-bottom-left-inner');
 
 		this._scrollWidth = this._measureScrollbarWidth();
 
-		this._hScroll = this._element.querySelector('.hscroll');
-		this._vScroll = this._element.querySelector('.vscroll');
-		this._hScrollThumb = this._element.querySelector('.hscroll-thumb');
-		this._vScrollThumb = this._element.querySelector('.vscroll-thumb');
+		this._hScroll = this._element.querySelector('.pgrid-hscroll');
+		this._vScroll = this._element.querySelector('.pgrid-vscroll');
+		this._hScrollThumb = this._element.querySelector('.pgrid-hscroll-thumb');
+		this._vScrollThumb = this._element.querySelector('.pgrid-vscroll-thumb');
 		this._hScroll.style.height = this._scrollWidth + 'px';
 		this._vScroll.style.width = this._scrollWidth + 'px';
 		this._hScrollThumb.style.height = this._scrollWidth + 'px';
@@ -245,14 +245,15 @@ class View extends EventDispatcher {
 	_renderCell (rowIndex, colIndex, pane, x, y, width, height) {
 		let data = this._data.getDataAt(rowIndex, colIndex);
 		let cell = document.createElement('div');
-		cell.className = 'cell';
+		let cellClasses = this._model.getCellClasses(rowIndex, colIndex);
+		cell.className = 'pgrid-cell ' + cellClasses.join(' ');
 		cell.style.left = x + 'px';
 		cell.style.top = y + 'px';
 		cell.style.width = width + 'px';
 		cell.style.height = height + 'px';
 
 		let cellContent = document.createElement('div');
-		cellContent.className = 'cell-content';
+		cellContent.className = 'pgrid-cell-content';
 		if (data !== undefined) {
 			cellContent.innerHTML = data;
 		}

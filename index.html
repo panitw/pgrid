@@ -15,7 +15,7 @@
 </head>
 <body>
 
-<div id="gridDiv" style="width: 650px; height: 180px;"></div>
+<div id="gridDiv" style="width: 650px; height: 204px;"></div>
 
 <script>
 	
@@ -30,14 +30,14 @@
 			left: 1
 		},
 		columns: [
-			{i: 0, width: 100, alignment: 'left', titleAlignment: 'left', cssClass: 'headerColumn'},
+			{i: 0, width: 100, alignment: 'left', titleAlignment: 'left'},
 		],
 		rows: [
-			{i: 0, cssClass: 'headerRow'},
-			{i: 5, cssClass: 'footerRow'}
+			{i: 0, type: 'header'},
+			{i: 5, type: 'footer'}
 		],
 		cells: [
-			{r: 0, c: 0, editable: true, cssClass: 'testCell'}
+			{r: 0, c: 0, editable: true}
 		],
 		dataModel: {
 			data: [

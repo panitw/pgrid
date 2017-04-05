@@ -23,7 +23,11 @@ class Model extends EventDispatcher {
 		}
 		if (this._config.cells) {
 			for (let i=0; i<this._config.cells.length; i++) {
-				this._rowModel[this._config.rows[i].i] = this._config.rows[i];
+				let model = this._config.cells[i];
+				if (!this._cellModel[model.c]) {
+					this._cellModel[model.c] = {};
+				}
+				this._cellModel[model.c][model.r] = model;
 			}
 		}
 
@@ -133,8 +137,36 @@ class Model extends EventDispatcher {
 		return this._columnModel[colIndex];		
 	}
 
-	getCellModel (rowIndex, colIndex) {
-
+	getCellClasses (rowIndex, colIndex) {
+		let output = [];
+		let colModel = this._columnModel[colIndex];
+		if (colModel) {
+			if (colModel.type == 'header') {
+				output.push('pgrid-column-header');
+			}
+			if (colModel.cssClass) {
+				output.push(colModel.cssClass);
+			}
+		}
+		let rowModel = this._rowModel[rowIndex];
+		if (rowModel) {
+			if (rowModel.type == 'header') {
+				output.push('pgrid-row-header');
+			} else
+			if (rowModel.type == 'footer') {
+				output.push('pgrid-row-footer');
+			}
+			if (rowModel.cssClass) {
+				output.push(rowModel.cssClass);
+			}
+		}
+		if (this._cellModel[colIndex] && this._cellModel[colIndex][rowIndex]) {
+			let cellModel = this._cellModel[colIndex][rowIndex];
+			if (cellModel.cssClass) {
+				output.push(cellModel.cssClass);
+			}
+		}
+		return output;
 	}
 
 	determineScrollbarState (viewWidth, viewHeight, scrollbarSize) {
