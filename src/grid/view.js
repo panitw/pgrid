@@ -70,28 +70,50 @@ class View extends EventDispatcher {
 		this._attachHandlers();
 	}
 
-	setScrollX (x) {
+	setScrollX (x, adjustScrollBar) {
 		this._topInner.scrollLeft = x;
 		this._centerInner.scrollLeft = x;
 		this._bottomInner.scrollLeft = x;
+		if (adjustScrollBar || adjustScrollBar === undefined) {
+			this._hScroll.scrollLeft = x;
+		}
 	}
 
-	setScrollY (y) {
+	getScrollX () {
+		return this._centerInner.scrollLeft;
+	}
+
+	setScrollY (y, adjustScrollBar) {
 		this._centerInner.scrollTop = y;
 		this._leftInner.scrollTop = y;
+		if (adjustScrollBar || adjustScrollBar === undefined) {
+			this._vScroll.scrollTop = y;
+		}
+	}
+
+	getScrollY () {
+		return this._centerInner.scrollTop;
 	}
 
 	_attachHandlers () {
 		this._vScrollHandler = (e) => {
-			this.setScrollY(e.target.scrollTop);
+			this.setScrollY(e.target.scrollTop, false);
 		};
 
 		this._hScrollHandler = (e) => {
-			this.setScrollX(e.target.scrollLeft);
+			this.setScrollX(e.target.scrollLeft, false);
+		};
+
+		this._wheelHandler = (e) => {
+			let currentX = this.getScrollX();
+			let currentY = this.getScrollY();
+			this.setScrollX(currentX + e.deltaX);
+			this.setScrollY(currentY + e.deltaY);
 		};
 
 		this._vScroll.addEventListener('scroll', this._vScrollHandler);
 		this._hScroll.addEventListener('scroll', this._hScrollHandler);
+		this._contentPane.addEventListener('wheel', this._wheelHandler);
 	}
 
 	_resturecture () {
