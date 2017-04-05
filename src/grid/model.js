@@ -9,6 +9,7 @@ class Model extends EventDispatcher {
 
 		this._columnModel = {};
 		this._rowModel = {};
+		this._cellModel = {};
 
 		if (this._config.columns) {
 			for (let i=0; i<this._config.columns.length; i++) {
@@ -17,6 +18,11 @@ class Model extends EventDispatcher {
 		}
 		if (this._config.rows) {
 			for (let i=0; i<this._config.rows.length; i++) {
+				this._rowModel[this._config.rows[i].i] = this._config.rows[i];
+			}
+		}
+		if (this._config.cells) {
+			for (let i=0; i<this._config.cells.length; i++) {
 				this._rowModel[this._config.rows[i].i] = this._config.rows[i];
 			}
 		}
@@ -94,14 +100,7 @@ class Model extends EventDispatcher {
 	}
 
 	getBottomFreezeSize () {
-		if (this._config.freezePane && this._config.freezePane.bottom > 0) {			
-			let sum = 0;
-			for (let i=0; i<this._config.freezePane.bottom; i++) {
-				sum += this.getRowHeight((this._config.rowCount-1)-i);
-			}
-			return sum;
-		}
-		return 0;
+		return this._bottomFreezeSize;
 	}
 
 	getColumnWidth (index) {
@@ -124,6 +123,18 @@ class Model extends EventDispatcher {
 
 	getTotalHeight () {
 		return this._totalHeight;
+	}
+
+	getRowModel (rowIndex) {
+		return this._rowModel[rowIndex];
+	}
+
+	getColumnModel (colIndex) {
+		return this._columnModel[colIndex];		
+	}
+
+	getCellModel (rowIndex, colIndex) {
+
 	}
 
 	determineScrollbarState (viewWidth, viewHeight, scrollbarSize) {
@@ -151,7 +162,8 @@ class Model extends EventDispatcher {
 
 	_calcTotalSize() {
 		this._calcTotalWidth();
-		this._calcTotalHeight();		
+		this._calcTotalHeight();
+		this._calcBottomFreezeSize();
 	}
 
 	_calcTotalWidth () {
@@ -169,15 +181,26 @@ class Model extends EventDispatcher {
 	_calcTotalHeight () {
 		let rowModelCount = Object.keys(this._rowModel);
 		this._totalHeight = this._config.rowHeight * (this._config.rowCount - rowModelCount.length);
-		for (let index in this._columnModel) {
-			if (this._columnModel[index].height !== undefined) {
-				this._totalHeight += this._columnModel[index].height;
+		for (let index in this._rowModel) {
+			if (this._rowModel[index].height !== undefined) {
+				this._totalHeight += this._rowModel[index].height;
 			} else {
 				this._totalHeight += this._config.rowHeight;
 			}
 		}
 	}
 
+	_calcBottomFreezeSize () {
+		if (this._config.freezePane && this._config.freezePane.bottom > 0) {			
+			let sum = 0;
+			for (let i=0; i<this._config.freezePane.bottom; i++) {
+				sum += this.getRowHeight((this._config.rowCount-1)-i);
+			}
+			this._bottomFreezeSize = sum;
+		} else {
+			this._bottomFreezeSize = 0;
+		}
+	}
 }
 
 module.exports = Model;
