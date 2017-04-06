@@ -15,9 +15,11 @@ class SelectionExtension {
 		if (selection && selection.length > 0) {
 			let rowIndex = selection[0].r;
 			let colIndex = selection[0].c;
+			let alignTop = true;
 			switch (e.keyCode) {
 				case 40: //Down
 					rowIndex++;
+					alignTop = false;
 					break;
 				case 38: //Up
 					rowIndex--;
@@ -39,6 +41,7 @@ class SelectionExtension {
 					let cell = this._grid.view.getCell(rowIndex, colIndex);
 					if (cell) {
 						this._selectCell(cell, rowIndex, colIndex);
+						this._grid.view.scrollToCell(rowIndex, colIndex, alignTop);
 					}
 				}
 			}
@@ -50,7 +53,7 @@ class SelectionExtension {
 
 		if (!rowModel || rowModel.type !== 'header') {
 			cell.children[0].style.pointerEvents = 'none';
-			cell.addEventListener('click', (e) => {
+			cell.addEventListener('mousedown', (e) => {
 				if (e.target.classList.contains('pgrid-cell')) {
 					this._selectCell(e.target, rowIndex, colIndex);
 				}

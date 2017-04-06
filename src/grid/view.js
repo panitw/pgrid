@@ -103,10 +103,24 @@ class View extends EventDispatcher {
 		return this._centerInner.scrollTop;
 	}
 
+	scrollToCell (rowIndex, colIndex, alignTop) {
+		let cell = this.getCell(rowIndex, colIndex);
+		let origScrollTop = cell.parentElement.scrollTop;
+		let origScrollLeft = cell.parentElement.scrollLeft;
+		cell.scrollIntoView(alignTop);
+
+		if (origScrollTop !== cell.parentElement.scrollTop) {
+			this.setScrollY(cell.parentElement.scrollTop, true);
+		}
+		if (origScrollLeft !== cell.parentElement.scrollLeft) {
+			this.setScrollX(cell.parentElement.scrollLeft, true);
+		}
+	}
+
 	getCell (rowIndex, colIndex) {
 		let cell = this._element.querySelector('[data-row-index="'+rowIndex+'"][data-col-index="'+colIndex+'"]');
 		return cell;
-	}
+	}	
 
 	_attachHandlers () {
 		this._vScrollHandler = (e) => {
