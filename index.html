@@ -11,6 +11,10 @@
 			font-size: 13px;
 		}
 
+		.footer-style {
+			font-weight: bold;
+		}
+
 	</style>
 </head>
 <body>
@@ -27,14 +31,14 @@
 		freezePane: {
 			top: 1,
 			bottom: 1,
-			left: 1
+			left: 2
 		},
 		columns: [
 			{i: 0, width: 100, alignment: 'left', titleAlignment: 'left'},
 		],
 		rows: [
 			{i: 0, type: 'header'},
-			{i: 5, type: 'footer'}
+			{i: 9, type: 'footer', cssClass: 'footer-style'}
 		],
 		cells: [
 			{r: 0, c: 0, editable: true}

@@ -14,7 +14,7 @@ class View extends EventDispatcher {
 							'		<div class="pgrid-top-inner" style="width: 100%; height: 100%; overflow: hidden; position: relative;"></div>' +
 							'	</div>' +
 							'	<div class="pgrid-left-pane" style="position: absolute;">' +
-							'		<div class="pgrid-left-inner" style="width: 100px; height: 100%; overflow: hidden; position: relative;"></div>' +
+							'		<div class="pgrid-left-inner" style="width: 100%; height: 100%; overflow: hidden; position: relative;"></div>' +
 							'	</div>' +
 							'	<div class="pgrid-center-pane" style="position: absolute;">' +
 							'		<div class="pgrid-center-inner" style="width: 100%; height: 100%; overflow: hidden; position: relative;"></div>' +
