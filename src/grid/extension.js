@@ -4,7 +4,8 @@ class Extension {
 		this._grid = grid;
 
 		this._extensions = {
-			cellAfterRender: []
+			cellAfterRender: [],
+			keyDown: []
 		}
 	}
 

@@ -2,6 +2,7 @@ import View from './view';
 import Model from './model';
 import Data from './data';
 import Extension from './extension';
+import State from './state';
 import EventDispatcher from './event';
 import Utils from './utils';
 
@@ -26,6 +27,7 @@ class PGrid extends EventDispatcher {
 		this._data = new Data(this._config.dataModel);
 		this._model = new Model(this._config, this._data);
 		this._view = new View(this._model, this._data, this._extensions);
+		this._state = new State();
 
 		//Load default extensions
 		if (this._config.selection) {
@@ -47,6 +49,10 @@ class PGrid extends EventDispatcher {
 
 	get extension() {
 		return this._extensions;
+	}
+
+	get state () {
+		return this._state;
 	}
 
 	render(element) {

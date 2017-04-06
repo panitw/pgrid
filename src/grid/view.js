@@ -42,6 +42,7 @@ class View extends EventDispatcher {
 		this._element.innerHTML = this._template;
 		this._element.style.position = 'relative';
 		this._element.style.overflow = 'hidden';
+		this._element.tabIndex = 1;
 
 		this._contentPane = this._element.querySelector('.pgrid-content-pane');
 		this._topLeftPane = this._element.querySelector('.pgrid-top-left-pane');
@@ -73,6 +74,10 @@ class View extends EventDispatcher {
 		this._attachHandlers();
 	}
 
+	getElement () {
+		return this._element;
+	}
+
 	setScrollX (x, adjustScrollBar) {
 		this._topInner.scrollLeft = x;
 		this._centerInner.scrollLeft = x;
@@ -98,6 +103,11 @@ class View extends EventDispatcher {
 		return this._centerInner.scrollTop;
 	}
 
+	getCell (rowIndex, colIndex) {
+		let cell = this._element.querySelector('[data-row-index="'+rowIndex+'"][data-col-index="'+colIndex+'"]');
+		return cell;
+	}
+
 	_attachHandlers () {
 		this._vScrollHandler = (e) => {
 			this.setScrollY(e.target.scrollTop, false);
@@ -114,9 +124,14 @@ class View extends EventDispatcher {
 			this.setScrollY(currentY + e.deltaY);
 		};
 
+		this._keyDownHandler = (e) => {
+			this._extensions.executeExtension('keyDown', e);
+		};
+
 		this._vScroll.addEventListener('scroll', this._vScrollHandler);
 		this._hScroll.addEventListener('scroll', this._hScrollHandler);
 		this._contentPane.addEventListener('wheel', this._wheelHandler);
+		this._element.addEventListener('keydown', this._keyDownHandler);
 	}
 
 	_resturecture () {
@@ -283,6 +298,8 @@ class View extends EventDispatcher {
 		cell.style.top = y + 'px';
 		cell.style.width = width + 'px';
 		cell.style.height = height + 'px';
+		cell.dataset.rowIndex = rowIndex;
+		cell.dataset.colIndex = colIndex;
 
 		let cellContent = document.createElement('div');
 		cellContent.className = 'pgrid-cell-content';
