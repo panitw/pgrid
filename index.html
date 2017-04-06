@@ -53,10 +53,10 @@
 <script>
 	
 	var options = {
-		columnCount: 10,
+		columnCount: 13,
 		rowCount: 8,
 		rowHeight: 28,
-		columnWidth: 100,
+		columnWidth: 90,
 		selection: {
 			cssClass: 'cell-selection'
 		},
@@ -74,7 +74,10 @@
 			{i: 6, cssClass: 'number-col'},
 			{i: 7, cssClass: 'number-col'},
 			{i: 8, cssClass: 'number-col'},
-			{i: 9, cssClass: 'number-col'}
+			{i: 9, cssClass: 'number-col'},
+			{i: 10, cssClass: 'number-col'},
+			{i: 11, cssClass: 'number-col'},
+			{i: 12, cssClass: 'number-col'}
 		],
 		rows: [
 			{i: 0, type: 'header', cssClass: 'header-row'},
@@ -86,14 +89,17 @@
 		],
 		dataModel: {
 			data: [
-				["PO Number","Balance Qty.","Original Qty.","Cut-off Inv.", "Issued Date", "03-Apr<br>(Mon)", "04-Apr<br>(Tue)", "05-Apr<br>(Wed)", "06-Apr<br>(Thu)", "07-Apr<br>(Fri)"],
-				["PO-0001", 1000, 2000, "INV-12345", "01-Apr-17", 0, 0, 0 ,0 ,0],
-				["PO-0002", 1000, 2000, "INV-12345", "01-Apr-17", 0, 0, 0 ,0 ,0],
-				["PO-0003", 1000, 2000, "INV-12345", "01-Apr-17", 0, 0, 0 ,0 ,0],
-				["PO-0004", 1000, 2000, "INV-12345", "01-Apr-17", 0, 0, 0 ,0 ,0],
-				["PO-0005", 1000, 2000, "INV-12345", "01-Apr-17", 0, 0, 0 ,0 ,0],
-				["", "", "", "", "Forecast", 0, 0, 0, 0, 0],
-				["", "", "", "", "Total Demand", 0, 0, 0, 0, 0]
+				["PO Number","Balance Qty.","Original Qty.","Cut-off Inv.", "Issued Date", 
+				  "03-Apr<br>(Mon)", "04-Apr<br>(Tue)", "05-Apr<br>(Wed)", "06-Apr<br>(Thu)", "07-Apr<br>(Fri)",
+				  "10-Apr<br>(WW16)", "17-Apr<br>(WW17)", "24-Apr<br>(WW18)"
+				],
+				["PO-0001", 1000, 2000, "INV-12345", "01-Apr-17", 0, 0, 0 ,0 ,0, 0 ,0 ,0],
+				["PO-0002", 1000, 2000, "INV-12345", "01-Apr-17", 0, 0, 0 ,0 ,0, 0 ,0 ,0],
+				["PO-0003", 1000, 2000, "INV-12345", "01-Apr-17", 0, 0, 0 ,0 ,0, 0 ,0 ,0],
+				["PO-0004", 1000, 2000, "INV-12345", "01-Apr-17", 0, 0, 0 ,0 ,0, 0 ,0 ,0],
+				["PO-0005", 1000, 2000, "INV-12345", "01-Apr-17", 0, 0, 0 ,0 ,0, 0 ,0 ,0],
+				["", "", "", "", "Forecast", 0, 0, 0, 0, 0, 0 ,0 ,0],
+				["", "", "", "", "Total Demand", 0, 0, 0, 0, 0, 0 ,0 ,0]
 			]
 		}
 	};
