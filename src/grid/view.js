@@ -1,4 +1,5 @@
-import EventDispatcher from './event'
+import EventDispatcher from './event';
+import ResizeObserver from 'resize-observer-polyfill';
 
 class View extends EventDispatcher {
 
@@ -32,7 +33,7 @@ class View extends EventDispatcher {
 							'</div>' +
 							'<div class="pgrid-vscroll" style="position: absolute; right: 0px; top: 0px; overflow-y: scroll; overflow-x: hidden;">' +
 							'	<div class="pgrid-vscroll-thumb" style="background-color: green;"></div>' +
-							'</div>';
+							'</div>';				
 	}
 
 	render (element) {
@@ -67,6 +68,7 @@ class View extends EventDispatcher {
 		this._hScrollThumb.style.height = this._scrollWidth + 'px';
 		this._vScrollThumb.style.width = this._scrollWidth + 'px';
 
+		this._observeSize();
 		this._resturecture();
 		this._attachHandlers();
 	}
@@ -154,6 +156,13 @@ class View extends EventDispatcher {
 		this._updateScrollBar();
 	}
 
+	_observeSize () {
+		this._resizeObserver = new ResizeObserver((entries, observer) => {
+			this._updateScrollBar();
+		});
+		this._resizeObserver.observe(this._element);
+	}
+
 	_updateScrollBar () {
 		let totalWidth = this._model.getTotalWidth();
 		let totalHeight = this._model.getTotalHeight();
@@ -185,7 +194,7 @@ class View extends EventDispatcher {
 				this._contentPane.style.height = '100%';
 				break;
 			case 'b':
-				this._vScroll.style.display = 'block';
+				this._hScroll.style.display = 'block';
 				this._vScroll.style.display = 'block';
 				this._hScroll.style.width = 'calc(100% - ' + this._scrollWidth + 'px)';
 				this._vScroll.style.height = 'calc(100% - ' + this._scrollWidth + 'px)';
