@@ -9,13 +9,22 @@
 		border-bottom: 1px solid @grid-cell-border;
 		border-right: 1px solid @grid-cell-border;
 		box-sizing: border-box;
-		background-color: @grid-cell-bg;
 
 		.pgrid-cell-content {
 			position: absolute;
 			top: 50%;
 			transform: translateY(-50%);
 			padding-left: 5px;
+		}
+
+		&.pgrid-cell-selection {
+			background-color: @grid-cell-selection-bg;
+			border: @grid-cell-selection-border;
+			padding-left: 0px;
+
+			.pgrid-cell-content {
+				padding-left: 4px;
+			}
 		}
 
 		.noselect();

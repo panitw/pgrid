@@ -2,10 +2,11 @@ import EventDispatcher from './event'
 
 class View extends EventDispatcher {
 
-	constructor (model, data) {
+	constructor (model, data, extensions) {
 		super();
 		this._model = model;
 		this._data = data;
+		this._extensions = extensions;
 		this._template = 	'<div class="pgrid-content-pane" style="position: relative;">' +
 							'	<div class="pgrid-top-left-pane" style="position: absolute;">' +
 							'		<div class="pgrid-top-left-inner" style="width: 100%; height: 100%; overflow: hidden; position: relative;"></div>' +
@@ -281,6 +282,8 @@ class View extends EventDispatcher {
 		}
 		cell.appendChild(cellContent);
 		pane.appendChild(cell);
+
+		this._extensions.executeExtension('cellAfterRender', cell, rowIndex, colIndex);
 	}
 
 	_measureScrollbarWidth () {

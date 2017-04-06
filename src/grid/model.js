@@ -142,28 +142,28 @@ class Model extends EventDispatcher {
 		let colModel = this._columnModel[colIndex];
 		if (colModel) {
 			if (colModel.type == 'header') {
-				output.push('pgrid-column-header');
+				output.unshift('pgrid-column-header');
 			}
 			if (colModel.cssClass) {
-				output.push(colModel.cssClass);
+				output.unshift(colModel.cssClass);
 			}
 		}
 		let rowModel = this._rowModel[rowIndex];
 		if (rowModel) {
 			if (rowModel.type == 'header') {
-				output.push('pgrid-row-header');
+				output.unshift('pgrid-row-header');
 			} else
 			if (rowModel.type == 'footer') {
-				output.push('pgrid-row-footer');
+				output.unshift('pgrid-row-footer');
 			}
 			if (rowModel.cssClass) {
-				output.push(rowModel.cssClass);
+				output.unshift(rowModel.cssClass);
 			}
 		}
 		if (this._cellModel[colIndex] && this._cellModel[colIndex][rowIndex]) {
 			let cellModel = this._cellModel[colIndex][rowIndex];
 			if (cellModel.cssClass) {
-				output.push(cellModel.cssClass);
+				output.unshift(cellModel.cssClass);
 			}
 		}
 		return output;
