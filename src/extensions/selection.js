@@ -4,7 +4,7 @@ class SelectionExtension {
 		this._grid = grid;
 		this._config = config;
 		this._currentSelection = null;
-		this._selectionClass = (this._config.selection.cssClass)?this._config.selection.cssClass:'pgrid-cell-selection';
+		this._selectionClass = (this._config.selection && this._config.selection.cssClass)?this._config.selection.cssClass:'pgrid-cell-selection';
 	}
 
 	keyDown (e) {
@@ -27,6 +27,8 @@ class SelectionExtension {
 				case 39: //Right
 					colIndex++;
 					break;
+				default:
+					return;
 			}
 			if (rowIndex >= 0 && rowIndex < this._grid.model.getRowCount() &&
 				colIndex >= 0 && colIndex < this._grid.model.getColumnCount()) {
@@ -45,17 +47,19 @@ class SelectionExtension {
 		}
 	}
 
-	cellAfterRender (cell, rowIndex, colIndex) {
-		let rowModel = this._grid.model.getRowModel(rowIndex);
-
-		if (!rowModel || rowModel.type !== 'header') {
-			cell.children[0].style.pointerEvents = 'none';
-			cell.addEventListener('mousedown', (e) => {
-				if (e.target.classList.contains('pgrid-cell')) {
-					this._selectCell(e.target, rowIndex, colIndex);
+	cellAfterRender (cell) {
+		cell.children[0].style.pointerEvents = 'none';
+		cell.addEventListener('mousedown', (e) => {
+			let actualCell = e.target;
+			let actualRow = actualCell.dataset.rowIndex;
+			let actualCol = actualCell.dataset.colIndex;
+			let rowModel = this._grid.model.getRowModel(actualRow);
+			if (!rowModel || rowModel.type !== 'header') {
+				if (actualCell.classList.contains('pgrid-cell')) {
+					this._selectCell(actualCell, actualRow, actualCol);
 				}
-			});
-		}
+			}
+		});
 	}
 
 	_selectCell (cell, rowIndex, colIndex) {

@@ -60,6 +60,7 @@
 		selection: {
 			cssClass: 'cell-selection'
 		},
+		editing: true,
 		freezePane: {
 			top: 1,
 			left: 5
@@ -70,22 +71,19 @@
 			{i: 2, cssClass: 'header-col'},
 			{i: 3, cssClass: 'header-col'},
 			{i: 4, cssClass: 'header-col'},
-			{i: 5, cssClass: 'number-col'},
-			{i: 6, cssClass: 'number-col'},
-			{i: 7, cssClass: 'number-col'},
-			{i: 8, cssClass: 'number-col'},
-			{i: 9, cssClass: 'number-col'},
-			{i: 10, cssClass: 'number-col'},
-			{i: 11, cssClass: 'number-col'},
-			{i: 12, cssClass: 'number-col'}
+			{i: 5, cssClass: 'number-col', editable: true},
+			{i: 6, cssClass: 'number-col', editable: true},
+			{i: 7, cssClass: 'number-col', editable: true},
+			{i: 8, cssClass: 'number-col', editable: true},
+			{i: 9, cssClass: 'number-col', editable: true},
+			{i: 10, cssClass: 'number-col', editable: true},
+			{i: 11, cssClass: 'number-col', editable: true},
+			{i: 12, cssClass: 'number-col', editable: true}
 		],
 		rows: [
-			{i: 0, type: 'header', cssClass: 'header-row'},
+			{i: 0, type: 'header', cssClass: 'header-row', editable: false},
 			{i: 6, cssClass: 'forecast-row'},
-			{i: 7, cssClass: 'total-row'}
-		],
-		cells: [
-			{r: 0, c: 0, editable: true}
+			{i: 7, cssClass: 'total-row', editable: false}
 		],
 		dataModel: {
 			data: [

@@ -323,7 +323,7 @@ class View extends EventDispatcher {
 		cell.appendChild(cellContent);
 		pane.appendChild(cell);
 
-		this._extensions.executeExtension('cellAfterRender', cell, rowIndex, colIndex);
+		this._extensions.executeExtension('cellAfterRender', cell);
 	}
 
 	_measureScrollbarWidth () {

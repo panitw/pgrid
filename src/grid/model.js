@@ -137,6 +137,12 @@ class Model extends EventDispatcher {
 		return this._columnModel[colIndex];		
 	}
 
+	getCellModel (rowIndex, colIndex) {
+		if (this._cellModel[colIndex]) {
+			return this._cellModel[colIndex][rowIndex];
+		}
+	}
+
 	getCellClasses (rowIndex, colIndex) {
 		let output = [];
 		let colModel = this._columnModel[colIndex];

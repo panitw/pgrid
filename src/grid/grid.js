@@ -7,6 +7,7 @@ import EventDispatcher from './event';
 import Utils from './utils';
 
 import SelectionExtension from '../extensions/selection';
+import EditorExtension from '../extensions/editor';
 
 class PGrid extends EventDispatcher {
 
@@ -33,6 +34,9 @@ class PGrid extends EventDispatcher {
 		//Load default extensions
 		if (this._config.selection) {
 			this._extensions.loadExtension(new SelectionExtension());
+		}
+		if (this._config.editing) {
+			this._extensions.loadExtension(new EditorExtension());
 		}
 	}
 
