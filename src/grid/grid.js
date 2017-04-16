@@ -13,17 +13,18 @@ class PGrid extends EventDispatcher {
 	constructor(config) {
 		super();
 
+		//Merge config with default config
 		let defaultConfig = {
 			rowCount: 0,
 			columnCount: 0,
 			rowHeight: 32,
 			columnWidth: 100
 		};
+		this._config = Utils.mixin(config, defaultConfig);
 
 		//Extensions Store
-		this._extensions = new Extension(this);
+		this._extensions = new Extension(this, this._config);
 
-		this._config = Utils.mixin(config, defaultConfig);
 		this._data = new Data(this._config.dataModel);
 		this._model = new Model(this._config, this._data);
 		this._view = new View(this._model, this._data, this._extensions);
@@ -31,7 +32,7 @@ class PGrid extends EventDispatcher {
 
 		//Load default extensions
 		if (this._config.selection) {
-			this._extensions.loadExtension(new SelectionExtension(this._config.selection));
+			this._extensions.loadExtension(new SelectionExtension());
 		}
 	}
 

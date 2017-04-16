@@ -1,7 +1,8 @@
 class Extension {
 
-	constructor (grid) {
+	constructor (grid, config) {
 		this._grid = grid;
+		this._config = config;
 
 		this._extensions = {
 			cellAfterRender: [],
@@ -11,7 +12,7 @@ class Extension {
 
 	loadExtension (ext) {
 		if (ext['init']) {
-			ext['init'](this._grid);
+			ext['init'](this._grid, this._config);
 		}
 		for (let extPoint in this._extensions) {
 			if (ext[extPoint]) {

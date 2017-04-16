@@ -1,13 +1,10 @@
 class SelectionExtension {
 
-	constructor (config) {
+	init (grid, config) {
+		this._grid = grid;
 		this._config = config;
 		this._currentSelection = null;
-		this._selectionClass = (this._config.cssClass)?this._config.cssClass:'pgrid-cell-selection';
-	}
-
-	init (grid) {
-		this._grid = grid;
+		this._selectionClass = (this._config.selection.cssClass)?this._config.selection.cssClass:'pgrid-cell-selection';
 	}
 
 	keyDown (e) {
