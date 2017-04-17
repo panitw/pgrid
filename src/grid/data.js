@@ -14,6 +14,12 @@ class Data extends EventDispatcher {
 		return undefined;
 	}
 
+	setDataAt (rowIndex, colIndex, data) {
+		if (!this._dataModel.data[rowIndex]) {
+			this._dataModel.data[rowIndex] = [];
+		}
+		this._dataModel.data[rowIndex][colIndex] = data;
+	}
 }
 
 module.exports = Data;

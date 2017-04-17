@@ -120,7 +120,33 @@ class View extends EventDispatcher {
 	getCell (rowIndex, colIndex) {
 		let cell = this._element.querySelector('[data-row-index="'+rowIndex+'"][data-col-index="'+colIndex+'"]');
 		return cell;
-	}	
+	}
+
+	updateCell (rowIndex, colIndex) {
+		let cell = this.getCell(rowIndex, colIndex);
+		if (cell) {
+			//Create cell content wrapper if not any
+			let cellContent = null;
+			if (!cell.firstChild || !cell.firstChild.classList.contains('pgrid-cell-content')) {
+				//Clear cell
+				cell.innerHTML = '';
+
+				//Add new cell content	
+				cellContent = document.createElement('div');
+				cellContent.className = 'pgrid-cell-content';				
+			} else {
+				cellContent = cell.firstChild;
+			}
+
+			//Render data
+			let data = this._data.getDataAt(rowIndex, colIndex);
+			if (data !== undefined) {
+				cellContent.innerHTML = data;
+			}
+
+			cell.appendChild(cellContent);
+		}
+	}
 
 	_attachHandlers () {
 		this._vScrollHandler = (e) => {

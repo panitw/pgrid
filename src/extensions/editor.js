@@ -5,23 +5,59 @@ class EditorExtension {
 		this._config = config;
 	}
 
+	keyDown (e) {
+		let selection = this._grid.state.get('selection');
+		if (selection && selection.length > 0) {
+			let rowIndex = selection[0].r;
+			let colIndex = selection[0].c;
+			let edit = false;
+			switch (e.keyCode) {
+				case 40: //Down
+				case 38: //Up
+				case 37: //Left
+				case 39: //Right
+				case 27: //ESC
+					return;
+				default:
+					edit = true;
+			}
+			if (rowIndex >= 0 && rowIndex < this._grid.model.getRowCount() &&
+				colIndex >= 0 && colIndex < this._grid.model.getColumnCount()) {
+				let cell = this._grid.view.getCell(rowIndex, colIndex);
+				if (cell) {
+					this._editCell(cell);
+				}
+			}
+		}
+
+	}
+
 	cellAfterRender (cell) {
 		cell.addEventListener('dblclick', (e) => {
 			let actualCell = e.target;
-			let actualRow = actualCell.dataset.rowIndex;
-			let actualCol = actualCell.dataset.colIndex;
-			if (this._canEdit(actualRow, actualCol)) {
-				//Get data to be edited
-				let data = this._grid.data.getDataAt(actualRow, actualCol);
-
-				//If there's custom editor, use custom editor to attach the editor
-				if (this._config.editing && this._config.editing.editor && this._config.editing.editor.attach) {
-					this._config.editing.editor.attach(actualCell, data, this._done.bind(this));
-				} else {
-					this._attachEditor(actualCell, data, this._done.bind(this));
-				}
+			if (actualCell) {
+				this._editCell(actualCell);
 			}
 		});
+	}
+
+	_editCell (cell) {
+		let actualCell = cell;
+		let actualRow = actualCell.dataset.rowIndex;
+		let actualCol = actualCell.dataset.colIndex;
+		if (this._canEdit(actualRow, actualCol)) {
+			//Get data to be edited
+			let data = this._grid.data.getDataAt(actualRow, actualCol);
+
+			//If there's custom editor, use custom editor to attach the editor
+			if (this._config.editing && this._config.editing.editor && this._config.editing.editor.attach) {
+				this._config.editing.editor.attach(actualCell, data, this._done.bind(this));
+			} else {
+				this._attachEditor(actualCell, data, this._done.bind(this));
+			}
+			this._editingCol = actualCol;
+			this._editingRow = actualRow;
+		}
 	}
 
 	_canEdit (rowIndex, colIndex) {
@@ -43,41 +79,57 @@ class EditorExtension {
 	}
 
 	_attachEditor (cell, data, done) {
-		let cellBound = cell.getBoundingClientRect();
-		let inputElement = document.createElement('input');
-		inputElement.type = 'text';
-		inputElement.value = data;
-		inputElement.style.width = cellBound.width + 'px';
-		inputElement.style.height = cellBound.height + 'px';
-		inputElement.className = 'pgrid-cell-text-editor';
-		cell.innerHTML = '';
-		cell.appendChild(inputElement);
+		if (!this._inputElement) {
+			let cellBound = cell.getBoundingClientRect();
+			this._inputElement = document.createElement('input');
+			this._inputElement.type = 'text';
+			this._inputElement.value = data;
+			this._inputElement.style.width = cellBound.width + 'px';
+			this._inputElement.style.height = cellBound.height + 'px';
+			this._inputElement.className = 'pgrid-cell-text-editor';
+			cell.innerHTML = '';
+			cell.appendChild(this._inputElement);
 
-		inputElement.focus();
-		inputElement.select();
+			this._inputElement.focus();
+			this._inputElement.select();
 
-		inputElement.addEventListener('keydown', (e) => {
-			switch (e.keyCode) {
-				case 13: //Enter
-					done(e.target.value);
-					break;
-				case 27: //ESC
-					done();
-					break;
-			}
-			e.stopPropagation();
-		});
+			this._keydownHandler = (e) => {
+				switch (e.keyCode) {
+					case 13: //Enter
+						done(e.target.value);
+						break;
+					case 27: //ESC
+						done();
+						break;
+				}
+				e.stopPropagation();
+			};
+			this._keydownHandler = this._keydownHandler.bind(this);
+
+			this._inputElement.addEventListener('keydown', this._keydownHandler);
+		}
 	}
 
-	_detachEditor (cell) {
-
+	_detachEditor () {
+		if (this._keydownHandler && this._inputElement) {
+			this._inputElement.removeEventListener('keydown', this._keydownHandler);
+			this._inputElement.parentElement.removeChild(this._inputElement);
+			this._inputElement = null;
+			this._keydownHandler = null;
+		}
 	}
 
 	_done (result) {
-		if (result !== undefined) {
-			console.log(result);
-		}
 		this._detachEditor();
+		if (result !== undefined) {
+			this._grid.data.setDataAt(this._editingRow, this._editingCol, result);
+		}
+		this._grid.view.updateCell(this._editingRow, this._editingCol);
+		this._editingRow = -1;
+		this._editingCol = -1;
+
+		//Re-focus at the grid
+		this._grid.view.getElement().focus();
 	}
 
 }
