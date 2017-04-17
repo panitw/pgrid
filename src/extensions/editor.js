@@ -99,17 +99,25 @@ class EditorExtension {
 				e.stopPropagation();
 			};
 			this._keydownHandler = this._keydownHandler.bind(this);
+			
+			this._blurHandler = (e) => {
+				done();
+			};
+			this._blurHandler = this._blurHandler.bind(this);
 
 			this._inputElement.addEventListener('keydown', this._keydownHandler);
+			this._inputElement.addEventListener('blur', this._blurHandler);
 		}
 	}
 
 	_detachEditor () {
-		if (this._keydownHandler && this._inputElement) {
+		if (this._inputElement) {
 			this._inputElement.removeEventListener('keydown', this._keydownHandler);
+			this._inputElement.removeEventListener('blur', this._blurHandler);
 			this._inputElement.parentElement.removeChild(this._inputElement);
 			this._inputElement = null;
 			this._keydownHandler = null;
+			this._blurHandler = null;
 		}
 	}
 
