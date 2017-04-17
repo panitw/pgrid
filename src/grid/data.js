@@ -20,6 +20,14 @@ class Data extends EventDispatcher {
 		}
 		this._dataModel.data[rowIndex][colIndex] = data;
 	}
+
+	getRowCount () {
+		if (this._dataModel.data) {
+			return this._dataModel.data.length;
+		} else {
+			return 0;
+		}
+	}
 }
 
 module.exports = Data;

@@ -11,17 +11,11 @@ class EditorExtension {
 			let rowIndex = selection[0].r;
 			let colIndex = selection[0].c;
 			let edit = false;
-			switch (e.keyCode) {
-				case 40: //Down
-				case 38: //Up
-				case 37: //Left
-				case 39: //Right
-				case 27: //ESC
-					return;
-				default:
-					edit = true;
+			if (e.keyCode > 31 && !(e.keyCode >= 37 && e.keyCode <= 40)) {
+				edit = true;
 			}
-			if (rowIndex >= 0 && rowIndex < this._grid.model.getRowCount() &&
+			if (edit && 
+				rowIndex >= 0 && rowIndex < this._grid.model.getRowCount() &&
 				colIndex >= 0 && colIndex < this._grid.model.getColumnCount()) {
 				let cell = this._grid.view.getCell(rowIndex, colIndex);
 				if (cell) {
@@ -43,8 +37,8 @@ class EditorExtension {
 
 	_editCell (cell) {
 		let actualCell = cell;
-		let actualRow = actualCell.dataset.rowIndex;
-		let actualCol = actualCell.dataset.colIndex;
+		let actualRow = parseInt(actualCell.dataset.rowIndex);
+		let actualCol = parseInt(actualCell.dataset.colIndex);
 		if (this._canEdit(actualRow, actualCol)) {
 			//Get data to be edited
 			let data = this._grid.data.getDataAt(actualRow, actualCol);
@@ -122,7 +116,30 @@ class EditorExtension {
 	_done (result) {
 		this._detachEditor();
 		if (result !== undefined) {
-			this._grid.data.setDataAt(this._editingRow, this._editingCol, result);
+			let okToUpdate = true;
+			if (this._config.editing.transform) {
+				result = this._config.editing.transform(result);
+			}
+			if (this._config.editing.beforeUpdateData) {
+				okToUpdate = this._config.editing.beforeUpdateData({
+					rowIndex: this._editingRow,
+					colIndex: this._editingCol,
+					inputValue: result,
+					grid: this._grid
+				});
+			}
+			if (okToUpdate === true || okToUpdate === undefined) {
+				this._grid.data.setDataAt(this._editingRow, this._editingCol, result);
+
+				if (this._config.editing.afterUpdateData) {
+					this._config.editing.afterUpdateData({
+						rowIndex: this._editingRow, 
+						colIndex: this._editingCol, 
+						inputValue: result, 
+						grid: this._grid
+					});
+				}
+			}
 		}
 		this._grid.view.updateCell(this._editingRow, this._editingCol);
 		this._editingRow = -1;

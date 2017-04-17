@@ -35,7 +35,6 @@
 		}
 
 		.total-row {
-			background-color: lightgray;
 			font-weight: bold;
 		}
 
@@ -60,17 +59,73 @@
 		selection: {
 			cssClass: 'cell-selection'
 		},
-		editing: true,
+		editing: {
+			transform: function (inputValue) {
+				return parseFloat(inputValue);
+			},
+			beforeUpdateData: function (e) {
+				return !isNaN(parseFloat(e.inputValue));
+			},
+			afterUpdateData: function (e) {
+				var rowCount = e.grid.model.getRowCount();
+				var colCount = e.grid.model.getColumnCount();
+				//Update total row
+				if (e.rowIndex === rowCount - 1) {
+					var balanceArray = [];
+					for (var i=1; i<rowCount-2; i++) {
+						balanceArray.push(e.grid.data.getDataAt(i, 1));
+					}
+					for (var i=5; i<colCount; i++) {
+						var colTotal = e.grid.data.getDataAt(rowCount-1, i);
+						for (var j=0; j<balanceArray.length; j++) {
+							var rowBalance = balanceArray[j];
+							if (colTotal <= rowBalance) {
+								rowBalance -= colTotal;
+								balanceArray[j] = rowBalance;
+								e.grid.data.setDataAt(j+1, i, colTotal);
+								e.grid.view.updateCell(j+1, i);
+								colTotal = 0;
+							} else
+							if (colTotal > rowBalance) {
+								e.grid.data.setDataAt(j+1, i, rowBalance);
+								e.grid.view.updateCell(j+1, i);
+								colTotal -= rowBalance;
+								rowBalance = 0;
+								balanceArray[j] = rowBalance;
+							} else
+							if (colTotal === 0) {
+								e.grid.data.setDataAt(j+1, i, 0);
+								e.grid.view.updateCell(j+1, i);
+							}
+						}
+						//Remaining amount added to forecast row
+						e.grid.data.setDataAt(rowCount - 2, i, colTotal);
+						e.grid.view.updateCell(rowCount - 2, i);
+					}
+				} else {
+					//Update normal row, calculate total
+					var total = 0;
+					for (var i=1; i<rowCount-1; i++) {
+						var data = e.grid.data.getDataAt(i, e.colIndex);
+						if (data !== undefined) {
+							total += data;
+						}
+					}
+					e.grid.data.setDataAt(rowCount - 1, e.colIndex, total);
+					e.grid.view.updateCell(rowCount - 1, e.colIndex);
+				}
+			}
+		},
 		freezePane: {
 			top: 1,
 			left: 5
 		},
 		columns: [
-			{i: 0, cssClass: 'header-col'},
-			{i: 1, cssClass: 'header-col'},
-			{i: 2, cssClass: 'header-col'},
-			{i: 3, cssClass: 'header-col'},
-			{i: 4, cssClass: 'header-col'},
+			{i: 0, cssClass: 'header-col', editable: false},
+			{i: 1, cssClass: 'header-col', editable: false},
+			{i: 2, cssClass: 'header-col', editable: false},
+			{i: 3, cssClass: 'header-col', editable: false},
+			{i: 4, cssClass: 'header-col', editable: false},
 			{i: 5, cssClass: 'number-col', editable: true},
 			{i: 6, cssClass: 'number-col', editable: true},
 			{i: 7, cssClass: 'number-col', editable: true},
@@ -83,7 +138,7 @@
 		rows: [
 			{i: 0, type: 'header', cssClass: 'header-row', editable: false},
 			{i: 6, cssClass: 'forecast-row'},
-			{i: 7, cssClass: 'total-row', editable: false}
+			{i: 7, cssClass: 'total-row'}
 		],
 		dataModel: {
 			data: [
@@ -96,8 +151,8 @@
 				["PO-0003", 1000, 2000, "INV-12345", "01-Apr-17", 0, 0, 0 ,0 ,0, 0 ,0 ,0],
 				["PO-0004", 1000, 2000, "INV-12345", "01-Apr-17", 0, 0, 0 ,0 ,0, 0 ,0 ,0],
 				["PO-0005", 1000, 2000, "INV-12345", "01-Apr-17", 0, 0, 0 ,0 ,0, 0 ,0 ,0],
-				["", "", "", "", "Forecast", 0, 0, 0, 0, 0, 0 ,0 ,0],
-				["", "", "", "", "Total Demand", 0, 0, 0, 0, 0, 0 ,0 ,0]
+				["Forecast", "", "", "", "", 0, 0, 0, 0, 0, 0 ,0 ,0],
+				["Total Demand", 5000, 10000, "", "", 0, 0, 0, 0, 0, 0 ,0 ,0]
 			]
 		}
 	};
