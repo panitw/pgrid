@@ -28,6 +28,10 @@ class Data extends EventDispatcher {
 			return 0;
 		}
 	}
+
+	getAllData () {
+		return this._dataModel.data;
+	}
 }
 
 module.exports = Data;

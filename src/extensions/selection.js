@@ -41,6 +41,8 @@ class SelectionExtension {
 					if (cell) {
 						this._selectCell(cell, rowIndex, colIndex);
 						this._grid.view.scrollToCell(rowIndex, colIndex, alignTop);
+						e.preventDefault();
+						e.stopPropagation();
 					}
 				}
 			}
@@ -48,7 +50,6 @@ class SelectionExtension {
 	}
 
 	cellAfterRender (cell) {
-		cell.children[0].style.pointerEvents = 'none';
 		cell.addEventListener('mousedown', (e) => {
 			let actualCell = e.target;
 			let actualRow = actualCell.dataset.rowIndex;

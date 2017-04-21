@@ -107,7 +107,11 @@ class View extends EventDispatcher {
 		let cell = this.getCell(rowIndex, colIndex);
 		let origScrollTop = cell.parentElement.scrollTop;
 		let origScrollLeft = cell.parentElement.scrollLeft;
-		cell.scrollIntoView(alignTop);
+		if (cell['scrollIntoViewIfNeeded']) {
+			cell.scrollIntoViewIfNeeded(false);
+		} else {
+			cell.scrollIntoView(alignTop);
+		}
 
 		if (origScrollTop !== cell.parentElement.scrollTop) {
 			this.setScrollY(cell.parentElement.scrollTop, true);
