@@ -87,26 +87,44 @@ class EditorExtension {
 			this._inputElement.focus();
 			this._inputElement.select();
 
+			this._arrowKeyLocked = false;
+
 			this._keydownHandler = (e) => {
 				switch (e.keyCode) {
 					case 13: //Enter
 						done(e.target.value);
+						e.stopPropagation();
 						break;
 					case 27: //ESC
 						done();
+						e.stopPropagation();
+						break;
+					case 40: //Down
+					case 38: //Up
+					case 37: //Left
+					case 39: //Right
+						if (!this._arrowKeyLocked) {
+							done(e.target.value);
+						} else {
+							e.stopPropagation();
+						}
 						break;
 				}
-				e.stopPropagation();
 			};
 			this._keydownHandler = this._keydownHandler.bind(this);
 			
 			this._blurHandler = (e) => {
-				done();
+				done(e.target.value);
 			};
 			this._blurHandler = this._blurHandler.bind(this);
 
+			this._clickHandler = (e) => {
+				this._arrowKeyLocked = true;
+			};
+
 			this._inputElement.addEventListener('keydown', this._keydownHandler);
 			this._inputElement.addEventListener('blur', this._blurHandler);
+			this._inputElement.addEventListener('click', this._clickHandler);
 		}
 	}
 
@@ -114,10 +132,12 @@ class EditorExtension {
 		if (this._inputElement) {
 			this._inputElement.removeEventListener('keydown', this._keydownHandler);
 			this._inputElement.removeEventListener('blur', this._blurHandler);
+			this._inputElement.removeEventListener('click', this._clickHandler);
 			this._inputElement.parentElement.removeChild(this._inputElement);
 			this._inputElement = null;
 			this._keydownHandler = null;
 			this._blurHandler = null;
+			this._clickHandler = null;
 		}
 	}
 
