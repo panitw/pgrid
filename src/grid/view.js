@@ -144,11 +144,20 @@ class View extends EventDispatcher {
 
 			//Render data
 			let data = this._data.getDataAt(rowIndex, colIndex);
-			if (data !== undefined) {
+			if (data !== undefined data !== null) {
 				cellContent.innerHTML = data;
+			} else {
+				cellContent.innerHTML = '';				
 			}
 
 			cell.appendChild(cellContent);
+
+			this._extensions.executeExtension('cellAfterUpdate', {
+				cell: cell,
+				rowIndex: rowIndex,
+				colIndex: colIndex,
+				data: data
+			});
 		}
 	}
 
@@ -353,7 +362,17 @@ class View extends EventDispatcher {
 		cell.appendChild(cellContent);
 		pane.appendChild(cell);
 
-		this._extensions.executeExtension('cellAfterRender', cell);
+		let eventArg = {
+			cell: cell,
+			rowIndex: rowIndex,
+			colIndex: colIndex,
+			data: data
+		};
+
+		this._extensions.executeExtension('cellAfterRender', eventArg);
+		this._extensions.executeExtension('cellAfterUpdate', eventArg);
+
+		eventArg = null;
 	}
 
 	_measureScrollbarWidth () {

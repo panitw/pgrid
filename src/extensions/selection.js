@@ -49,8 +49,8 @@ class SelectionExtension {
 		}
 	}
 
-	cellAfterRender (cell) {
-		cell.addEventListener('mousedown', (e) => {
+	cellAfterRender (e) {
+		e.cell.addEventListener('mousedown', (e) => {
 			let actualCell = e.target;
 			let actualRow = actualCell.dataset.rowIndex;
 			let actualCol = actualCell.dataset.colIndex;

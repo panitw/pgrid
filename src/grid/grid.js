@@ -38,6 +38,13 @@ class PGrid extends EventDispatcher {
 		if (this._config.editing) {
 			this._extensions.loadExtension(new EditorExtension());
 		}
+
+		//Load initial external extensions
+		if (this._config.extensions && this._config.extensions.length > 0) {
+			this._config.extensions.forEach((ext) => {
+				this._extensions.loadExtension(ext);
+			});
+		}
 	}
 
 	get view() {
