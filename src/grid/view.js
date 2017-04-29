@@ -144,7 +144,7 @@ class View extends EventDispatcher {
 
 			//Render data
 			let data = this._data.getDataAt(rowIndex, colIndex);
-			if (data !== undefined data !== null) {
+			if (data !== undefined && data !== null) {
 				cellContent.innerHTML = data;
 			} else {
 				cellContent.innerHTML = '';				
