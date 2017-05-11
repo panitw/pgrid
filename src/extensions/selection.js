@@ -25,6 +25,7 @@ class SelectionExtension {
 					colIndex--;
 					break;
 				case 39: //Right
+				case 9: //Tab
 					colIndex++;
 					break;
 				default:
