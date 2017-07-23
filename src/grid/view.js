@@ -29,10 +29,10 @@ class View extends EventDispatcher {
 							'	</div>' +
 							'</div>' +
 							'<div class="pgrid-hscroll" style="position: absolute; bottom: 0px; overflow-y: hidden; overflow-x: scroll;">' +
-							'	<div class="pgrid-hscroll-thumb" style="background-color: green;"></div>' +
+							'	<div class="pgrid-hscroll-thumb"></div>' +
 							'</div>' +
 							'<div class="pgrid-vscroll" style="position: absolute; right: 0px; top: 0px; overflow-y: scroll; overflow-x: hidden;">' +
-							'	<div class="pgrid-vscroll-thumb" style="background-color: green;"></div>' +
+							'	<div class="pgrid-vscroll-thumb"></div>' +
 							'</div>';				
 	}
 
@@ -107,11 +107,8 @@ class View extends EventDispatcher {
 		let cell = this.getCell(rowIndex, colIndex);
 		let origScrollTop = cell.parentElement.scrollTop;
 		let origScrollLeft = cell.parentElement.scrollLeft;
-		if (cell['scrollIntoViewIfNeeded']) {
-			cell.scrollIntoViewIfNeeded(false);
-		} else {
-			cell.scrollIntoView(alignTop);
-		}
+
+		cell.scrollIntoViewIfNeeded(false);
 
 		if (origScrollTop !== cell.parentElement.scrollTop) {
 			this.setScrollY(cell.parentElement.scrollTop, true);
@@ -162,6 +159,7 @@ class View extends EventDispatcher {
 	}
 
 	_attachHandlers () {
+
 		this._vScrollHandler = (e) => {
 			this.setScrollY(e.target.scrollTop, false);
 		};
@@ -185,6 +183,7 @@ class View extends EventDispatcher {
 		this._hScroll.addEventListener('scroll', this._hScrollHandler);
 		this._contentPane.addEventListener('wheel', this._wheelHandler);
 		this._element.addEventListener('keydown', this._keyDownHandler);
+
 	}
 
 	_resturecture () {
@@ -397,7 +396,32 @@ class View extends EventDispatcher {
 		var w2 = inner.offsetWidth;
 		if (w1 == w2) w2 = outer.clientWidth;
 		document.body.removeChild (outmost);
-		return (w1 - w2);
+		return (w1 - w2) + (this._detectIE()?1:0);
+	}
+
+
+	_detectIE () {
+	  var ua = window.navigator.userAgent;
+	  var msie = ua.indexOf('MSIE ');
+	  if (msie > 0) {
+	    // IE 10 or older => return version number
+	    return parseInt(ua.substring(msie + 5, ua.indexOf('.', msie)), 10);
+	  }
+
+	  var trident = ua.indexOf('Trident/');
+	  if (trident > 0) {
+	    // IE 11 => return version number
+	    var rv = ua.indexOf('rv:');
+	    return parseInt(ua.substring(rv + 3, ua.indexOf('.', rv)), 10);
+	  }
+
+	  var edge = ua.indexOf('Edge/');
+	  if (edge > 0) {
+	    // Edge (IE 12+) => return version number
+	    return parseInt(ua.substring(edge + 5, ua.indexOf('.', edge)), 10);
+	  }
+	  // other browser
+	  return false;
 	}
 }
 
