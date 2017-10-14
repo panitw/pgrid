@@ -74,7 +74,7 @@
 			}
 		}
 	};
-	
+
 	var options = {
 		columnCount: 13,
 		rowCount: 12,
@@ -91,9 +91,10 @@
 				return !isNaN(parseFloat(e.inputValue));
 			},
 			afterUpdateData: function (e) {
-				
+
 			}
 		},
+		copypaste: true,
 		freezePane: {
 			top: 1,
 			left: 5,
@@ -127,7 +128,7 @@
 		],
 		dataModel: {
 			data: [
-				["PO Number","Balance Qty.","Original Qty.","Cut-off Inv.", "Issued Date", 
+				["PO Number","Balance Qty.","Original Qty.","Cut-off Inv.", "Issued Date",
 				  "03-Apr<br>(Mon)", "04-Apr<br>(Tue)", "05-Apr<br>(Wed)", "06-Apr<br>(Thu)", "07-Apr<br>(Fri)",
 				  "10-Apr<br>(WW16)", "17-Apr<br>(WW17)", "24-Apr<br>(WW18)"
 				],
@@ -148,7 +149,7 @@
 			signColorExtension
 		]
 	};
-	
+
 	var grid = new PGrid(options);
 	grid.render(document.getElementById('gridDiv'));
 </script>

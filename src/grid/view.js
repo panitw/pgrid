@@ -33,7 +33,7 @@ class View extends EventDispatcher {
 							'</div>' +
 							'<div class="pgrid-vscroll" style="position: absolute; right: 0px; top: 0px; overflow-y: scroll; overflow-x: hidden;">' +
 							'	<div class="pgrid-vscroll-thumb"></div>' +
-							'</div>';				
+							'</div>';
 	}
 
 	render (element) {
@@ -72,6 +72,10 @@ class View extends EventDispatcher {
 		this._observeSize();
 		this._resturecture();
 		this._attachHandlers();
+
+		this._extensions.executeExtension('gridAfterRender', {
+			grid: this
+		});
 	}
 
 	getElement () {
@@ -132,9 +136,9 @@ class View extends EventDispatcher {
 				//Clear cell
 				cell.innerHTML = '';
 
-				//Add new cell content	
+				//Add new cell content
 				cellContent = document.createElement('div');
-				cellContent.className = 'pgrid-cell-content';				
+				cellContent.className = 'pgrid-cell-content';
 			} else {
 				cellContent = cell.firstChild;
 			}
@@ -144,7 +148,7 @@ class View extends EventDispatcher {
 			if (data !== undefined && data !== null) {
 				cellContent.innerHTML = data;
 			} else {
-				cellContent.innerHTML = '';				
+				cellContent.innerHTML = '';
 			}
 
 			cell.appendChild(cellContent);

@@ -8,6 +8,7 @@ import Utils from './utils';
 
 import SelectionExtension from '../extensions/selection';
 import EditorExtension from '../extensions/editor';
+import CopyPasteExtension from '../extensions/copypaste';
 
 class PGrid extends EventDispatcher {
 
@@ -37,6 +38,9 @@ class PGrid extends EventDispatcher {
 		}
 		if (this._config.editing) {
 			this._extensions.loadExtension(new EditorExtension());
+		}
+		if (this._config.copypaste) {
+			this._extensions.loadExtension(new CopyPasteExtension());
 		}
 
 		//Load initial external extensions
@@ -73,4 +77,4 @@ class PGrid extends EventDispatcher {
 
 }
 
-module.exports = PGrid; 
+module.exports = PGrid;

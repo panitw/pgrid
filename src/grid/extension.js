@@ -7,7 +7,8 @@ class Extension {
 		this._extensions = {
 			cellAfterRender: [],
 			cellAfterUpdate: [],
-			keyDown: []
+			keyDown: [],
+			gridAfterRender: []
 		}
 	}
 

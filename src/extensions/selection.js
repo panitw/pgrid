@@ -53,8 +53,8 @@ class SelectionExtension {
 	cellAfterRender (e) {
 		e.cell.addEventListener('mousedown', (e) => {
 			let actualCell = e.target;
-			let actualRow = actualCell.dataset.rowIndex;
-			let actualCol = actualCell.dataset.colIndex;
+			let actualRow = parseInt(actualCell.dataset.rowIndex);
+			let actualCol = parseInt(actualCell.dataset.colIndex);
 			let rowModel = this._grid.model.getRowModel(actualRow);
 			if (!rowModel || rowModel.type !== 'header') {
 				if (actualCell.classList.contains('pgrid-cell')) {

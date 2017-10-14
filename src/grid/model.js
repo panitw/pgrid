@@ -14,7 +14,7 @@ class Model extends EventDispatcher {
 		if (this._config.columns) {
 			for (let i=0; i<this._config.columns.length; i++) {
 				this._columnModel[this._config.columns[i].i] = this._config.columns[i];
-			}			
+			}
 		}
 		if (this._config.rows) {
 			for (let i=0; i<this._config.rows.length; i++) {
@@ -32,6 +32,24 @@ class Model extends EventDispatcher {
 		}
 
 		this._calcTotalSize();
+	}
+
+	canEdit (rowIndex, colIndex) {
+		let rowModel = this.getRowModel(rowIndex);
+		let colModel = this.getColumnModel(colIndex);
+		let cellModel = this.getCellModel(rowIndex, colIndex);
+
+		if ((rowModel && rowModel.editable) ||
+			(colModel && colModel.editable) ||
+			(cellModel && cellModel.editable)) {
+			if ((rowModel && rowModel.editable === false) ||
+				(colModel && colModel.editable === false) ||
+				(cellModel && cellModel.editable === false)) {
+				return false;
+			}
+			return true;
+		}
+		return false;
 	}
 
 	getColumnWidth (colIndex) {
@@ -134,7 +152,7 @@ class Model extends EventDispatcher {
 	}
 
 	getColumnModel (colIndex) {
-		return this._columnModel[colIndex];		
+		return this._columnModel[colIndex];
 	}
 
 	getCellModel (rowIndex, colIndex) {
@@ -229,7 +247,7 @@ class Model extends EventDispatcher {
 	}
 
 	_calcBottomFreezeSize () {
-		if (this._config.freezePane && this._config.freezePane.bottom > 0) {			
+		if (this._config.freezePane && this._config.freezePane.bottom > 0) {
 			let sum = 0;
 			for (let i=0; i<this._config.freezePane.bottom; i++) {
 				sum += this.getRowHeight((this._config.rowCount-1)-i);

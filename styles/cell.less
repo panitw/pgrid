@@ -2,7 +2,7 @@
 @import "utils.less";
 
 .cell() {
-	
+
 	.pgrid-cell {
 
 		position: absolute;
@@ -18,13 +18,14 @@
 			transform: translateY(-50%);
 			padding-left: 5px;
 			width: calc(100% - 10px);
+
+			.noselect();
 		}
 
 		&.pgrid-cell-selection {
 			background-color: @grid-cell-selection-bg;
 		}
 
-		.noselect();
-	
+		.selectable();
 	}
 }
