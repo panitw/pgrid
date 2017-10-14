@@ -61,7 +61,7 @@ class CopyPasteExtension {
 
     _paste(data) {
         if (data) {
-            data = data.trim();
+            data = data.replace(/\n$/g, '');
             let selection = this._grid.state.get('selection');
             if (selection && selection.length > 0) {
                 let s = selection[0];
