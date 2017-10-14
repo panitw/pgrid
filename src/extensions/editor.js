@@ -94,9 +94,11 @@ class EditorExtension {
 					case 13: //Enter
 						done(e.target.value);
 						e.stopPropagation();
+						e.preventDefault();
 						break;
 					case 27: //ESC
 						done();
+						e.preventDefault();
 						e.stopPropagation();
 						break;
 					case 40: //Down
@@ -106,6 +108,7 @@ class EditorExtension {
 						if (!this._arrowKeyLocked) {
 							done(e.target.value);
 						} else {
+							e.preventDefault();
 							e.stopPropagation();
 						}
 						break;
