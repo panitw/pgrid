@@ -6,6 +6,7 @@ class Data extends EventDispatcher {
 		super();
 		this._dataModel = dataModel;
 		this._extension = extension;
+		this._blockEvent = false;
 	}
 
 	getDataAt (rowIndex, colIndex) {
@@ -22,14 +23,23 @@ class Data extends EventDispatcher {
 			data: data,
 			cancel: false
 		};
-		this._extension.executeExtension('dataBeforeUpdate', beforeUpdateArg);
+		if (!this._blockEvent) {
+			this._blockEvent = true;
+			this._extension.executeExtension('dataBeforeUpdate', beforeUpdateArg);
+			this._blockEvent = false;
+		}
 		if (!beforeUpdateArg.cancel) {
 			if (!this._dataModel.data[rowIndex]) {
 				this._dataModel.data[rowIndex] = [];
 			}
 			this._dataModel.data[rowIndex][colIndex] = beforeUpdateArg.data;
-			this._extension.executeExtension('dataAfterUpdate', beforeUpdateArg);
+			if (!this._blockEvent) {
+				this._blockEvent = true;
+				this._extension.executeExtension('dataAfterUpdate', beforeUpdateArg);
+				this._blockEvent = false;
+			}
 		}
+		this._updating = false;
 	}
 
 	getRowCount () {

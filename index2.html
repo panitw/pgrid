@@ -82,6 +82,10 @@
 			} else {
 				e.cancel = true;
 			}
+		},
+		dataAfterUpdate: function (e) {
+			grid.data.setDataAt(e.rowIndex, e.colIndex + 1, 100);
+			grid.view.updateCell(e.rowIndex, e.colIndex + 1);
 		}
 	}
 
