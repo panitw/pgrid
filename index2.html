@@ -75,6 +75,16 @@
 		}
 	};
 
+	var dataUpdateExtension = {
+		dataBeforeUpdate: function (e) {
+			if (!isNaN(parseFloat(e.data))) {
+				e.data = parseFloat(e.data);
+			} else {
+				e.cancel = true;
+			}
+		}
+	}
+
 	var options = {
 		columnCount: 13,
 		rowCount: 12,
@@ -83,17 +93,7 @@
 		selection: {
 			cssClass: 'cell-selection'
 		},
-		editing: {
-			transform: function (inputValue) {
-				return parseFloat(inputValue);
-			},
-			beforeUpdateData: function (e) {
-				return !isNaN(parseFloat(e.inputValue));
-			},
-			afterUpdateData: function (e) {
-
-			}
-		},
+		editing: true,
 		copypaste: true,
 		freezePane: {
 			top: 1,
@@ -146,7 +146,8 @@
 			]
 		},
 		extensions: [
-			signColorExtension
+			signColorExtension,
+			dataUpdateExtension
 		]
 	};
 

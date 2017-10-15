@@ -2,9 +2,10 @@ import EventDispatcher from './event';
 
 class Data extends EventDispatcher {
 
-	constructor (dataModel) {
+	constructor (dataModel, extension) {
 		super();
 		this._dataModel = dataModel;
+		this._extension = extension;
 	}
 
 	getDataAt (rowIndex, colIndex) {
@@ -15,10 +16,20 @@ class Data extends EventDispatcher {
 	}
 
 	setDataAt (rowIndex, colIndex, data) {
-		if (!this._dataModel.data[rowIndex]) {
-			this._dataModel.data[rowIndex] = [];
+		const beforeUpdateArg = {
+			rowIndex: rowIndex,
+			colIndex: colIndex,
+			data: data,
+			cancel: false
+		};
+		this._extension.executeExtension('dataBeforeUpdate', beforeUpdateArg);
+		if (!beforeUpdateArg.cancel) {
+			if (!this._dataModel.data[rowIndex]) {
+				this._dataModel.data[rowIndex] = [];
+			}
+			this._dataModel.data[rowIndex][colIndex] = beforeUpdateArg.data;
+			this._extension.executeExtension('dataAfterUpdate', beforeUpdateArg);
 		}
-		this._dataModel.data[rowIndex][colIndex] = data;
 	}
 
 	getRowCount () {

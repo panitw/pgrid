@@ -27,7 +27,7 @@ class PGrid extends EventDispatcher {
 		//Extensions Store
 		this._extensions = new Extension(this, this._config);
 
-		this._data = new Data(this._config.dataModel);
+		this._data = new Data(this._config.dataModel, this._extensions);
 		this._model = new Model(this._config, this._data);
 		this._view = new View(this._model, this._data, this._extensions);
 		this._state = new State();

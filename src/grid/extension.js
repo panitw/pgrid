@@ -8,7 +8,9 @@ class Extension {
 			cellAfterRender: [],
 			cellAfterUpdate: [],
 			keyDown: [],
-			gridAfterRender: []
+			gridAfterRender: [],
+			dataBeforeUpdate: [],
+			dataAfterUpdate: []
 		}
 	}
 
