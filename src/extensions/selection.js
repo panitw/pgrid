@@ -93,4 +93,4 @@ class SelectionExtension {
 
 }
 
-module.exports = SelectionExtension;
+export default SelectionExtension;

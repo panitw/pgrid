@@ -77,4 +77,4 @@ class PGrid extends EventDispatcher {
 
 }
 
-module.exports = PGrid;
+export default PGrid;

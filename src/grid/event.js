@@ -35,4 +35,4 @@ class EventDispatcher {
 
 }
 
-module.exports = EventDispatcher;
+export default EventDispatcher;

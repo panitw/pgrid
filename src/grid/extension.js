@@ -41,4 +41,4 @@ class Extension {
 
 }
 
-module.exports = Extension;
+export default Extension;

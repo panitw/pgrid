@@ -55,4 +55,4 @@ class Data extends EventDispatcher {
 	}
 }
 
-module.exports = Data;
+export default Data;

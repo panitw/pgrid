@@ -429,4 +429,4 @@ class View extends EventDispatcher {
 	}
 }
 
-module.exports = View;
+export default View;

@@ -10,7 +10,8 @@
     "vinyl-source-stream": "^1.1.0"
   },
   "scripts": {
-    "build": "babel src -d dist"
+    "build": "babel src -d dist",
+    "start": "babel src -d dist --watch"
   },
   "dependencies": {
     "gulp-less": "^3.3.0",

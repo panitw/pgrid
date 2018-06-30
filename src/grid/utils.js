@@ -10,4 +10,4 @@ class Utils {
 	}
 }
 
-module.exports = Utils;
+export default Utils;

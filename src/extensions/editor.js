@@ -142,4 +142,4 @@ class EditorExtension {
 
 }
 
-module.exports = EditorExtension;
+export default EditorExtension;

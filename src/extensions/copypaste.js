@@ -83,4 +83,4 @@ class CopyPasteExtension {
 
 }
 
-module.exports = CopyPasteExtension;
+export default CopyPasteExtension;
