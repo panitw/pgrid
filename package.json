@@ -1,4 +1,14 @@
 {
+  "name": "pgrid",
+  "version": "1.0.0",
+  "main": "src/index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/panitw/pgrid.git"
+  },
+  "keywords": [],
+  "author": "Panit Wechasil",
+  "license": "MIT",
   "devDependencies": {
     "babel-cli": "^6.23.0",
     "babel-preset-env": "^1.2.1",
@@ -10,8 +20,8 @@
     "vinyl-source-stream": "^1.1.0"
   },
   "scripts": {
-    "build": "babel src -d dist",
-    "start": "babel src -d dist --watch"
+    "build": "npx gulp build",
+    "start": "npx gulp"
   },
   "dependencies": {
     "gulp-less": "^3.3.0",
