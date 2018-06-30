@@ -16,6 +16,10 @@ class Data extends EventDispatcher {
 		return undefined;
 	}
 
+	insertRow (rowIndex, data) {
+		
+	}
+
 	setDataAt (rowIndex, colIndex, data) {
 		const beforeUpdateArg = {
 			rowIndex: rowIndex,

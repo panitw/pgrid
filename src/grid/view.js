@@ -145,6 +145,12 @@ class View extends EventDispatcher {
 
 			//Render data
 			let data = this._data.getDataAt(rowIndex, colIndex);
+
+			//Data cab be transformed before rendering using dataBeforeRender extension
+			let arg = {data: data};
+			this._extensions.executeExtension('dataBeforeRender', arg);
+			data = arg.data;
+
 			if (data !== undefined && data !== null) {
 				cellContent.innerHTML = data;
 			} else {
@@ -347,6 +353,12 @@ class View extends EventDispatcher {
 
 	_renderCell (rowIndex, colIndex, pane, x, y, width, height) {
 		let data = this._data.getDataAt(rowIndex, colIndex);
+
+		//Data cab be transformed before rendering using dataBeforeRender extension
+		let arg = {data: data};
+		this._extensions.executeExtension('dataBeforeRender', arg);
+		data = arg.data;
+
 		let cell = document.createElement('div');
 		let cellClasses = this._model.getCellClasses(rowIndex, colIndex);
 		cell.className = 'pgrid-cell ' + cellClasses.join(' ');

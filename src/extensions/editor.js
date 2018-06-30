@@ -12,7 +12,7 @@ class EditorExtension {
 				let rowIndex = selection[0].r;
 				let colIndex = selection[0].c;
 				let edit = false;
-				if (e.keyCode > 31 && !(e.keyCode >= 37 && e.keyCode <= 40)) {
+				if (e.keyCode === 13 || (e.keyCode > 31 && !(e.keyCode >= 37 && e.keyCode <= 40))) {
 					edit = true;
 				}
 				if (edit &&
@@ -45,8 +45,9 @@ class EditorExtension {
 			let data = this._grid.data.getDataAt(actualRow, actualCol);
 
 			//If there's custom editor, use custom editor to attach the editor
-			if (this._config.editing && this._config.editing.editor && this._config.editing.editor.attach) {
-				this._config.editing.editor.attach(actualCell, data, this._done.bind(this));
+			let customEditor = this._grid.model.getCascadedCellProp(actualCell.dataset.rowIndex, actualCell.dataset.colIndex, 'editor');
+			if (customEditor && customEditor.attach) {
+				customEditor.attach(actualCell, data, this._done.bind(this));
 			} else {
 				this._attachEditor(actualCell, data, this._done.bind(this));
 			}

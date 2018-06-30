@@ -161,6 +161,19 @@ class Model extends EventDispatcher {
 		}
 	}
 
+	getCascadedCellProp (rowIndex, colIndex, propName) {
+		if (this._cellModel[colIndex] && this._cellModel[colIndex][rowIndex] && this._cellModel[colIndex][rowIndex][propName]) {
+			return this._cellModel[colIndex][rowIndex];
+		} else
+		if (this._rowModel[rowIndex] && this._rowModel[rowIndex][propName]) {
+			return this._rowModel[rowIndex][propName];
+		} else
+		if (this._columnModel[colIndex] && this._columnModel[colIndex][propName]) {
+			return this._columnModel[colIndex][propName];
+		}
+		return undefined;
+	} 
+
 	getCellClasses (rowIndex, colIndex) {
 		let output = [];
 		let colModel = this._columnModel[colIndex];
