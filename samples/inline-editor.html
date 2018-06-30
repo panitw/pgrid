@@ -7,21 +7,22 @@
 	<style>
 
 		html,body {
-			font-family: Arial;
-			font-size: 12px;
+			font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+			font-size: 14px;
 			height: 100%;
 			margin: 0;
 			padding: 0;
+			color: #3e515b;
 		}
 
 		.header-row {
-			background-color: #c0c0c0 !important;
+			background-color: #e4e6eb !important;
 			font-weight: bold;
 			text-align: center !important;
 		}
 
 		.edited-row {
-			background-color: #ecebab !important;
+			background-color: #feecc9 !important;
 		}
 
 		.header-col {
@@ -88,9 +89,8 @@
 	
 	var options = {
 		columnCount: 26,
-		rowCount: 4,
-		rowHeight: 32,
-		columnWidth: 90,
+		rowHeight: 47,
+		columnWidth: 100,
 		selection: {
 			cssClass: 'cell-selection'
 		},
@@ -102,7 +102,7 @@
 		columns: [
 			{i: 0, width: 50, cssClass: "checkbox-col"},
 			{i: 1},
-			{i: 2, width: 100, editable: true, cssClass: "number-col col-editable"},
+			{i: 2, width: 110, editable: true, cssClass: "number-col col-editable"},
 			{i: 3, editable: true, cssClass: 'col-editable'},
 			{i: 4, width: 200, editable: true, cssClass: 'col-editable'},
 			{i: 5, width: 200},

@@ -75,6 +75,21 @@ class PGrid extends EventDispatcher {
 		this._view.render(element);
 	}
 
+	addRow(rowData) {
+		this.insertRow(this.data.getRowCount(), rowData);
+	}
+
+	insertRow(atIndex, rowData) {
+		this.data.insertRow(atindex, rowData);
+		
+		let modelRowCount = this.model.getRowCount();
+		let dataRowCount = this.data.getRowCount();
+		if (modelRowCount < dataRowCount) {
+			let diff = dataRowCount - modelRowCount;
+			
+		}
+	}
+
 }
 
 export default PGrid;

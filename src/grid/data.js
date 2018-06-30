@@ -16,10 +16,6 @@ class Data extends EventDispatcher {
 		return undefined;
 	}
 
-	insertRow (rowIndex, data) {
-		
-	}
-
 	setDataAt (rowIndex, colIndex, data) {
 		const beforeUpdateArg = {
 			rowIndex: rowIndex,
@@ -56,6 +52,14 @@ class Data extends EventDispatcher {
 
 	getAllData () {
 		return this._dataModel.data;
+	}
+
+	addRow (rowData) {
+		this.insertRow(this.getRowCount(), rowData);
+	}
+
+	insertRow (atIndex, rowData) {
+		this._dataModel.data.splice(atIndex, 0, rowData);
 	}
 }
 

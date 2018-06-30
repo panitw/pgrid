@@ -168,6 +168,8 @@ class View extends EventDispatcher {
 		}
 	}
 
+	
+
 	_attachHandlers () {
 
 		this._vScrollHandler = (e) => {

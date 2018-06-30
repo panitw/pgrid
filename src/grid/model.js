@@ -75,7 +75,11 @@ class Model extends EventDispatcher {
 	}
 
 	getRowCount () {
-		return this._config.rowCount;
+		if (this._config.rowCount) {
+			return this._config.rowCount;
+		} else {
+			return this._data.getRowCount();
+		}
 	}
 
 	getTopFreezeRows () {
