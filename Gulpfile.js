@@ -1,6 +1,5 @@
 const gulp = require('gulp');
 const browserify = require('browserify');
-const babelify = require('babelify');
 const source = require('vinyl-source-stream');
 const less = require('gulp-less');
 
@@ -27,5 +26,7 @@ gulp.task('watch', ['build'], function () {
     gulp.watch('src/**/*.js', ['build']);
     gulp.watch('styles/**/*.less', ['build:css']);
 });
+
+gulp.task('build-all', ['build', 'build:css']);
 
 gulp.task('default', ['build', 'build:css', 'watch']);
