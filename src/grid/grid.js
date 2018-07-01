@@ -10,7 +10,7 @@ import SelectionExtension from '../extensions/selection';
 import EditorExtension from '../extensions/editor';
 import CopyPasteExtension from '../extensions/copypaste';
 
-class PGrid extends EventDispatcher {
+export class PGrid extends EventDispatcher {
 
 	constructor(config) {
 		super();
@@ -91,5 +91,3 @@ class PGrid extends EventDispatcher {
 	}
 
 }
-
-export default PGrid;

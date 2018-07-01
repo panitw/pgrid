@@ -1,4 +1,4 @@
-import PGrid from './grid/grid';
+import { PGrid } from './grid/grid';
 
 window.PGrid = PGrid;
 
