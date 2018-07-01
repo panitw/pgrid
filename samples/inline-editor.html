@@ -15,40 +15,40 @@
 			color: #3e515b;
 		}
 
-		.header-row {
+		.grid-header-row {
 			background-color: #e4e6eb !important;
 			font-weight: bold;
 			text-align: center !important;
 		}
 
-		.edited-row {
+		.grid-edited-row {
 			background-color: #feecc9 !important;
 		}
 
-		.header-col {
+		.grid-header-col {
 			background-color: lightgray;
 			text-align: center;
 		}
 
-		.number-col {
+		.grid-number-col {
 			text-align: right;
 		}
 
-		.checkbox-col .pgrid-cell-content {
+		.grid-checkbox-col .pgrid-cell-content {
 			text-align: center;
 			padding-left: 0px !important;
 		}
 
-		.cell-selection {
+		.grid-cell-selection {
 			background-color: #cecece !important;
 		}
 
-		.cell-editable.col-editable {
+		.grid-cell-editable.grid-col-editable {
 			font-weight: bold;
 		}
 
-		.cell-editable.col-editable::before,
-		.cell-editable.col-editable::after {
+		.grid-cell-editable.grid-col-editable::before,
+		.grid-cell-editable.grid-col-editable::after {
 			content: '';
 			position: absolute;
 			top: 0;
@@ -57,7 +57,7 @@
 			border-style: solid;
 		}
 
-		.cell-editable.col-editable::after {
+		.grid-cell-editable.grid-col-editable::after {
 			border-width: 4px;
 			border-right-color: red;
 			border-top-color: red;
@@ -92,7 +92,7 @@
 		rowHeight: 47,
 		columnWidth: 100,
 		selection: {
-			cssClass: 'cell-selection'
+			cssClass: 'grid-cell-selection'
 		},
 		editing: true,
 		freezePane: {
@@ -100,36 +100,36 @@
 			left: 2
 		},
 		columns: [
-			{i: 0, width: 50, cssClass: "checkbox-col"},
+			{i: 0, width: 50, cssClass: "grid-checkbox-col"},
 			{i: 1},
-			{i: 2, width: 110, editable: true, cssClass: "number-col col-editable"},
-			{i: 3, editable: true, cssClass: 'col-editable'},
-			{i: 4, width: 200, editable: true, cssClass: 'col-editable'},
+			{i: 2, width: 110, editable: true, cssClass: "grid-number-col grid-col-editable"},
+			{i: 3, editable: true, cssClass: 'grid-col-editable'},
+			{i: 4, width: 200, editable: true, cssClass: 'grid-col-editable'},
 			{i: 5, width: 200},
-			{i: 6, width: 200, editable: true, cssClass: 'col-editable'},
-			{i: 7, width: 200, editable: true, cssClass: 'col-editable'},
-			{i: 8, editable: true, cssClass: 'col-editable'},
-			{i: 9, cssClass: 'number-col'},
-			{i: 10, cssClass: 'number-col col-editable', editable: true},
-			{i: 11, width: 40, cssClass: "checkbox-col"},
-			{i: 12, cssClass: 'number-col'},
-			{i: 13, cssClass: 'number-col'},
-			{i: 14, editable: true, cssClass: 'col-editable'},
-			{i: 15, editable: true, cssClass: 'col-editable'},
+			{i: 6, width: 200, editable: true, cssClass: 'grid-col-editable'},
+			{i: 7, width: 200, editable: true, cssClass: 'grid-col-editable'},
+			{i: 8, editable: true, cssClass: 'grid-col-editable'},
+			{i: 9, cssClass: 'grid-number-col'},
+			{i: 10, cssClass: 'grid-number-col grid-col-editable', editable: true},
+			{i: 11, width: 40, cssClass: "grid-checkbox-col"},
+			{i: 12, cssClass: 'grid-number-col'},
+			{i: 13, cssClass: 'grid-number-col'},
+			{i: 14, editable: true, cssClass: 'grid-col-editable'},
+			{i: 15, editable: true, cssClass: 'grid-col-editable'},
 			{i: 16},
-			{i: 17, cssClass: "checkbox-col"},
+			{i: 17, cssClass: "grid-checkbox-col"},
 			{i: 18},
-			{i: 19, width: 200, editable: true, cssClass: 'col-editable'},
-			{i: 20, width: 200, editable: true, cssClass: 'col-editable'},
-			{i: 21, editable: true, cssClass: 'col-editable'},
+			{i: 19, width: 200, editable: true, cssClass: 'grid-col-editable'},
+			{i: 20, width: 200, editable: true, cssClass: 'grid-col-editable'},
+			{i: 21, editable: true, cssClass: 'grid-col-editable'},
 			{i: 22, width: 100},
 			{i: 23, width: 100}
 		],
 		rows: [
-			{i: 0, type: 'header', cssClass: 'header-row', editable: false},
+			{i: 0, type: 'header', cssClass: 'grid-header-row', editable: false},
 			{i: 1, editable: false},
-			{i: 2, cssClass: 'edited-row cell-editable'},
-			{i: 3, cssClass: 'edited-row cell-editable'},
+			{i: 2, cssClass: 'grid-edited-row grid-cell-editable'},
+			{i: 3, cssClass: 'grid-edited-row grid-cell-editable'},
 		],
 		dataModel: {
 			data: [
