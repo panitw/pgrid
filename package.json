@@ -18,14 +18,14 @@
     "gulp": "^3.9.1",
     "gulp-rename": "^1.3.0",
     "resize-observer-polyfill": "^1.4.2",
-    "vinyl-source-stream": "^1.1.0"
+    "vinyl-source-stream": "^1.1.0",
+    "gulp-less": "^3.3.0",
+    "less": "^2.7.2"
   },
   "scripts": {
     "build": "npx gulp build-all",
     "start": "npx gulp"
   },
   "dependencies": {
-    "gulp-less": "^3.3.0",
-    "less": "^2.7.2"
   }
 }
