@@ -1,0 +1,75 @@
+.pgrid {
+  box-sizing: border-box;
+  border: 1px solid #AAAAAA;
+  background-color: #FFFFFF;
+}
+.pgrid .pgrid-cell {
+  position: absolute;
+  border-bottom: 1px solid #CCCCCC;
+  border-right: 1px solid #CCCCCC;
+  box-sizing: border-box;
+  cursor: default;
+  -webkit-touch-callout: text;
+  /* iOS Safari */
+  -webkit-user-select: text;
+  /* Safari */
+  -khtml-user-select: text;
+  /* Konqueror HTML */
+  -moz-user-select: text;
+  /* Firefox */
+  -ms-user-select: text;
+  /* Internet Explorer/Edge */
+  user-select: text;
+  /* Non-prefixed version, currently
+                                  supported by Chrome and Opera */
+}
+.pgrid .pgrid-cell .pgrid-cell-content {
+  pointer-events: none;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  padding-left: 5px;
+  width: calc(90%);
+  -webkit-touch-callout: none;
+  /* iOS Safari */
+  -webkit-user-select: none;
+  /* Safari */
+  -khtml-user-select: none;
+  /* Konqueror HTML */
+  -moz-user-select: none;
+  /* Firefox */
+  -ms-user-select: none;
+  /* Internet Explorer/Edge */
+  user-select: none;
+  /* Non-prefixed version, currently
+                                  supported by Chrome and Opera */
+}
+.pgrid .pgrid-cell.pgrid-cell-selection {
+  background-color: rgba(255, 165, 0, 0.2);
+}
+.pgrid .pgrid-row-header {
+  background-color: #F3F3F3;
+}
+.pgrid .pgrid-column-header {
+  background-color: #F3F3F3;
+}
+.pgrid ::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+.pgrid ::-webkit-scrollbar-thumb {
+  background: #AAAAAA;
+  border: 0px none #FFFFFF;
+}
+.pgrid ::-webkit-scrollbar-track {
+  background: #EEEEEE;
+  border: 0px none #FFFFFF;
+}
+.pgrid ::-webkit-scrollbar-corner {
+  background: transparent;
+}
+.pgrid .pgrid-cell-text-editor {
+  border: none;
+  outline: none;
+  padding-left: 5px;
+}
