@@ -319,6 +319,7 @@ export class Model extends EventDispatcher {
 	}
 
 	_calcTotalWidth () {
+		this._totalWidth = 0;
 		for (let i=0; i<this._columnModel.length; i++) {
 			if (this._columnModel[i].width !== undefined) {
 				this._totalWidth += this._columnModel[i].width;
@@ -329,8 +330,18 @@ export class Model extends EventDispatcher {
 	}
 
 	_calcTotalHeight () {
+		let headerRowModelCount = Object.keys(this._headerRowModel);
+		this._totalHeight = this._config.rowHeight * (this._config.headerRowCount - headerRowModelCount.length);
+		for (let index in this._headerRowModel) {
+			if (this._headerRowModel[index].height !== undefined) {
+				this._totalHeight += this._headerRowModel[index].height;
+			} else {
+				this._totalHeight += this._config.rowHeight;
+			}
+		}
+
 		let rowModelCount = Object.keys(this._rowModel);
-		this._totalHeight = this._config.rowHeight * (this._data.getRowCount() - rowModelCount.length);
+		this._totalHeight += this._config.rowHeight * (this._data.getRowCount() - rowModelCount.length);
 		for (let index in this._rowModel) {
 			if (this._rowModel[index].height !== undefined) {
 				this._totalHeight += this._rowModel[index].height;
