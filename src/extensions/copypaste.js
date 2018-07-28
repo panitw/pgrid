@@ -1,4 +1,4 @@
-class CopyPasteExtension {
+export class CopyPasteExtension {
 
     constructor() {
         this._globalClipboard = false;
@@ -82,5 +82,3 @@ class CopyPasteExtension {
     }
 
 }
-
-export default CopyPasteExtension;

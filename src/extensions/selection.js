@@ -1,4 +1,4 @@
-class SelectionExtension {
+export class SelectionExtension {
 
 	init (grid, config) {
 		this._grid = grid;
@@ -92,5 +92,3 @@ class SelectionExtension {
 	}
 
 }
-
-export default SelectionExtension;

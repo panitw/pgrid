@@ -1,4 +1,4 @@
-class EditorExtension {
+export class EditorExtension {
 
 	init (grid, config) {
 		this._grid = grid;
@@ -142,5 +142,3 @@ class EditorExtension {
 	}
 
 }
-
-export default EditorExtension;

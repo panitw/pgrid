@@ -1,4 +1,4 @@
-class EventDispatcher {
+export class EventDispatcher {
 
 	constructor() {
 		this._handlers = {};
@@ -34,5 +34,3 @@ class EventDispatcher {
 	}
 
 }
-
-export default EventDispatcher;

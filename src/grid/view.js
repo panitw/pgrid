@@ -1,12 +1,11 @@
-import EventDispatcher from './event';
+import { EventDispatcher } from './event';
 import ResizeObserver from 'resize-observer-polyfill';
 
-class View extends EventDispatcher {
+export class View extends EventDispatcher {
 
-	constructor (model, data, extensions) {
+	constructor (model, extensions) {
 		super();
 		this._model = model;
-		this._data = data;
 		this._extensions = extensions;
 		this._template = 	'<div class="pgrid-content-pane" style="position: relative;">' +
 							'	<div class="pgrid-top-left-pane" style="position: absolute;">' +
@@ -144,7 +143,7 @@ class View extends EventDispatcher {
 			}
 
 			//Render data
-			let data = this._data.getDataAt(rowIndex, colIndex);
+			let data = this._model.getDataAt(rowIndex, colIndex);
 
 			//Data cab be transformed before rendering using dataBeforeRender extension
 			let arg = {data: data};
@@ -354,7 +353,7 @@ class View extends EventDispatcher {
 	}
 
 	_renderCell (rowIndex, colIndex, pane, x, y, width, height) {
-		let data = this._data.getDataAt(rowIndex, colIndex);
+		let data = this._model.getDataAt(rowIndex, colIndex);
 
 		//Data cab be transformed before rendering using dataBeforeRender extension
 		let arg = {data: data};
@@ -442,5 +441,3 @@ class View extends EventDispatcher {
 	  return false;
 	}
 }
-
-export default View;

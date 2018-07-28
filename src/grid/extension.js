@@ -1,4 +1,4 @@
-class Extension {
+export class Extension {
 
 	constructor (grid, config) {
 		this._grid = grid;
@@ -41,5 +41,3 @@ class Extension {
 	}
 
 }
-
-export default Extension;

@@ -1,6 +1,6 @@
-import EventDispatcher from './event';
+import { EventDispatcher } from './event';
 
-class Data extends EventDispatcher {
+export class Data extends EventDispatcher {
 
 	constructor (dataModel, extension) {
 		super();
@@ -50,17 +50,4 @@ class Data extends EventDispatcher {
 		}
 	}
 
-	getAllData () {
-		return this._dataModel.data;
-	}
-
-	addRow (rowData) {
-		this.insertRow(this.getRowCount(), rowData);
-	}
-
-	insertRow (atIndex, rowData) {
-		this._dataModel.data.splice(atIndex, 0, rowData);
-	}
 }
-
-export default Data;

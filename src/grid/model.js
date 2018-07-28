@@ -1,19 +1,32 @@
-import EventDispatcher from './event';
+import { EventDispatcher } from './event';
 
-class Model extends EventDispatcher {
+export class Model extends EventDispatcher {
 
 	constructor (config, data) {
 		super();
 		this._config = config;
 		this._data = data;
 
-		this._columnModel = {};
+		this._columnModel = [];
 		this._rowModel = {};
+		this._headerRowModel = {};
 		this._cellModel = {};
+		this._headerCellModel = {};
 
+		if (this._config.headerRows) {
+			for (let i=0; i<this._config.headerRows.length; i++) {
+				if (this._config.headerRows[i].i !== undefined) {
+					this._headerRowModel[this._config.headerRows[i].i] = this._config.headerRows[i];
+				}
+			}
+		}
 		if (this._config.columns) {
 			for (let i=0; i<this._config.columns.length; i++) {
-				this._columnModel[this._config.columns[i].i] = this._config.columns[i];
+				if (this._config.columns[i].i !== undefined) {
+					this._columnModel[this._config.columns[i].i] = this._config.columns[i];
+				} else {
+					this._columnModel[i] = this._config.columns[i];
+				}
 			}
 		}
 		if (this._config.rows) {
@@ -30,26 +43,40 @@ class Model extends EventDispatcher {
 				this._cellModel[model.c][model.r] = model;
 			}
 		}
+		if (this._config.headerCells) {
+			for (let i=0; i<this._config.headerCells.length; i++) {
+				let model = this._config.headerCells[i];
+				if (!this._headerCellModel[model.c]) {
+					this._headerCellModel[model.c] = {};
+				}
+				this._headerCellModel[model.c][model.r] = model;
+			}
+		}
 
 		this._calcTotalSize();
 	}
 
 	canEdit (rowIndex, colIndex) {
-		let rowModel = this.getRowModel(rowIndex);
-		let colModel = this.getColumnModel(colIndex);
-		let cellModel = this.getCellModel(rowIndex, colIndex);
+		if (this._isHeaderRow(rowIndex)) {
 
-		if ((rowModel && rowModel.editable) ||
-			(colModel && colModel.editable) ||
-			(cellModel && cellModel.editable)) {
-			if ((rowModel && rowModel.editable === false) ||
-				(colModel && colModel.editable === false) ||
-				(cellModel && cellModel.editable === false)) {
-				return false;
+		} else {
+			const dataRowIndex = rowIndex - this._config.headerRowCount;
+			let rowModel = this.getRowModel(dataRowIndex);
+			let colModel = this.getColumnModel(colIndex);
+			let cellModel = this.getCellModel(rowIndex, colIndex);
+	
+			if ((rowModel && rowModel.editable) ||
+				(colModel && colModel.editable) ||
+				(cellModel && cellModel.editable)) {
+				if ((rowModel && rowModel.editable === false) ||
+					(colModel && colModel.editable === false) ||
+					(cellModel && cellModel.editable === false)) {
+					return false;
+				}
+				return true;
 			}
-			return true;
+			return false;	
 		}
-		return false;
 	}
 
 	getColumnWidth (colIndex) {
@@ -62,42 +89,48 @@ class Model extends EventDispatcher {
 	}
 
 	getRowHeight (rowIndex) {
-		let rowModel = this._rowModel[rowIndex];
-		if (rowIndex && rowIndex.height !== undefined) {
-			return rowModel.height;
+		if (this._isHeaderRow(rowIndex)) {
+
 		} else {
-			return this._config.rowHeight;
+			const dataRowIndex = rowIndex - this._config.headerRowCount;
+			let rowModel = this._rowModel[dataRowIndex];
+			if (rowModel && rowModel.height !== undefined) {
+				return rowModel.height;
+			} else {
+				return this._config.rowHeight;
+			}	
 		}
 	}
 
 	getColumnCount () {
-		return this._config.columnCount;
+		return this._config.columns.length;
 	}
 
 	getRowCount () {
-		if (this._config.rowCount) {
-			return this._config.rowCount;
-		} else {
-			return this._data.getRowCount();
-		}
+		let headerRowCount = this._config.headerRowCount;
+		return headerRowCount + this._data.getRowCount();
 	}
 
 	getTopFreezeRows () {
-		if (this._config.freezePane && this._config.freezePane.top > 0) {
-			return this._config.freezePane.top;
+		let topFreeze = 0;
+		if (this._config.headerRowCount !== undefined) {
+			topFreeze += this._config.headerRowCount; 
+		} else {
+			topFreeze += 1;
 		}
-		return 0;
+		if (this._config.freezePane && this._config.freezePane.top > 0) {
+			topFreeze += this._config.freezePane.top;
+		}
+		return topFreeze;
 	}
 
 	getTopFreezeSize () {
-		if (this._config.freezePane && this._config.freezePane.top > 0) {
-			let sum = 0;
-			for (let i=0; i<this._config.freezePane.top; i++) {
-				sum += this.getRowHeight(i);
-			}
-			return sum;
+		const topFreezeRow = this.getTopFreezeRows(); 
+		let sum = 0;
+		for (let i=0; i<topFreezeRow; i++) {
+			sum += this.getRowHeight(i);
 		}
-		return 0;
+		return sum;
 	}
 
 	getLeftFreezeRows () {
@@ -152,7 +185,12 @@ class Model extends EventDispatcher {
 	}
 
 	getRowModel (rowIndex) {
-		return this._rowModel[rowIndex];
+		if (this._isHeaderRow(rowIndex)) {
+			return this._headerRowModel[rowIndex];
+		} else {
+			const dataRowIndex = rowIndex - this._config.headerRowCount;
+			return this._rowModel[dataRowIndex];
+		}
 	}
 
 	getColumnModel (colIndex) {
@@ -160,49 +198,59 @@ class Model extends EventDispatcher {
 	}
 
 	getCellModel (rowIndex, colIndex) {
-		if (this._cellModel[colIndex]) {
-			return this._cellModel[colIndex][rowIndex];
+		if (this._isHeaderRow(rowIndex)) {
+			if (this._headerCellModel[colIndex]) {
+				return this._headerCellModel[colIndex][rowIndex];
+			}
+		} else {
+			const dataRowIndex = rowIndex - this._config.headerRowCount;
+			if (this._cellModel[colIndex]) {
+				return this._cellModel[colIndex][dataRowIndex];
+			}	
 		}
 	}
 
 	getCascadedCellProp (rowIndex, colIndex, propName) {
-		if (this._cellModel[colIndex] && this._cellModel[colIndex][rowIndex] && this._cellModel[colIndex][rowIndex][propName]) {
-			return this._cellModel[colIndex][rowIndex];
-		} else
-		if (this._rowModel[rowIndex] && this._rowModel[rowIndex][propName]) {
-			return this._rowModel[rowIndex][propName];
-		} else
-		if (this._columnModel[colIndex] && this._columnModel[colIndex][propName]) {
-			return this._columnModel[colIndex][propName];
+		const cellModel = this.getCellModel(rowIndex, cellIndex);
+		if (cellModel && cellModel[propName]) {
+			return cellModel[propName];
 		}
+
+		const rowModel = this.getRowModel(rowIndex);
+		if (rowModel && rowModel[propName]) {
+			return rowModel[propName];
+		}
+
+		const columnModel = this.getColumnModel(colIndex);
+		if (columnModel && columnModel[propName]) {
+			return columnModel[propName];
+		}
+
 		return undefined;
-	} 
+	}
 
 	getCellClasses (rowIndex, colIndex) {
 		let output = [];
-		let colModel = this._columnModel[colIndex];
+		const colModel = this.getColumnModel(colIndex);
 		if (colModel) {
-			if (colModel.type == 'header') {
-				output.unshift('pgrid-column-header');
-			}
 			if (colModel.cssClass) {
 				output.unshift(colModel.cssClass);
 			}
 		}
-		let rowModel = this._rowModel[rowIndex];
+
+		const isHeader = this._isHeaderRow(rowIndex);
+		const rowModel = this.getRowModel(rowIndex);
 		if (rowModel) {
-			if (rowModel.type == 'header') {
+			if (isHeader) {
 				output.unshift('pgrid-row-header');
-			} else
-			if (rowModel.type == 'footer') {
-				output.unshift('pgrid-row-footer');
 			}
 			if (rowModel.cssClass) {
 				output.unshift(rowModel.cssClass);
 			}
 		}
-		if (this._cellModel[colIndex] && this._cellModel[colIndex][rowIndex]) {
-			let cellModel = this._cellModel[colIndex][rowIndex];
+
+		const cellModel = this.getCellModel(rowIndex, colIndex);
+		if (cellModel) {
 			if (cellModel.cssClass) {
 				output.unshift(cellModel.cssClass);
 			}
@@ -233,6 +281,37 @@ class Model extends EventDispatcher {
 		return 'n';
 	}
 
+	getDataAt (rowIndex, colIndex) {
+		if (this._isHeaderRow(rowIndex)) {
+			const colModel = this.getColumnModel(colIndex);
+			if (colModel && colModel.title) {
+				return colModel.title;
+			} else {
+				return undefined;
+			}
+		} else {
+			const dataRowIndex = rowIndex - this._config.headerRowCount;
+			const colModel = this.getColumnModel(colIndex);
+			if (colModel && colModel.field) {
+				return this._data.getDataAt(dataRowIndex, colModel.field);
+			} else {
+				return undefined;
+			}	
+		}
+	}
+
+	setDataAt (rowIndex, colIndex, data) {
+		const dataRowIndex = rowIndex - this._config.headerRowCount;
+		const colModel = this.getColumnModel(colIndex);
+		if (colModel && colModel.field) {
+			this._data.getDataAt(dataRowIndex, colModel.field, data);
+		}
+	}
+
+	_isHeaderRow(rowIndex) {
+		return rowIndex < this._config.headerRowCount;
+	}
+
 	_calcTotalSize() {
 		this._calcTotalWidth();
 		this._calcTotalHeight();
@@ -240,11 +319,9 @@ class Model extends EventDispatcher {
 	}
 
 	_calcTotalWidth () {
-		let colModelCount = Object.keys(this._columnModel);
-		this._totalWidth = this._config.columnWidth * (this._config.columnCount - colModelCount.length);
-		for (let index in this._columnModel) {
-			if (this._columnModel[index].width !== undefined) {
-				this._totalWidth += this._columnModel[index].width;
+		for (let i=0; i<this._columnModel.length; i++) {
+			if (this._columnModel[i].width !== undefined) {
+				this._totalWidth += this._columnModel[i].width;
 			} else {
 				this._totalWidth += this._config.columnWidth;
 			}
@@ -253,7 +330,7 @@ class Model extends EventDispatcher {
 
 	_calcTotalHeight () {
 		let rowModelCount = Object.keys(this._rowModel);
-		this._totalHeight = this._config.rowHeight * (this._config.rowCount - rowModelCount.length);
+		this._totalHeight = this._config.rowHeight * (this._data.getRowCount() - rowModelCount.length);
 		for (let index in this._rowModel) {
 			if (this._rowModel[index].height !== undefined) {
 				this._totalHeight += this._rowModel[index].height;
@@ -275,5 +352,3 @@ class Model extends EventDispatcher {
 		}
 	}
 }
-
-export default Model;

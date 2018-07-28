@@ -1,24 +1,49 @@
-import EventDispatcher from "../grid/event";
+import { EventDispatcher } from "../grid/event";
 
 export class DataTable extends EventDispatcher {
     
-    constructor (initialData) {
+    constructor (dataModel) {
         super();
 
         this._idRunner = 0;
         this._rid = [];
         this._rowMap = {};
 
-        if (Array.isArray(initialData)) {
-            this._data = initialData;
-            for (let i=0; i<this._data.length; i++) {
-                let rid = this._generateRowId();
-                this._rid.push(rid);
-                this._rowMap[rid] = this._data[i];
+        let { format, data, fields } = dataModel;
+
+        // Set default format at rows
+        if (!format) {
+            format = 'rows';
+        }
+
+        if (Array.isArray(data)) {
+            if (format === 'rows') {
+                this._data = data;
+                for (let i=0; i<this._data.length; i++) {
+                    let rid = this._generateRowId();
+                    this._rid.push(rid);
+                    this._rowMap[rid] = this._data[i];
+                }
+            } else
+            if (format === 'array') {
+                if (Array.isArray(fields)) {
+                    this._data = [];
+                    for (let i=0; i<data.length; i++) {
+                        let rid = this._generateRowId();
+                        this._rid.push(rid);
+                        let newObj = this._createObject(data[i], fields);
+                        this._rowMap[rid] = newObj;
+                        this._data.push(newObj);
+                    }
+                }
             }
         } else {
             this._data = [];
         }
+    }
+
+    getRowCount () {
+        return this._data.length;
     }
 
     getData (rowId, field) {
@@ -65,7 +90,7 @@ export class DataTable extends EventDispatcher {
         this._rowMap[newRowId] = rowData;
     }
 
-    removeRow (rid) {
+    removeRow (rid) { 
         let row = this._rowMap[rid];
         let index = this._data.indexOf(row);
         this._data.splice(index, 1);
@@ -81,6 +106,14 @@ export class DataTable extends EventDispatcher {
     _generateRowId () {
         this._idRunner++;
         return '' + this._idRunner;
+    }
+
+    _createObject(arrayValues, fields) {
+        let newObj = {};
+        for (let i=0; i<fields.length; i++) {
+            newObj[fields[i]] = arrayValues[i];
+        }
+        return newObj;
     }
 
 }

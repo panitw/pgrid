@@ -1,4 +1,4 @@
-class Utils {
+export class Utils {
 
 	static mixin(source, target) {
 		for (var prop in source) {
@@ -9,5 +9,3 @@ class Utils {
 		return target;
 	}
 }
-
-export default Utils;
