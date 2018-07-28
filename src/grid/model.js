@@ -57,7 +57,7 @@ export class Model extends EventDispatcher {
 	}
 
 	canEdit (rowIndex, colIndex) {
-		if (this._isHeaderRow(rowIndex)) {
+		if (this.isHeaderRow(rowIndex)) {
 
 		} else {
 			const dataRowIndex = rowIndex - this._config.headerRowCount;
@@ -79,6 +79,10 @@ export class Model extends EventDispatcher {
 		}
 	}
 
+	isHeaderRow (rowIndex) {
+		return rowIndex < this._config.headerRowCount;
+	}
+
 	getColumnWidth (colIndex) {
 		let colModel = this._columnModel[colIndex];
 		if (colModel && colModel.width !== undefined) {
@@ -89,7 +93,7 @@ export class Model extends EventDispatcher {
 	}
 
 	getRowHeight (rowIndex) {
-		if (this._isHeaderRow(rowIndex)) {
+		if (this.isHeaderRow(rowIndex)) {
 
 		} else {
 			const dataRowIndex = rowIndex - this._config.headerRowCount;
@@ -185,7 +189,7 @@ export class Model extends EventDispatcher {
 	}
 
 	getRowModel (rowIndex) {
-		if (this._isHeaderRow(rowIndex)) {
+		if (this.isHeaderRow(rowIndex)) {
 			return this._headerRowModel[rowIndex];
 		} else {
 			const dataRowIndex = rowIndex - this._config.headerRowCount;
@@ -198,7 +202,7 @@ export class Model extends EventDispatcher {
 	}
 
 	getCellModel (rowIndex, colIndex) {
-		if (this._isHeaderRow(rowIndex)) {
+		if (this.isHeaderRow(rowIndex)) {
 			if (this._headerCellModel[colIndex]) {
 				return this._headerCellModel[colIndex][rowIndex];
 			}
@@ -211,7 +215,7 @@ export class Model extends EventDispatcher {
 	}
 
 	getCascadedCellProp (rowIndex, colIndex, propName) {
-		const cellModel = this.getCellModel(rowIndex, cellIndex);
+		const cellModel = this.getCellModel(rowIndex, colIndex);
 		if (cellModel && cellModel[propName]) {
 			return cellModel[propName];
 		}
@@ -238,7 +242,7 @@ export class Model extends EventDispatcher {
 			}
 		}
 
-		const isHeader = this._isHeaderRow(rowIndex);
+		const isHeader = this.isHeaderRow(rowIndex);
 		const rowModel = this.getRowModel(rowIndex);
 		if (rowModel) {
 			if (isHeader) {
@@ -282,7 +286,7 @@ export class Model extends EventDispatcher {
 	}
 
 	getDataAt (rowIndex, colIndex) {
-		if (this._isHeaderRow(rowIndex)) {
+		if (this.isHeaderRow(rowIndex)) {
 			const colModel = this.getColumnModel(colIndex);
 			if (colModel && colModel.title) {
 				return colModel.title;
@@ -306,10 +310,6 @@ export class Model extends EventDispatcher {
 		if (colModel && colModel.field) {
 			this._data.getDataAt(dataRowIndex, colModel.field, data);
 		}
-	}
-
-	_isHeaderRow(rowIndex) {
-		return rowIndex < this._config.headerRowCount;
 	}
 
 	_calcTotalSize() {
