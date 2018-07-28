@@ -57,27 +57,22 @@ export class Model extends EventDispatcher {
 	}
 
 	canEdit (rowIndex, colIndex) {
-		if (this.isHeaderRow(rowIndex)) {
+		let rowModel = this.getRowModel(rowIndex);
+		let colModel = this.getColumnModel(colIndex);
+		let cellModel = this.getCellModel(rowIndex, colIndex);
 
-		} else {
-			const dataRowIndex = rowIndex - this._config.headerRowCount;
-			let rowModel = this.getRowModel(dataRowIndex);
-			let colModel = this.getColumnModel(colIndex);
-			let cellModel = this.getCellModel(rowIndex, colIndex);
-	
-			if ((rowModel && rowModel.editable) ||
-				(colModel && colModel.editable) ||
-				(cellModel && cellModel.editable)) {
-				if ((rowModel && rowModel.editable === false) ||
-					(colModel && colModel.editable === false) ||
-					(cellModel && cellModel.editable === false)) {
-					return false;
-				}
-				return true;
+		if ((rowModel && rowModel.editable) ||
+			(colModel && colModel.editable) ||
+			(cellModel && cellModel.editable)) {
+			if ((rowModel && rowModel.editable === false) ||
+				(colModel && colModel.editable === false) ||
+				(cellModel && cellModel.editable === false)) {
+				return false;
 			}
-			return false;	
+			return true;
 		}
-	}
+		return false;	
+}
 
 	isHeaderRow (rowIndex) {
 		return rowIndex < this._config.headerRowCount;
@@ -308,7 +303,7 @@ export class Model extends EventDispatcher {
 		const dataRowIndex = rowIndex - this._config.headerRowCount;
 		const colModel = this.getColumnModel(colIndex);
 		if (colModel && colModel.field) {
-			this._data.getDataAt(dataRowIndex, colModel.field, data);
+			this._data.setDataAt(dataRowIndex, colModel.field, data);
 		}
 	}
 
