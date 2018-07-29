@@ -1,13 +1,17 @@
 <!DOCTYPE html>
 <html>
+
 <head>
 	<title>Grid Test</title>
 	<link rel="stylesheet" type="text/css" href="../dist/pgrid.css">
+	<link rel="stylesheet" href="../node_modules/choices.js/assets/styles/css/base.min.css">
+	<link rel="stylesheet" href="../node_modules/choices.js/assets/styles/css/choices.min.css">
+
 	<script type="text/javascript" src="../dist/pgrid.js"></script>
 	<script type="text/javascript" src="../node_modules/choices.js/assets/scripts/dist/choices.min.js"></script>
 	<style>
-
-		html,body {
+		html,
+		body {
 			font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
 			font-size: 14px;
 			height: 100%;
@@ -62,105 +66,217 @@
 			border-width: 4px;
 			border-right-color: red;
 			border-top-color: red;
-		}		
+		}
 
+		.choices[data-type*=select-one] .choices__inner {
+			padding-bottom: 9.5px;
+		}
+
+		.choices__list--dropdown .choices__item--selectable {
+			padding-right: 0px;
+		}
 	</style>
 </head>
+
 <body>
 
-<button id="addRow">Add New Row</button>
+	<button id="addRow">Add New Row</button>
 
-<div style="position: absolute; top: 30px; left: 0px; right: 0px; bottom: 0px;">	
-	<div id="gridDiv" style="width: 100%; height: 100%;"></div>	
-</div>
+	<div style="position: absolute; top: 30px; left: 0px; right: 0px; bottom: 0px;">
+		<div id="gridDiv" style="width: 100%; height: 100%;"></div>
+	</div>
 
-<script type="module">
+	<script type="module">
 
-	import { CheckboxColumnExtension } from '../src/extensions/checkbox-column.js';
+		import { CheckboxColumnExtension } from '../src/extensions/checkbox-column.js';
 
-	class StaticChoicesEditor {
-		constructor (choices) {
-			this._choices = choices;
+		class SearchChoicesEditor {
+
+			constructor(url) {
+				this._url = url;
+			}
+
+			attach(cell, data, done) {
+				//Clear old cell content
+				cell.innerHTML = '';
+
+				//Create select element
+				let select = document.createElement('select');
+				cell.appendChild(select);
+
+				//Creat Choices component
+				this._choicesObj = new Choices(select, {
+					itemSelectText: '',
+					shouldSort: false,
+					searchResultLimit: 10
+				});
+				this._choicesObj.showDropdown();
+
+				//Hack to auto focus
+				let searchBox = cell.querySelector('.choices__input.choices__input--cloned');
+				if (searchBox) {
+					searchBox.focus();
+				}
+
+				let timer = null;
+
+				this._choicesObj.passedElement.addEventListener('search', (event) => {
+					if (event.detail.value.length > 2) {
+						if (null !== timer) {
+							clearTimeout(timer);
+						}
+						timer = setTimeout(() => {
+							let request = new Request(this._url + event.detail.value);
+							fetch(request)
+								.then((response) => {
+									if (200 === response.status) {
+										response.json().then((data) => {
+											this._choicesObj.setChoices(data, 'alpha2Code', 'name', true);
+										});
+									}
+								})
+								.catch((error) => {
+									console.log(error);
+								});
+						}, 1000);
+					}
+				});
+
+				select.addEventListener('hideDropdown', () => {
+					setTimeout(() => {
+						done();
+					}, 100);
+				});
+
+				//Finish selection
+				select.addEventListener('choice', (e) => {
+					let selectedValue = e.detail.choice.value;
+					done(selectedValue);
+				});
+			}
 		}
 
-		attach (cell, data, done) {
-			console.log('Editor attached', cell, data);
+		class StaticChoicesEditor {
+
+			constructor(choices) {
+				this._choices = choices;
+			}
+
+			attach(cell, data, done) {
+				//Clear old cell content
+				cell.innerHTML = '';
+
+				//Create select element
+				let select = document.createElement('select');
+				cell.appendChild(select);
+
+				//Pre-select a choice with an existing value
+				this._choices.forEach((item) => {
+					item.selected = (item.value === data);
+				});
+
+				//Creat Choices component
+				this._choicesObj = new Choices(select, {
+					itemSelectText: ''
+				});
+				this._choicesObj.setChoices(this._choices, 'value', 'label', true);
+				this._choicesObj.showDropdown();
+				this._choicesObj.unhighlightAll();
+
+				//Hack to auto focus
+				let searchBox = cell.querySelector('.choices__input.choices__input--cloned');
+				if (searchBox) {
+					searchBox.focus();
+				}
+
+				select.addEventListener('hideDropdown', () => {
+					setTimeout(() => {
+						done();
+					}, 100);
+				});
+
+				//Finish selection
+				select.addEventListener('choice', (e) => {
+					let selectedValue = e.detail.choice.value;
+					done(selectedValue);
+				});
+			}
 		}
-	}
-	
-	var options = {
-		rowHeight: 47,
-		columnWidth: 100,
-		selection: {
-			cssClass: 'grid-cell-selection'
-		},
-		editing: true,
-		autoUpdate: true,
-		freezePane: {
-			top: 1,
-			left: 2
-		},
-		columns: [
-			{id: 0, width: 50, cssClass: "grid-checkbox-col", editable: true, title: 'Submit', field: 'submit'},
-			{id: 1, title: 'Status', field: 'status'},
-			{id: 2, width: 110, editable: true, cssClass: "grid-number-col grid-col-editable", title: 'Estimate Number', field: 'estNumber'},
-			{id: 3, editable: true, cssClass: 'grid-col-editable', title: 'Invoice Type', field: 'invType', editor: new StaticChoicesEditor([{text: 'STANDARD', value: 'S'}, {text: 'PREPAYMENT', value: 'P'}])},
-			{id: 4, width: 200, editable: true, cssClass: 'grid-col-editable', title: 'Activity Budget', field: 'activityBudget'},
-			{id: 5, width: 200, title: 'Description', field: 'desc'},
-			{id: 6, width: 200, editable: true, cssClass: 'grid-col-editable', title: 'Detail Description', field: 'detailDesc'},
-			{id: 7, width: 200, editable: true, cssClass: 'grid-col-editable', title: 'Supplier Name', field: 'supplierName'},
-			{id: 8, editable: true, cssClass: 'grid-col-editable', title: 'Supplier Site', field: 'supplierSite'},
-			{id: 9, cssClass: 'grid-number-col', title: 'Balance', field: 'balance'},
-			{id: 10, cssClass: 'grid-number-col grid-col-editable', editable: true, title: 'Unit Price', field: 'unitPrice'},
-			{id: 11, width: 40, cssClass: "grid-checkbox-col grid-col-editable", editable: true, title: 'Use VAT', field: 'useVAT'},
-			{id: 12, cssClass: 'grid-number-col', title: 'Amt VAT', field: 'amtVAT'},
-			{id: 13, cssClass: 'grid-number-col', title: 'Total Amount', field: 'amtTotal'},
-			{id: 14, editable: true, cssClass: 'grid-col-editable', title: 'Supplier Invoice', field: 'supplierInv'},
-			{id: 15, editable: true, cssClass: 'grid-col-editable', title: 'Invoice Date', field: 'invDate'},
-			{id: 16, title: 'WHT', field: 'WHT'},
-			{id: 17, cssClass: "grid-checkbox-col", title: 'Auto Due<br>Date', field: 'autoDueDate'},
-			{id: 18, title: 'Due Date', field: 'dueDate'},
-			{id: 19, width: 200, editable: true, cssClass: 'grid-col-editable', title: 'Comment', field: 'comment'},
-			{id: 20, width: 200, editable: true, cssClass: 'grid-col-editable', title: 'KPI Code', field: 'kpiCode'},
-			{id: 21, editable: true, cssClass: 'grid-col-editable', title: 'Section', field: 'section'},
-			{id: 22, width: 100, title: 'PO Number', field: 'poNumber'},
-			{id: 23, width: 120, title: 'Invoice Num', field: 'invNum'},
-			{id: 24, width: 100, title: 'Request Date', field: 'reqDate'},
-			{id: 25, width: 100, title: 'Request Number', field: 'reqNumber'}
-		],
-		headerRows: [
-			{i: 0, type: 'header', cssClass: 'grid-header-row', editable: false}
-		],
-		rows: [
-			{i: 0, editable: false},
-			{i: 1, cssClass: 'grid-edited-row grid-cell-editable'},
-			{i: 2, cssClass: 'grid-edited-row grid-cell-editable'},
-		],
-		dataModel: {
-			fields: ['submit', 'status', 'estNumber', 'invType', 'activityBudget', 'desc', 'detailDesc', 'supplierName',
-					 'supplierSite', 'balance', 'unitPrice', 'useVAT', 'amtVAT', 'amtTotal', 'supplierInv', 'invDate',
-					 'WHT', 'autoDueDate', 'dueDate', 'comment', 'kpiCode', 'section', 'poNumber', 'invNum', 'reqDate',
-					 'reqNumber'],
-			format: 'array',
-			data: [
-				[null, 'APPROVED', 'ES1803010003', 'STANDARD', 'Activity/Hall/Promot', 'ค่าผลิตไวนิล โครงบูท พร้อมติดตั้ง', '', 'บจก. ยูพี อิงค์เจ๊ท พร๊อพ', 'HO', '40,000', '32,500', true, '2,275', '34\,775', 'INV019378', '10-MAR-18', 'หัก ณ ที่จ่าย', true, '15-MAR-18', '', '2.1.13 - Decoration', '123', 'PO180315000', 'INVPE18031910', '10-MAR-18', 'PE1803290009']
+
+		var options = {
+			rowHeight: 47,
+			columnWidth: 100,
+			selection: {
+				cssClass: 'grid-cell-selection'
+			},
+			editing: true,
+			autoUpdate: true,
+			freezePane: {
+				top: 1,
+				left: 2
+			},
+			columns: [
+				{ id: 0, width: 50, cssClass: "grid-checkbox-col", editable: true, title: 'Submit', field: 'submit' },
+				{ id: 1, title: 'Status', field: 'status' },
+				{ id: 2, width: 110, editable: true, cssClass: "grid-number-col grid-col-editable", title: 'Estimate Number', field: 'estNumber' },
+				{ id: 3, width: 150, editable: true, cssClass: 'grid-col-editable', title: 'Invoice Type', field: 'invType', editor: new StaticChoicesEditor([{ label: 'STANDARD', value: 'STANDARD' }, { label: 'PREPAYMENT', value: 'PREPAYMENT' }]) },
+				{ id: 4, width: 200, editable: true, cssClass: 'grid-col-editable', title: 'Activity Budget', field: 'activityBudget', editor: new SearchChoicesEditor('https://restcountries.eu/rest/v2/name/') },
+				{ id: 5, width: 200, title: 'Description', field: 'desc' },
+				{ id: 6, width: 200, editable: true, cssClass: 'grid-col-editable', title: 'Detail Description', field: 'detailDesc' },
+				{ id: 7, width: 200, editable: true, cssClass: 'grid-col-editable', title: 'Supplier Name', field: 'supplierName' },
+				{ id: 8, editable: true, cssClass: 'grid-col-editable', title: 'Supplier Site', field: 'supplierSite' },
+				{ id: 9, cssClass: 'grid-number-col', title: 'Balance', field: 'balance' },
+				{ id: 10, cssClass: 'grid-number-col grid-col-editable', editable: true, title: 'Unit Price', field: 'unitPrice' },
+				{ id: 11, width: 40, cssClass: "grid-checkbox-col grid-col-editable", editable: true, title: 'Use VAT', field: 'useVAT' },
+				{ id: 12, cssClass: 'grid-number-col', title: 'Amt VAT', field: 'amtVAT' },
+				{ id: 13, cssClass: 'grid-number-col', title: 'Total Amount', field: 'amtTotal' },
+				{ id: 14, editable: true, cssClass: 'grid-col-editable', title: 'Supplier Invoice', field: 'supplierInv' },
+				{ id: 15, editable: true, cssClass: 'grid-col-editable', title: 'Invoice Date', field: 'invDate' },
+				{ id: 16, title: 'WHT', field: 'WHT' },
+				{ id: 17, cssClass: "grid-checkbox-col", title: 'Auto Due<br>Date', field: 'autoDueDate' },
+				{ id: 18, title: 'Due Date', field: 'dueDate' },
+				{ id: 19, width: 200, editable: true, cssClass: 'grid-col-editable', title: 'Comment', field: 'comment' },
+				{ id: 20, width: 200, editable: true, cssClass: 'grid-col-editable', title: 'KPI Code', field: 'kpiCode' },
+				{ id: 21, editable: true, cssClass: 'grid-col-editable', title: 'Section', field: 'section' },
+				{ id: 22, width: 100, title: 'PO Number', field: 'poNumber' },
+				{ id: 23, width: 120, title: 'Invoice Num', field: 'invNum' },
+				{ id: 24, width: 100, title: 'Request Date', field: 'reqDate' },
+				{ id: 25, width: 100, title: 'Request Number', field: 'reqNumber' }
+			],
+			headerRows: [
+				{ i: 0, type: 'header', cssClass: 'grid-header-row', editable: false }
+			],
+			rows: [
+				{ i: 0, editable: false },
+				{ i: 1, cssClass: 'grid-edited-row grid-cell-editable' },
+				{ i: 2, cssClass: 'grid-edited-row grid-cell-editable' },
+			],
+			dataModel: {
+				fields: ['submit', 'status', 'estNumber', 'invType', 'activityBudget', 'desc', 'detailDesc', 'supplierName',
+					'supplierSite', 'balance', 'unitPrice', 'useVAT', 'amtVAT', 'amtTotal', 'supplierInv', 'invDate',
+					'WHT', 'autoDueDate', 'dueDate', 'comment', 'kpiCode', 'section', 'poNumber', 'invNum', 'reqDate',
+					'reqNumber'],
+				format: 'array',
+				data: [
+					[null, 'APPROVED', 'ES1803010003', 'STANDARD', 'Activity/Hall/Promot', 'ค่าผลิตไวนิล โครงบูท พร้อมติดตั้ง', '', 'บจก. ยูพี อิงค์เจ๊ท พร๊อพ', 'HO', '40,000', '32,500', true, '2,275', '34\,775', 'INV019378', '10-MAR-18', 'หัก ณ ที่จ่าย', true, '15-MAR-18', '', '2.1.13 - Decoration', '123', 'PO180315000', 'INVPE18031910', '10-MAR-18', 'PE1803290009']
+				]
+			},
+			extensions: [
+				new CheckboxColumnExtension()
 			]
-		},
-		extensions: [
-			new CheckboxColumnExtension()
-		]
-	};
-	
-	var grid = new PGrid(options);
-	
-	grid.render(document.getElementById('gridDiv'));
+		};
 
-	document.getElementById('addRow').addEventListener('click', function () {
-		grid.data.addRow([true, 'DRAFT', '', '', '', '', '', '', '', '', '', false, '', '', '', '', '', false, '', '','', '', '', '', '']);
-		grid.view.reRender();
-	});
+		var grid = new PGrid(options);
 
-</script>
+		grid.render(document.getElementById('gridDiv'));
+
+		document.getElementById('addRow').addEventListener('click', function () {
+			grid.data.addRow([true, 'DRAFT', '', '', '', '', '', '', '', '', '', false, '', '', '', '', '', false, '', '', '', '', '', '', '']);
+			grid.view.reRender();
+		});
+
+	</script>
 
 </body>
+
 </html>

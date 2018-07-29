@@ -8,6 +8,10 @@ export class SelectionExtension {
 	}
 
 	keyDown (e) {
+		let editing = this._grid.state.get('editing');
+		if (editing) {
+			return;
+		}
 		let selection = this._grid.state.get('selection');
 		if (selection && selection.length > 0) {
 			let rowIndex = selection[0].r;

@@ -3,27 +3,30 @@ export class EditorExtension {
 	init (grid, config) {
 		this._grid = grid;
 		this._config = config;
+		this._editorAttached = false;
 	}
 
 	keyDown (e) {
-		if (!e.ctrlKey) {
-			let selection = this._grid.state.get('selection');
-			if (selection && selection.length > 0) {
-				let rowIndex = selection[0].r;
-				let colIndex = selection[0].c;
-				let edit = false;
-				if (e.keyCode === 13 || (e.keyCode > 31 && !(e.keyCode >= 37 && e.keyCode <= 40))) {
-					edit = true;
-				}
-				if (edit &&
-					rowIndex >= 0 && rowIndex < this._grid.model.getRowCount() &&
-					colIndex >= 0 && colIndex < this._grid.model.getColumnCount()) {
-					let cell = this._grid.view.getCell(rowIndex, colIndex);
-					if (cell) {
-						this._editCell(cell);
+		if (!this._editorAttached) {
+			if (!e.ctrlKey) {
+				let selection = this._grid.state.get('selection');
+				if (selection && selection.length > 0) {
+					let rowIndex = selection[0].r;
+					let colIndex = selection[0].c;
+					let edit = false;
+					if (e.keyCode === 13 || (e.keyCode > 31 && !(e.keyCode >= 37 && e.keyCode <= 40))) {
+						edit = true;
+					}
+					if (edit &&
+						rowIndex >= 0 && rowIndex < this._grid.model.getRowCount() &&
+						colIndex >= 0 && colIndex < this._grid.model.getColumnCount()) {
+						let cell = this._grid.view.getCell(rowIndex, colIndex);
+						if (cell) {
+							this._editCell(cell);
+						}
 					}
 				}
-			}
+			}	
 		}
 	}
 
@@ -45,12 +48,14 @@ export class EditorExtension {
 			let data = this._grid.model.getDataAt(actualRow, actualCol);
 
 			//If there's custom editor, use custom editor to attach the editor
+			this._grid.state.set('editing', true);
 			let customEditor = this._grid.model.getCascadedCellProp(actualCell.dataset.rowIndex, actualCell.dataset.colIndex, 'editor');
 			if (customEditor && customEditor.attach) {
 				customEditor.attach(actualCell, data, this._done.bind(this));
 			} else {
 				this._attachEditor(actualCell, data, this._done.bind(this));
 			}
+			this._editorAttached = true;
 			this._editingCol = actualCol;
 			this._editingRow = actualRow;
 		}
@@ -136,6 +141,8 @@ export class EditorExtension {
 		this._grid.view.updateCell(this._editingRow, this._editingCol);
 		this._editingRow = -1;
 		this._editingCol = -1;
+		this._editorAttached = false;
+		this._grid.state.set('editing', false);
 
 		//Re-focus at the grid
 		this._grid.view.getElement().focus();
