@@ -307,6 +307,19 @@ export class Model extends EventDispatcher {
 		}
 	}
 
+	getRowIndex (rowId) {
+		return this._config.headerRowCount + this._data.getRowIndex(rowId);
+	}
+
+	getColumnIndex (field) {
+		for (let i=0; i<this._config.columns.length; i++) {
+			if (this._config.columns[i].field === field) {
+				return i;
+			}
+		}
+		return -1;
+	}
+
 	_calcTotalSize() {
 		this._calcTotalWidth();
 		this._calcTotalHeight();

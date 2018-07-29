@@ -2,12 +2,14 @@ import { EventDispatcher } from "../grid/event";
 
 export class DataTable extends EventDispatcher {
     
-    constructor (dataModel) {
+    constructor (dataModel, extension) {
         super();
 
+        this._extension = extension;
         this._idRunner = 0;
         this._rid = [];
         this._rowMap = {};
+		this._blockEvent = false;
 
         let { format, data, fields } = dataModel;
 
@@ -70,17 +72,39 @@ export class DataTable extends EventDispatcher {
         return this._data[rowIndex];
     }
 
+    getRowIndex (rowId) {
+        return this._rid.indexOf(rowId);
+    }
+
     setData (rowId, field, value) {
-        let row = this._rowMap[rowId];
-        if (row) {
-            row[field] = value;
-        }
+        const beforeUpdateArg = {
+			rowId: rowId,
+			field: field,
+			data: value,
+			cancel: false
+        };        
+        if (!this._blockEvent) {
+			this._blockEvent = true;
+			this._extension.executeExtension('dataBeforeUpdate', beforeUpdateArg);
+			this._blockEvent = false;
+		}
+		if (!beforeUpdateArg.cancel) {
+            let row = this._rowMap[rowId];
+            if (row) {
+                row[field] = beforeUpdateArg.data;
+                if (!this._blockEvent) {
+                    this._blockEvent = true;
+                    this._extension.executeExtension('dataAfterUpdate', beforeUpdateArg);
+                    this._blockEvent = false;
+                }
+            }
+		}
     }
 
     setDataAt (rowIndex, field, value) {
-        let row = this._data[rowIndex];
-        if (row) {
-            row[field] = value;
+        const rowId = this._rid[rowIndex];
+        if (rowId !== undefined) {
+            this.setData(rowId, field, value);
         }
     }
     

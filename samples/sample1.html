@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html>
+
 <head>
 	<title>Grid Test</title>
 	<link rel="stylesheet" type="text/css" href="../dist/pgrid.css">
 	<script type="text/javascript" src="../dist/pgrid.js"></script>
 	<style>
-
-		html,body {
+		html,
+		body {
 			font-family: Arial;
 			font-size: 12px;
 			height: 100%;
@@ -42,123 +43,133 @@
 			background-color: blue;
 			color: white;
 		}
-
 	</style>
 </head>
+
 <body>
 
-<div id="gridDiv" style="width: 100%; height: 100%;"></div>
+	<div id="gridDiv" style="width: 100%; height: 100%;"></div>
 
-<script>
-	
-	var options = {
-		rowHeight: 28,
-		columnWidth: 90,
-		selection: {
-			cssClass: 'cell-selection'
-		},
-		editing: {
-			transform: function (inputValue) {
-				return parseFloat(inputValue);
+	<script>
+
+		var dateUpdateExtension = {
+			dataBeforeUpdate: function (e) {
+				var floatValue = parseFloat(e.data);
+				if (isNaN(floatValue)) {
+					e.cancel = true;
+				} else {
+					e.data = floatValue;
+				}
 			},
-			beforeUpdateData: function (e) {
-				return !isNaN(parseFloat(e.inputValue));
-			},
-			afterUpdateData: function (e) {
-				var rowCount = e.grid.model.getRowCount();
-				var colCount = e.grid.model.getColumnCount();
+			dataAfterUpdate: function (e) {
+				var rowCount = grid.model.getRowCount();
+				var colCount = grid.model.getColumnCount();
 				//Update total row
-				if (e.rowIndex === rowCount - 1) {
+				var rowIndex = grid.model.getRowIndex(e.rowId);
+				var colIndex = grid.model.getColumnIndex(e.field);
+				if (rowIndex === rowCount - 1) {
 					var balanceArray = [];
-					for (var i=1; i<rowCount-2; i++) {
-						balanceArray.push(e.grid.data.getDataAt(i, 1));
+					for (var i = 1; i < rowCount - 2; i++) {
+						balanceArray.push(grid.model.getDataAt(i, 1));
 					}
-					for (var i=5; i<colCount; i++) {
-						var colTotal = e.grid.data.getDataAt(rowCount-1, i);
-						for (var j=0; j<balanceArray.length; j++) {
+					for (var i = 5; i < colCount; i++) {
+						var colTotal = grid.model.getDataAt(rowCount - 1, i);
+						for (var j = 0; j < balanceArray.length; j++) {
 							var rowBalance = balanceArray[j];
 							if (colTotal <= rowBalance) {
 								rowBalance -= colTotal;
 								balanceArray[j] = rowBalance;
-								e.grid.data.setDataAt(j+1, i, colTotal);
-								e.grid.view.updateCell(j+1, i);
+								grid.model.setDataAt(j + 1, i, colTotal);
+								grid.view.updateCell(j + 1, i);
 								colTotal = 0;
 							} else
-							if (colTotal > rowBalance) {
-								e.grid.data.setDataAt(j+1, i, rowBalance);
-								e.grid.view.updateCell(j+1, i);
-								colTotal -= rowBalance;
-								rowBalance = 0;
-								balanceArray[j] = rowBalance;
-							} else
-							if (colTotal === 0) {
-								e.grid.data.setDataAt(j+1, i, 0);
-								e.grid.view.updateCell(j+1, i);
-							}
+								if (colTotal > rowBalance) {
+									grid.model.setDataAt(j + 1, i, rowBalance);
+									grid.view.updateCell(j + 1, i);
+									colTotal -= rowBalance;
+									rowBalance = 0;
+									balanceArray[j] = rowBalance;
+								} else
+									if (colTotal === 0) {
+										grid.model.setDataAt(j + 1, i, 0);
+										grid.view.updateCell(j + 1, i);
+									}
 						}
 						//Remaining amount added to forecast row
-						e.grid.data.setDataAt(rowCount - 2, i, colTotal);
-						e.grid.view.updateCell(rowCount - 2, i);
+						grid.model.setDataAt(rowCount - 2, i, colTotal);
+						grid.view.updateCell(rowCount - 2, i);
 					}
 				} else {
 					//Update normal row, calculate total
 					var total = 0;
-					for (var i=1; i<rowCount-1; i++) {
-						var data = e.grid.data.getDataAt(i, e.colIndex);
+					for (var i = 1; i < rowCount - 1; i++) {
+						var data = grid.model.getDataAt(i, colIndex);
 						if (data !== undefined) {
 							total += data;
 						}
 					}
-					e.grid.data.setDataAt(rowCount - 1, e.colIndex, total);
-					e.grid.view.updateCell(rowCount - 1, e.colIndex);
+					grid.model.setDataAt(rowCount - 1, colIndex, total);
+					grid.view.updateCell(rowCount - 1, colIndex);
 				}
 			}
-		},
-		freezePane: {
-			left: 5
-		},
-		columns: [
-			{id: 0, cssClass: 'header-col', editable: false, field: 'poNumber', title: 'PO Number'},
-			{id: 1, cssClass: 'header-col', editable: false, field: 'balanceQty', title: 'Balance Qty.'},
-			{id: 2, cssClass: 'header-col', editable: false, field: 'originalQty', title: 'Original Qty.'},
-			{id: 3, cssClass: 'header-col', editable: false, field: 'cutOffInv', title: 'Cut-off Inv.'},
-			{id: 4, cssClass: 'header-col', editable: false, field: 'issueDate', title: 'Issued Date'},
-			{id: 5, cssClass: 'number-col', editable: true, field: 'c1', title: '03-Apr<br>(Mon)'},
-			{id: 6, cssClass: 'number-col', editable: true, field: 'c2', title: '04-Apr<br>(Tue)'},
-			{id: 7, cssClass: 'number-col', editable: true, field: 'c3', title: '05-Apr<br>(Wed)'},
-			{id: 8, cssClass: 'number-col', editable: true, field: 'c4', title: '06-Apr<br>(Thu)'},
-			{id: 9, cssClass: 'number-col', editable: true, field: 'c5', title: '07-Apr<br>(Fri)'},
-			{id: 10, cssClass: 'number-col', editable: true, field: 'c6', title: '10-Apr<br>(WW16)'},
-			{id: 11, cssClass: 'number-col', editable: true, field: 'c7', title: '17-Apr<br>(WW17)'},
-			{id: 12, cssClass: 'number-col', editable: true, field: 'c8', title: '24-Apr<br>(WW18)'}
-		],
-		headerRows: [
-			{i: 0, cssClass: 'header-row'}
-		],
-		rows: [
-			{i: 5, cssClass: 'forecast-row'},
-			{i: 6, cssClass: 'total-row'}
-		],
-		dataModel: {
-			fields: ['poNumber', "balanceQty", "originalQty", "cutOffInv", "issueDate", 'c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'c7', 'c8'],
-			format: 'array',
-			data: [
-				["PO-0001", 1000, 2000, "INV-12345", "01-Apr-17", 0, 0, 0 ,0 ,0, 0 ,0 ,0],
-				["PO-0002", 1000, 2000, "INV-12345", "01-Apr-17", 0, 0, 0 ,0 ,0, 0 ,0 ,0],
-				["PO-0003", 1000, 2000, "INV-12345", "01-Apr-17", 0, 0, 0 ,0 ,0, 0 ,0 ,0],
-				["PO-0004", 1000, 2000, "INV-12345", "01-Apr-17", 0, 0, 0 ,0 ,0, 0 ,0 ,0],
-				["PO-0005", 1000, 2000, "INV-12345", "01-Apr-17", 0, 0, 0 ,0 ,0, 0 ,0 ,0],
-				["Forecast", "", "", "", "", 0, 0, 0, 0, 0, 0 ,0 ,0],
-				["Total Demand", 5000, 10000, "", "", 0, 0, 0, 0, 0, 0 ,0 ,0]
-			]
 		}
-	};
-	
-	var grid = new PGrid(options);
-	
-	grid.render(document.getElementById('gridDiv'));
 
-</script>
+		var options = {
+			rowHeight: 28,
+			columnWidth: 90,
+			selection: {
+				cssClass: 'cell-selection'
+			},
+			editing: true,
+			freezePane: {
+				left: 5
+			},
+			columns: [
+				{ id: 0, cssClass: 'header-col', editable: false, field: 'poNumber', title: 'PO Number' },
+				{ id: 1, cssClass: 'header-col', editable: false, field: 'balanceQty', title: 'Balance Qty.' },
+				{ id: 2, cssClass: 'header-col', editable: false, field: 'originalQty', title: 'Original Qty.' },
+				{ id: 3, cssClass: 'header-col', editable: false, field: 'cutOffInv', title: 'Cut-off Inv.' },
+				{ id: 4, cssClass: 'header-col', editable: false, field: 'issueDate', title: 'Issued Date' },
+				{ id: 5, cssClass: 'number-col', editable: true, field: 'c1', title: '03-Apr<br>(Mon)' },
+				{ id: 6, cssClass: 'number-col', editable: true, field: 'c2', title: '04-Apr<br>(Tue)' },
+				{ id: 7, cssClass: 'number-col', editable: true, field: 'c3', title: '05-Apr<br>(Wed)' },
+				{ id: 8, cssClass: 'number-col', editable: true, field: 'c4', title: '06-Apr<br>(Thu)' },
+				{ id: 9, cssClass: 'number-col', editable: true, field: 'c5', title: '07-Apr<br>(Fri)' },
+				{ id: 10, cssClass: 'number-col', editable: true, field: 'c6', title: '10-Apr<br>(WW16)' },
+				{ id: 11, cssClass: 'number-col', editable: true, field: 'c7', title: '17-Apr<br>(WW17)' },
+				{ id: 12, cssClass: 'number-col', editable: true, field: 'c8', title: '24-Apr<br>(WW18)' }
+			],
+			headerRows: [
+				{ i: 0, cssClass: 'header-row' }
+			],
+			rows: [
+				{ i: 5, cssClass: 'forecast-row' },
+				{ i: 6, cssClass: 'total-row' }
+			],
+			dataModel: {
+				fields: ['poNumber', "balanceQty", "originalQty", "cutOffInv", "issueDate", 'c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'c7', 'c8'],
+				format: 'array',
+				data: [
+					["PO-0001", 1000, 2000, "INV-12345", "01-Apr-17", 0, 0, 0, 0, 0, 0, 0, 0],
+					["PO-0002", 1000, 2000, "INV-12345", "01-Apr-17", 0, 0, 0, 0, 0, 0, 0, 0],
+					["PO-0003", 1000, 2000, "INV-12345", "01-Apr-17", 0, 0, 0, 0, 0, 0, 0, 0],
+					["PO-0004", 1000, 2000, "INV-12345", "01-Apr-17", 0, 0, 0, 0, 0, 0, 0, 0],
+					["PO-0005", 1000, 2000, "INV-12345", "01-Apr-17", 0, 0, 0, 0, 0, 0, 0, 0],
+					["Forecast", "", "", "", "", 0, 0, 0, 0, 0, 0, 0, 0],
+					["Total Demand", 5000, 10000, "", "", 0, 0, 0, 0, 0, 0, 0, 0]
+				]
+			},
+			extensions: [
+				dateUpdateExtension
+			]
+		};
+
+		var grid = new PGrid(options);
+
+		grid.render(document.getElementById('gridDiv'));
+
+	</script>
 
 </body>
+
 </html>

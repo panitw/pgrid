@@ -29,7 +29,7 @@ export class PGrid extends EventDispatcher {
 		//Extensions Store
 		this._extensions = new Extension(this, this._config);
 
-		this._data = new DataTable(this._config.dataModel);
+		this._data = new DataTable(this._config.dataModel, this._extensions);
 		this._model = new Model(this._config, this._data);
 		this._view = new View(this._model, this._extensions);
 		this._state = new State();
