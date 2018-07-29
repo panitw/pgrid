@@ -62,7 +62,7 @@ export class EditorExtension {
 			this._inputElement = document.createElement('input');
 			this._inputElement.type = 'text';
 			this._inputElement.value = data;
-			this._inputElement.style.width = (cellBound.width-3) + 'px';
+			this._inputElement.style.width = (cellBound.width-6) + 'px';
 			this._inputElement.style.height = (cellBound.height-3) + 'px';
 			this._inputElement.className = 'pgrid-cell-text-editor';
 			cell.innerHTML = '';
