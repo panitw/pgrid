@@ -11,7 +11,8 @@ export class Extension {
 			gridAfterRender: [],
 			dataBeforeRender: [],
 			dataBeforeUpdate: [],
-			dataAfterUpdate: []
+			dataAfterUpdate: [],
+			dataFinishUpdate: []
 		}
 	}
 

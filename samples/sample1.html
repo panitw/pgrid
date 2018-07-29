@@ -80,24 +80,24 @@
 								rowBalance -= colTotal;
 								balanceArray[j] = rowBalance;
 								grid.model.setDataAt(j + 1, i, colTotal);
-								grid.view.updateCell(j + 1, i);
+								//grid.view.updateCell(j + 1, i);
 								colTotal = 0;
 							} else
 								if (colTotal > rowBalance) {
 									grid.model.setDataAt(j + 1, i, rowBalance);
-									grid.view.updateCell(j + 1, i);
+									//grid.view.updateCell(j + 1, i);
 									colTotal -= rowBalance;
 									rowBalance = 0;
 									balanceArray[j] = rowBalance;
 								} else
 									if (colTotal === 0) {
 										grid.model.setDataAt(j + 1, i, 0);
-										grid.view.updateCell(j + 1, i);
+										//grid.view.updateCell(j + 1, i);
 									}
 						}
 						//Remaining amount added to forecast row
 						grid.model.setDataAt(rowCount - 2, i, colTotal);
-						grid.view.updateCell(rowCount - 2, i);
+						//grid.view.updateCell(rowCount - 2, i);
 					}
 				} else {
 					//Update normal row, calculate total
@@ -109,7 +109,7 @@
 						}
 					}
 					grid.model.setDataAt(rowCount - 1, colIndex, total);
-					grid.view.updateCell(rowCount - 1, colIndex);
+					//grid.view.updateCell(rowCount - 1, colIndex);
 				}
 			}
 		}
@@ -121,6 +121,7 @@
 				cssClass: 'cell-selection'
 			},
 			editing: true,
+			autoUpdate: true,
 			freezePane: {
 				left: 5
 			},

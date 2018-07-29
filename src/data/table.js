@@ -9,7 +9,8 @@ export class DataTable extends EventDispatcher {
         this._idRunner = 0;
         this._rid = [];
         this._rowMap = {};
-		this._blockEvent = false;
+        this._blockEvent = false;
+        this._processedEvent = [];
 
         let { format, data, fields } = dataModel;
 
@@ -82,12 +83,20 @@ export class DataTable extends EventDispatcher {
 			field: field,
 			data: value,
 			cancel: false
-        };        
+        };
+        
+        this._processedEvent.push(beforeUpdateArg);
+
+        let blocked = false;
+        
         if (!this._blockEvent) {
 			this._blockEvent = true;
 			this._extension.executeExtension('dataBeforeUpdate', beforeUpdateArg);
 			this._blockEvent = false;
-		}
+		} else {
+            blocked = true;
+        }
+
 		if (!beforeUpdateArg.cancel) {
             let row = this._rowMap[rowId];
             if (row) {
@@ -98,7 +107,15 @@ export class DataTable extends EventDispatcher {
                     this._blockEvent = false;
                 }
             }
-		}
+        }
+
+        if (!blocked) {
+            this._extension.executeExtension('dataFinishUpdate', {
+                updates: this._processedEvent
+            });
+            //Clear processed event list            
+            this._processedEvent.length = 0;
+        }
     }
 
     setDataAt (rowIndex, field, value) {
