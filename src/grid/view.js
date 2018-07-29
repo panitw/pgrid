@@ -77,6 +77,17 @@ export class View extends EventDispatcher {
 		});
 	}
 
+	reRender () {
+		this._topLeftInner.innerHTML = '';
+		this._topInner.innerHTML = '';
+		this._leftInner.innerHTML = '';
+		this._centerInner.innerHTML = '';
+		this._bottomLeftInner.innerHTML = '';
+		this._bottomInner.innerHTML = '';
+
+		this._resturecture();
+	}
+
 	getElement () {
 		return this._element;
 	}
@@ -166,8 +177,6 @@ export class View extends EventDispatcher {
 			});
 		}
 	}
-
-	
 
 	_attachHandlers () {
 
@@ -355,7 +364,7 @@ export class View extends EventDispatcher {
 	_renderCell (rowIndex, colIndex, pane, x, y, width, height) {
 		let data = this._model.getDataAt(rowIndex, colIndex);
 
-		//Data cab be transformed before rendering using dataBeforeRender extension
+		//Data can be transformed before rendering using dataBeforeRender extension
 		let arg = {data: data};
 		this._extensions.executeExtension('dataBeforeRender', arg);
 		data = arg.data;

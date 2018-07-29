@@ -9,36 +9,22 @@ export class DataTable extends EventDispatcher {
         this._idRunner = 0;
         this._rid = [];
         this._rowMap = {};
+        this._data = [];
         this._blockEvent = false;
         this._processedEvent = [];
 
         let { format, data, fields } = dataModel;
-
+        
         // Set default format at rows
         if (!format) {
             format = 'rows';
         }
+        this._dataFormat = format;
+        this._fields = fields;
 
         if (Array.isArray(data)) {
-            if (format === 'rows') {
-                this._data = data;
-                for (let i=0; i<this._data.length; i++) {
-                    let rid = this._generateRowId();
-                    this._rid.push(rid);
-                    this._rowMap[rid] = this._data[i];
-                }
-            } else
-            if (format === 'array') {
-                if (Array.isArray(fields)) {
-                    this._data = [];
-                    for (let i=0; i<data.length; i++) {
-                        let rid = this._generateRowId();
-                        this._rid.push(rid);
-                        let newObj = this._createObject(data[i], fields);
-                        this._rowMap[rid] = newObj;
-                        this._data.push(newObj);
-                    }
-                }
+            for (let i=0; i<data.length; i++) {
+                this.addRow(data[i]);
             }
         } else {
             this._data = [];
@@ -124,11 +110,28 @@ export class DataTable extends EventDispatcher {
             this.setData(rowId, field, value);
         }
     }
+
+    addRow (rowData) {
+        const count = this.getRowCount();
+        this.insertRow(count, rowData);
+    }
     
     insertRow (rowIndex, rowData) {
-        this._data.splice(rowIndex, 0, rowData);
-        let newRowId = this._generateRowId();
-        this._rowMap[newRowId] = rowData;
+        if (this._dataFormat === 'rows') {
+            let rid = this._generateRowId();
+            this._rid.splice(rowIndex, 0, rid);
+            this._rowMap[rid] = rowData;
+            this._data.splice(rowIndex, 0, rowData);
+        } else
+        if (this._dataFormat === 'array') {
+            if (Array.isArray(this._fields)) {
+                let rid = this._generateRowId();
+                this._rid.splice(rowIndex, 0, rid);
+                let newObj = this._createObject(rowData, this._fields);
+                this._rowMap[rid] = newObj;
+                this._data.splice(rowIndex, 0, newObj);
+            }
+        }
     }
 
     removeRow (rid) { 
