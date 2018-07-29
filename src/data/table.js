@@ -63,6 +63,10 @@ export class DataTable extends EventDispatcher {
         return this._rid.indexOf(rowId);
     }
 
+    getRowId (rowIndex) {
+        return this._rid[rowIndex];
+    }
+
     setData (rowId, field, value) {
         const beforeUpdateArg = {
 			rowId: rowId,

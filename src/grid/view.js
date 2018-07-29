@@ -149,25 +149,39 @@ export class View extends EventDispatcher {
 				//Add new cell content
 				cellContent = document.createElement('div');
 				cellContent.className = 'pgrid-cell-content';
+				cell.appendChild(cellContent);
 			} else {
 				cellContent = cell.firstChild;
 			}
 
-			//Render data
+			//Get data to be updated
 			let data = this._model.getDataAt(rowIndex, colIndex);
 
-			//Data cab be transformed before rendering using dataBeforeRender extension
+			//Data can be transformed before rendering using dataBeforeRender extension
 			let arg = {data: data};
 			this._extensions.executeExtension('dataBeforeRender', arg);
 			data = arg.data;
 
-			if (data !== undefined && data !== null) {
-				cellContent.innerHTML = data;
+			//If there's cellUpdate extension, then execute it to update the cell data
+			//Else use default way to put the data directly to the cell content
+			if (this._extensions.hasExtension('cellUpdate')) {
+				arg = {
+					data,
+					cell,
+					cellContent,
+					rowIndex,
+					colIndex,
+					rowId: this._model.getRowId(rowIndex),
+					field: this._model.getColumnField(colIndex)
+				}
+				this._extensions.executeExtension('cellUpdate', arg);
 			} else {
-				cellContent.innerHTML = '';
+				if (data !== undefined && data !== null) {
+					cellContent.innerHTML = data;
+				} else {
+					cellContent.innerHTML = '';
+				}
 			}
-
-			cell.appendChild(cellContent);
 
 			this._extensions.executeExtension('cellAfterUpdate', {
 				cell: cell,
@@ -381,18 +395,28 @@ export class View extends EventDispatcher {
 
 		let cellContent = document.createElement('div');
 		cellContent.className = 'pgrid-cell-content';
-		if (data !== undefined) {
-			cellContent.innerHTML = data;
-		}
 		cell.appendChild(cellContent);
 		pane.appendChild(cell);
 
 		let eventArg = {
-			cell: cell,
-			rowIndex: rowIndex,
-			colIndex: colIndex,
-			data: data
+			cell,
+			cellContent,
+			rowIndex,
+			colIndex,
+			data,
+			rowId: this._model.getRowId(rowIndex),
+			field: this._model.getColumnField(colIndex)
 		};
+
+		//If there's cellRender extension, use cellRender extension to render the cell
+		//Else just set the data to the cellContent directly
+		if (this._extensions.hasExtension('cellRender')) {
+			this._extensions.executeExtension('cellRender', eventArg);
+		} else {
+			if (data !== undefined) {
+				cellContent.innerHTML = data;
+			}	
+		}
 
 		this._extensions.executeExtension('cellAfterRender', eventArg);
 		this._extensions.executeExtension('cellAfterUpdate', eventArg);

@@ -4,6 +4,7 @@
 	<title>Grid Test</title>
 	<link rel="stylesheet" type="text/css" href="../dist/pgrid.css">
 	<script type="text/javascript" src="../dist/pgrid.js"></script>
+	<script type="text/javascript" src="../node_modules/choices.js/assets/scripts/dist/choices.min.js"></script>
 	<style>
 
 		html,body {
@@ -73,17 +74,17 @@
 	<div id="gridDiv" style="width: 100%; height: 100%;"></div>	
 </div>
 
-<script>
+<script type="module">
 
-	var booleanToCheckbox = {
-		dataBeforeRender: function (e) {
-			if (typeof e.data === "boolean") {
-				if (e.data) {
-					e.data = '<input type="checkbox" checked>';
-				} else {
-					e.data = '<input type="checkbox">';
-				}
-			}
+	import { CheckboxColumnExtension } from '../src/extensions/checkbox-column.js';
+
+	class StaticChoicesEditor {
+		constructor (choices) {
+			this._choices = choices;
+		}
+
+		attach (cell, data, done) {
+			console.log('Editor attached', cell, data);
 		}
 	}
 	
@@ -100,10 +101,10 @@
 			left: 2
 		},
 		columns: [
-			{id: 0, width: 50, cssClass: "grid-checkbox-col", title: 'Submit', field: 'submit'},
+			{id: 0, width: 50, cssClass: "grid-checkbox-col", editable: true, title: 'Submit', field: 'submit'},
 			{id: 1, title: 'Status', field: 'status'},
 			{id: 2, width: 110, editable: true, cssClass: "grid-number-col grid-col-editable", title: 'Estimate Number', field: 'estNumber'},
-			{id: 3, editable: true, cssClass: 'grid-col-editable', title: 'Invoice Type', field: 'invType'},
+			{id: 3, editable: true, cssClass: 'grid-col-editable', title: 'Invoice Type', field: 'invType', editor: new StaticChoicesEditor([{text: 'STANDARD', value: 'S'}, {text: 'PREPAYMENT', value: 'P'}])},
 			{id: 4, width: 200, editable: true, cssClass: 'grid-col-editable', title: 'Activity Budget', field: 'activityBudget'},
 			{id: 5, width: 200, title: 'Description', field: 'desc'},
 			{id: 6, width: 200, editable: true, cssClass: 'grid-col-editable', title: 'Detail Description', field: 'detailDesc'},
@@ -111,7 +112,7 @@
 			{id: 8, editable: true, cssClass: 'grid-col-editable', title: 'Supplier Site', field: 'supplierSite'},
 			{id: 9, cssClass: 'grid-number-col', title: 'Balance', field: 'balance'},
 			{id: 10, cssClass: 'grid-number-col grid-col-editable', editable: true, title: 'Unit Price', field: 'unitPrice'},
-			{id: 11, width: 40, cssClass: "grid-checkbox-col", title: 'Use VAT', field: 'useVAT'},
+			{id: 11, width: 40, cssClass: "grid-checkbox-col grid-col-editable", editable: true, title: 'Use VAT', field: 'useVAT'},
 			{id: 12, cssClass: 'grid-number-col', title: 'Amt VAT', field: 'amtVAT'},
 			{id: 13, cssClass: 'grid-number-col', title: 'Total Amount', field: 'amtTotal'},
 			{id: 14, editable: true, cssClass: 'grid-col-editable', title: 'Supplier Invoice', field: 'supplierInv'},
@@ -146,7 +147,7 @@
 			]
 		},
 		extensions: [
-			booleanToCheckbox
+			new CheckboxColumnExtension()
 		]
 	};
 	

@@ -311,6 +311,14 @@ export class Model extends EventDispatcher {
 		return this._config.headerRowCount + this._data.getRowIndex(rowId);
 	}
 
+	getRowId (rowIndex) {
+		if (rowIndex >= this._config.headerRowCount) {
+			this._data.getRowId(rowIndex - this._config.headerRowCount);
+		} else {
+			return null;
+		}
+	}
+
 	getColumnIndex (field) {
 		for (let i=0; i<this._config.columns.length; i++) {
 			if (this._config.columns[i].field === field) {
@@ -318,6 +326,12 @@ export class Model extends EventDispatcher {
 			}
 		}
 		return -1;
+	}
+
+	getColumnField (colIndex) {
+		if (this._config.columns[colIndex]) {
+			return this._config.columns[colIndex].field;
+		}
 	}
 
 	_calcTotalSize() {

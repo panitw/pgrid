@@ -5,7 +5,9 @@ export class Extension {
 		this._config = config;
 
 		this._extensions = {
+			cellRender: [],
 			cellAfterRender: [],
+			cellUpdate: [],
 			cellAfterUpdate: [],
 			keyDown: [],
 			gridAfterRender: [],
@@ -25,6 +27,10 @@ export class Extension {
 				this._extensions[extPoint].push(ext);
 			}
 		}
+	}
+
+	hasExtension (extPoint) {
+		return (this._extensions[extPoint] && this._extensions[extPoint].length > 0)
 	}
 
 	queryExtension (extPoint) {
