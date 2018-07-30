@@ -1,4 +1,4 @@
-class State {
+export class State {
 
 	constructor () {
 		this._state = {};
@@ -17,5 +17,3 @@ class State {
 	}
 	
 }
-
-export default State;

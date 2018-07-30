@@ -1,5 +1,3 @@
-class InlineEditorExtension {
+export class InlineEditorExtension {
 
 }
-
-export default InlineEditorExtension;

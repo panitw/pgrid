@@ -2,8 +2,8 @@
 <html>
 <head>
 	<title>Grid Test</title>
-	<link rel="stylesheet" type="text/css" href="dist/pgrid.css">
-	<script type="text/javascript" src="dist/pgrid.js"></script>
+	<link rel="stylesheet" type="text/css" href="../dist/pgrid.css">
+	<script type="text/javascript" src="../dist/pgrid.js"></script>
 	<style>
 
 		html,body {
@@ -82,63 +82,60 @@
 			} else {
 				e.cancel = true;
 			}
-		},
-		dataAfterUpdate: function (e) {
-			grid.data.setDataAt(e.rowIndex, e.colIndex + 1, 100);
-			grid.view.updateCell(e.rowIndex, e.colIndex + 1);
 		}
 	}
 
 	var options = {
-		columnCount: 13,
-		rowCount: 12,
 		rowHeight: 28,
 		columnWidth: 90,
 		selection: {
 			cssClass: 'cell-selection'
 		},
 		editing: true,
+		autoUpdate: true,
 		copypaste: true,
 		freezePane: {
-			top: 1,
 			left: 5,
 			bottom: 4
 		},
 		columns: [
-			{i: 0, cssClass: 'header-col', editable: false, width: 160},
-			{i: 1, cssClass: 'header-col', editable: false},
-			{i: 2, cssClass: 'header-col', editable: false},
-			{i: 3, cssClass: 'header-col', editable: false},
-			{i: 4, cssClass: 'header-col', editable: false},
-			{i: 5, cssClass: 'number-col', editable: true},
-			{i: 6, cssClass: 'number-col', editable: true},
-			{i: 7, cssClass: 'number-col', editable: true},
-			{i: 8, cssClass: 'number-col', editable: true},
-			{i: 9, cssClass: 'number-col', editable: true},
-			{i: 10, cssClass: 'number-col', editable: true},
-			{i: 11, cssClass: 'number-col', editable: true},
-			{i: 12, cssClass: 'number-col', editable: true}
+			{id: 0, cssClass: 'header-col', editable: false, width: 160, field: 'poNumber', title: 'PO Number'},
+			{id: 1, cssClass: 'header-col', editable: false, field: 'balanceQty', title: 'Balance Qty.'},
+			{id: 2, cssClass: 'header-col', editable: false, field: 'originalQty', title: 'Original Qty.'},
+			{id: 3, cssClass: 'header-col', editable: false, field: 'cutOffInv', title: 'Cut-off Inv.'},
+			{id: 4, cssClass: 'header-col', editable: false, field: 'issueDate', title: 'Issued Date'},
+			{id: 5, cssClass: 'number-col', editable: true, field: 'c1', title: '03-Apr<br>(Mon)'},
+			{id: 6, cssClass: 'number-col', editable: true, field: 'c2', title: '04-Apr<br>(Tue)'},
+			{id: 7, cssClass: 'number-col', editable: true, field: 'c3', title: '05-Apr<br>(Wed)'},
+			{id: 8, cssClass: 'number-col', editable: true, field: 'c4', title: '06-Apr<br>(Thu)'},
+			{id: 9, cssClass: 'number-col', editable: true, field: 'c5', title: '07-Apr<br>(Fri)'},
+			{id: 10, cssClass: 'number-col', editable: true, field: 'c6', title: '10-Apr<br>(WW16)'},
+			{id: 11, cssClass: 'number-col', editable: true, field: 'c7', title: '17-Apr<br>(WW17)'},
+			{id: 12, cssClass: 'number-col', editable: true, field: 'c8', title: '24-Apr<br>(WW18)'}
+		],
+		headerRows: [
+			{i: 0, type: 'header', cssClass: 'header-row', editable: false}
 		],
 		rows: [
-			{i: 0, type: 'header', cssClass: 'header-row', editable: false},
-			{i: 1, cssClass: 'demand-row', editable: false},
-			{i: 3, cssClass: 'demand-row', editable: false},
-			{i: 5, cssClass: 'forecast-row', editable: false},
-			{i: 7, cssClass: 'total-row'},
-			{i: 8, cssClass: 'summary-row', editable: false},
+			{i: 0, cssClass: 'demand-row', editable: false},
+			{i: 2, cssClass: 'demand-row', editable: false},
+			{i: 4, cssClass: 'demand-row', editable: false},
+			{i: 6, cssClass: 'forecast-row', editable: false},
+			{i: 8, cssClass: 'total-row'},
 			{i: 9, cssClass: 'summary-row', editable: false},
 			{i: 10, cssClass: 'summary-row', editable: false},
-			{i: 11, cssClass: 'summary-row', editable: false}
+			{i: 11, cssClass: 'summary-row', editable: false},
+			{i: 12, cssClass: 'summary-row', editable: false}
 		],
 		dataModel: {
+			fields: ['poNumber', "balanceQty", "originalQty", "cutOffInv", "issueDate", 'c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'c7', 'c8'],
+			format: 'array',
 			data: [
-				["PO Number","Balance Qty.","Original Qty.","Cut-off Inv.", "Issued Date",
-				  "03-Apr<br>(Mon)", "04-Apr<br>(Tue)", "05-Apr<br>(Wed)", "06-Apr<br>(Thu)", "07-Apr<br>(Fri)",
-				  "10-Apr<br>(WW16)", "17-Apr<br>(WW17)", "24-Apr<br>(WW18)"
-				],
 				["PO-0001", 1000, 2000, "INV-12345", "01-Apr-17", 100, 100, 100 ,100 , 100, 500 ,0 ,0],
 				["Commitment", "", "", "", "", 0, 0, 0 ,0 ,0, 0 ,0 ,0],
 				["PO-0002", 1000, 2000, "INV-12345", "01-Apr-17", 0, 0, 0 ,0 , 0, 0, 500, 500],
+				["Commitment", "", "", "", "", 0, 0, 0 ,0 ,0, 0 ,0 ,0],
+				["PO-0003", 1000, 2000, "INV-12345", "01-Apr-17", 0, 0, 0 ,0 , 0, 0, 500, 500],
 				["Commitment", "", "", "", "", 0, 0, 0 ,0 ,0, 0 ,0 ,0],
 				["Forecast", "", "", "", "", 0, 0, 0, 0, 0, 0 ,0 ,0],
 				["Commitment", "", "", "", "", 0, 0, 0 ,0 ,0, 0 ,0 ,0],

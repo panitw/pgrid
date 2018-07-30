@@ -1,17 +1,20 @@
-class Extension {
+export class Extension {
 
 	constructor (grid, config) {
 		this._grid = grid;
 		this._config = config;
 
 		this._extensions = {
+			cellRender: [],
 			cellAfterRender: [],
+			cellUpdate: [],
 			cellAfterUpdate: [],
 			keyDown: [],
 			gridAfterRender: [],
 			dataBeforeRender: [],
 			dataBeforeUpdate: [],
-			dataAfterUpdate: []
+			dataAfterUpdate: [],
+			dataFinishUpdate: []
 		}
 	}
 
@@ -24,6 +27,10 @@ class Extension {
 				this._extensions[extPoint].push(ext);
 			}
 		}
+	}
+
+	hasExtension (extPoint) {
+		return (this._extensions[extPoint] && this._extensions[extPoint].length > 0)
 	}
 
 	queryExtension (extPoint) {
@@ -41,5 +48,3 @@ class Extension {
 	}
 
 }
-
-export default Extension;

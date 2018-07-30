@@ -1,4 +1,4 @@
-class SelectionExtension {
+export class SelectionExtension {
 
 	init (grid, config) {
 		this._grid = grid;
@@ -8,6 +8,10 @@ class SelectionExtension {
 	}
 
 	keyDown (e) {
+		let editing = this._grid.state.get('editing');
+		if (editing) {
+			return;
+		}
 		let selection = this._grid.state.get('selection');
 		if (selection && selection.length > 0) {
 			let rowIndex = selection[0].r;
@@ -33,11 +37,9 @@ class SelectionExtension {
 			}
 			if (rowIndex >= 0 && rowIndex < this._grid.model.getRowCount() &&
 				colIndex >= 0 && colIndex < this._grid.model.getColumnCount()) {
-				let rowModel = this._grid.model.getRowModel(rowIndex);
-				let colModel = this._grid.model.getColumnModel(colIndex);
-				if ((!rowModel || rowModel.type !== 'header') &&
-					(!colModel || colModel.type !== 'header')) {
-
+				const isHeader = this._grid.model.isHeaderRow(rowIndex);
+				const rowModel = this._grid.model.getRowModel(rowIndex);
+				if (!rowModel || !isHeader) {
 					let cell = this._grid.view.getCell(rowIndex, colIndex);
 					if (cell) {
 						this._selectCell(cell, rowIndex, colIndex);
@@ -52,11 +54,12 @@ class SelectionExtension {
 
 	cellAfterRender (e) {
 		e.cell.addEventListener('mousedown', (e) => {
-			let actualCell = e.target;
-			let actualRow = parseInt(actualCell.dataset.rowIndex);
-			let actualCol = parseInt(actualCell.dataset.colIndex);
-			let rowModel = this._grid.model.getRowModel(actualRow);
-			if (!rowModel || rowModel.type !== 'header') {
+			const actualCell = e.target;
+			const actualRow = parseInt(actualCell.dataset.rowIndex);
+			const actualCol = parseInt(actualCell.dataset.colIndex);
+			const rowModel = this._grid.model.getRowModel(actualRow);
+			const isHeader = this._grid.model.isHeaderRow(actualRow);
+			if (!rowModel || !isHeader) {
 				if (actualCell.classList.contains('pgrid-cell')) {
 					this._selectCell(actualCell, actualRow, actualCol);
 				}
@@ -92,5 +95,3 @@ class SelectionExtension {
 	}
 
 }
-
-export default SelectionExtension;

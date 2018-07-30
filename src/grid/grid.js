@@ -1,14 +1,15 @@
-import View from './view';
-import Model from './model';
-import Data from './data';
-import Extension from './extension';
-import State from './state';
-import EventDispatcher from './event';
-import Utils from './utils';
+import { View } from './view';
+import { Model } from './model';
+import { DataTable } from '../data/table';
+import { Extension } from './extension';
+import { State } from './state';
+import { EventDispatcher } from './event';
+import { Utils } from './utils';
 
-import SelectionExtension from '../extensions/selection';
-import EditorExtension from '../extensions/editor';
-import CopyPasteExtension from '../extensions/copypaste';
+import { SelectionExtension } from '../extensions/selection';
+import { EditorExtension } from '../extensions/editor';
+import { CopyPasteExtension } from '../extensions/copypaste';
+import { ViewUpdaterExtension } from '../extensions/view-updater';
 
 export class PGrid extends EventDispatcher {
 
@@ -18,6 +19,8 @@ export class PGrid extends EventDispatcher {
 		//Merge config with default config
 		let defaultConfig = {
 			rowCount: 0,
+			headerRowCount: 1,
+			footerRowCount: 0,
 			columnCount: 0,
 			rowHeight: 32,
 			columnWidth: 100
@@ -27,9 +30,9 @@ export class PGrid extends EventDispatcher {
 		//Extensions Store
 		this._extensions = new Extension(this, this._config);
 
-		this._data = new Data(this._config.dataModel, this._extensions);
+		this._data = new DataTable(this._config.dataModel, this._extensions);
 		this._model = new Model(this._config, this._data);
-		this._view = new View(this._model, this._data, this._extensions);
+		this._view = new View(this._model, this._extensions);
 		this._state = new State();
 
 		//Load default extensions
@@ -41,6 +44,9 @@ export class PGrid extends EventDispatcher {
 		}
 		if (this._config.copypaste) {
 			this._extensions.loadExtension(new CopyPasteExtension());
+		}
+		if (this._config.autoUpdate) {
+			this._extensions.loadExtension(new ViewUpdaterExtension());
 		}
 
 		//Load initial external extensions
@@ -73,21 +79,6 @@ export class PGrid extends EventDispatcher {
 
 	render(element) {
 		this._view.render(element);
-	}
-
-	addRow(rowData) {
-		this.insertRow(this.data.getRowCount(), rowData);
-	}
-
-	insertRow(atIndex, rowData) {
-		this.data.insertRow(atindex, rowData);
-		
-		let modelRowCount = this.model.getRowCount();
-		let dataRowCount = this.data.getRowCount();
-		if (modelRowCount < dataRowCount) {
-			let diff = dataRowCount - modelRowCount;
-			
-		}
 	}
 
 }

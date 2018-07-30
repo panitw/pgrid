@@ -26,6 +26,7 @@
     "start": "npx gulp"
   },
   "dependencies": {
+    "choices.js": "^3.0.4",
     "resize-observer-polyfill": "^1.5.0"
   }
 }

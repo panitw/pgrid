@@ -1,12 +1,11 @@
-import EventDispatcher from './event';
+import { EventDispatcher } from './event';
 import ResizeObserver from 'resize-observer-polyfill';
 
-class View extends EventDispatcher {
+export class View extends EventDispatcher {
 
-	constructor (model, data, extensions) {
+	constructor (model, extensions) {
 		super();
 		this._model = model;
-		this._data = data;
 		this._extensions = extensions;
 		this._template = 	'<div class="pgrid-content-pane" style="position: relative;">' +
 							'	<div class="pgrid-top-left-pane" style="position: absolute;">' +
@@ -78,6 +77,17 @@ class View extends EventDispatcher {
 		});
 	}
 
+	reRender () {
+		this._topLeftInner.innerHTML = '';
+		this._topInner.innerHTML = '';
+		this._leftInner.innerHTML = '';
+		this._centerInner.innerHTML = '';
+		this._bottomLeftInner.innerHTML = '';
+		this._bottomInner.innerHTML = '';
+
+		this._resturecture();
+	}
+
 	getElement () {
 		return this._element;
 	}
@@ -139,25 +149,39 @@ class View extends EventDispatcher {
 				//Add new cell content
 				cellContent = document.createElement('div');
 				cellContent.className = 'pgrid-cell-content';
+				cell.appendChild(cellContent);
 			} else {
 				cellContent = cell.firstChild;
 			}
 
-			//Render data
-			let data = this._data.getDataAt(rowIndex, colIndex);
+			//Get data to be updated
+			let data = this._model.getDataAt(rowIndex, colIndex);
 
-			//Data cab be transformed before rendering using dataBeforeRender extension
+			//Data can be transformed before rendering using dataBeforeRender extension
 			let arg = {data: data};
 			this._extensions.executeExtension('dataBeforeRender', arg);
 			data = arg.data;
 
-			if (data !== undefined && data !== null) {
-				cellContent.innerHTML = data;
+			//If there's cellUpdate extension, then execute it to update the cell data
+			//Else use default way to put the data directly to the cell content
+			if (this._extensions.hasExtension('cellUpdate')) {
+				arg = {
+					data,
+					cell,
+					cellContent,
+					rowIndex,
+					colIndex,
+					rowId: this._model.getRowId(rowIndex),
+					field: this._model.getColumnField(colIndex)
+				}
+				this._extensions.executeExtension('cellUpdate', arg);
 			} else {
-				cellContent.innerHTML = '';
+				if (data !== undefined && data !== null) {
+					cellContent.innerHTML = data;
+				} else {
+					cellContent.innerHTML = '';
+				}
 			}
-
-			cell.appendChild(cellContent);
 
 			this._extensions.executeExtension('cellAfterUpdate', {
 				cell: cell,
@@ -167,8 +191,6 @@ class View extends EventDispatcher {
 			});
 		}
 	}
-
-	
 
 	_attachHandlers () {
 
@@ -354,9 +376,9 @@ class View extends EventDispatcher {
 	}
 
 	_renderCell (rowIndex, colIndex, pane, x, y, width, height) {
-		let data = this._data.getDataAt(rowIndex, colIndex);
+		let data = this._model.getDataAt(rowIndex, colIndex);
 
-		//Data cab be transformed before rendering using dataBeforeRender extension
+		//Data can be transformed before rendering using dataBeforeRender extension
 		let arg = {data: data};
 		this._extensions.executeExtension('dataBeforeRender', arg);
 		data = arg.data;
@@ -373,18 +395,28 @@ class View extends EventDispatcher {
 
 		let cellContent = document.createElement('div');
 		cellContent.className = 'pgrid-cell-content';
-		if (data !== undefined) {
-			cellContent.innerHTML = data;
-		}
 		cell.appendChild(cellContent);
 		pane.appendChild(cell);
 
 		let eventArg = {
-			cell: cell,
-			rowIndex: rowIndex,
-			colIndex: colIndex,
-			data: data
+			cell,
+			cellContent,
+			rowIndex,
+			colIndex,
+			data,
+			rowId: this._model.getRowId(rowIndex),
+			field: this._model.getColumnField(colIndex)
 		};
+
+		//If there's cellRender extension, use cellRender extension to render the cell
+		//Else just set the data to the cellContent directly
+		if (this._extensions.hasExtension('cellRender')) {
+			this._extensions.executeExtension('cellRender', eventArg);
+		} else {
+			if (data !== undefined) {
+				cellContent.innerHTML = data;
+			}	
+		}
 
 		this._extensions.executeExtension('cellAfterRender', eventArg);
 		this._extensions.executeExtension('cellAfterUpdate', eventArg);
@@ -442,5 +474,3 @@ class View extends EventDispatcher {
 	  return false;
 	}
 }
-
-export default View;
