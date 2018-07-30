@@ -74,6 +74,7 @@
 
 		.choices__list--dropdown .choices__item--selectable {
 			padding-right: 0px;
+			word-break: break-word;
 		}
 	</style>
 </head>
@@ -92,8 +93,10 @@
 
 		class SearchChoicesEditor {
 
-			constructor(url) {
+			constructor(url, labelField = 'label', valueField = 'value') {
 				this._url = url;
+				this._labelField = labelField;
+				this._valueField = valueField;
 			}
 
 			attach(cell, data, done) {
@@ -106,9 +109,13 @@
 
 				//Creat Choices component
 				this._choicesObj = new Choices(select, {
+					placeholderValue: 'Start typing to search',
 					itemSelectText: '',
 					shouldSort: false,
-					searchResultLimit: 10
+					searchResultLimit: 10,
+					searchFloor: 2,        // or whatever value makes sense for your data / API
+					searchChoices: false,  // see bullet point 2 above
+					duplicateItems: false  // this is ignored, see bullet point 3 above
 				});
 				this._choicesObj.showDropdown();
 
@@ -118,28 +125,42 @@
 					searchBox.focus();
 				}
 
-				let timer = null;
+				// Some config and bookkeeping for API calls.
+				const lookupDelay = 100;
+				const lookupCache = {};
+				let lookupTimeout = null;
 
-				this._choicesObj.passedElement.addEventListener('search', (event) => {
-					if (event.detail.value.length > 2) {
-						if (null !== timer) {
-							clearTimeout(timer);
-						}
-						timer = setTimeout(() => {
-							let request = new Request(this._url + event.detail.value);
-							fetch(request)
-								.then((response) => {
-									if (200 === response.status) {
-										response.json().then((data) => {
-											this._choicesObj.setChoices(data, 'alpha2Code', 'name', true);
-										});
-									}
-								})
-								.catch((error) => {
-									console.log(error);
-								});
-						}, 1000);
-					}
+				// Function to perform the API lookup.
+				let serverLookup = () => {
+					let query = this._choicesObj.input.value;
+					if (query in lookupCache) {
+						populateOptions(lookupCache[query]);
+					} else {
+						let request = new Request(this._url + query);
+						fetch(request)
+							.then((response) => {
+								if (response.status === 200) {
+									response.json().then(function (results) {
+										lookupCache[query] = results;
+										populateOptions(results);
+									});
+								}
+							})
+							.catch(function (error) {
+								console.log(error);
+							});
+					};
+				}
+
+				// Function to actually populate the results from the API lookup.
+				let populateOptions = (options) => {
+					this._choicesObj.setChoices(options, this._valueField, this._labelField, true);
+				};
+
+				// Trigger an API lookup when the user pauses after typing.
+				select.addEventListener('search', function (event) {
+					clearTimeout(lookupTimeout);
+					lookupTimeout = setTimeout(serverLookup, lookupDelay);
 				});
 
 				select.addEventListener('hideDropdown', () => {
@@ -220,7 +241,7 @@
 				{ id: 1, title: 'Status', field: 'status' },
 				{ id: 2, width: 110, editable: true, cssClass: "grid-number-col grid-col-editable", title: 'Estimate Number', field: 'estNumber' },
 				{ id: 3, width: 150, editable: true, cssClass: 'grid-col-editable', title: 'Invoice Type', field: 'invType', editor: new StaticChoicesEditor([{ label: 'STANDARD', value: 'STANDARD' }, { label: 'PREPAYMENT', value: 'PREPAYMENT' }]) },
-				{ id: 4, width: 200, editable: true, cssClass: 'grid-col-editable', title: 'Activity Budget', field: 'activityBudget', editor: new SearchChoicesEditor('https://restcountries.eu/rest/v2/name/') },
+				{ id: 4, width: 200, editable: true, cssClass: 'grid-col-editable', title: 'Activity Budget', field: 'activityBudget', editor: new SearchChoicesEditor('https://restcountries.eu/rest/v2/name/', 'name', 'name') },
 				{ id: 5, width: 200, title: 'Description', field: 'desc' },
 				{ id: 6, width: 200, editable: true, cssClass: 'grid-col-editable', title: 'Detail Description', field: 'detailDesc' },
 				{ id: 7, width: 200, editable: true, cssClass: 'grid-col-editable', title: 'Supplier Name', field: 'supplierName' },
