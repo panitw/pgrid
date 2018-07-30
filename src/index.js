@@ -1,2 +1,2 @@
 export { PGrid } from './grid/grid';
-export { DataTable } from './data/table';
+export { CheckboxColumnExtension } from './extensions/checkbox-column';
