@@ -164,6 +164,7 @@ export class View extends EventDispatcher {
 
 			//If there's cellUpdate extension, then execute it to update the cell data
 			//Else use default way to put the data directly to the cell content
+			let handledByExt = false;
 			if (this._extensions.hasExtension('cellUpdate')) {
 				arg = {
 					data,
@@ -172,10 +173,14 @@ export class View extends EventDispatcher {
 					rowIndex,
 					colIndex,
 					rowId: this._model.getRowId(rowIndex),
-					field: this._model.getColumnField(colIndex)
+					field: this._model.getColumnField(colIndex),
+					handled: false
 				}
 				this._extensions.executeExtension('cellUpdate', arg);
-			} else {
+				handledByExt = arg.handled;
+			}
+
+			if (!handledByExt) {
 				if (data !== undefined && data !== null) {
 					cellContent.innerHTML = data;
 				} else {
@@ -405,17 +410,22 @@ export class View extends EventDispatcher {
 			colIndex,
 			data,
 			rowId: this._model.getRowId(rowIndex),
-			field: this._model.getColumnField(colIndex)
+			field: this._model.getColumnField(colIndex),
+			handled: false
 		};
 
 		//If there's cellRender extension, use cellRender extension to render the cell
 		//Else just set the data to the cellContent directly
+		let handledByExt = false;
 		if (this._extensions.hasExtension('cellRender')) {
 			this._extensions.executeExtension('cellRender', eventArg);
-		} else {
+			handledByExt = eventArg.handled;
+		}
+
+		if (!handledByExt) {
 			if (data !== undefined) {
 				cellContent.innerHTML = data;
-			}	
+			}
 		}
 
 		this._extensions.executeExtension('cellAfterRender', eventArg);

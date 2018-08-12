@@ -20,14 +20,16 @@ export class CheckboxColumnExtension {
             checkbox.addEventListener('change', (checkboxEvent) => {
                 this._grid.model.setDataAt(e.rowIndex, e.colIndex, checkboxEvent.target.checked);
             });
-        } else {
-            e.cellContent.innerHTML = e.data;
+            e.handled = true;
         }
     }
 
     cellUpdate (e) {
-        if (e.cellContent.firstChild) {
-            e.cellContent.firstChild.checked = e.data;
+        if (typeof e.data === 'boolen') {
+            if (e.cellContent.firstChild) {
+                e.cellContent.firstChild.checked = e.data;
+            }
+            e.handled = true;
         }
     }
 
