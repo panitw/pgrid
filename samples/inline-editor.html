@@ -224,6 +224,23 @@
 			}
 		}
 
+		class NewRowHighlighter {
+
+			init (grid, config) {
+				this._grid = grid;
+				this._config = config;
+			}
+
+			cellRender (e) {
+				if (e.rowId) {
+					const isNew = this._grid.data.getRowData(e.rowId)['_new_'];
+					e.cell.classList.toggle('grid-edited-row', isNew);
+					e.cell.classList.toggle('grid-cell-editable', isNew);
+				}
+			}
+
+		}
+
 		var options = {
 			rowHeight: 47,
 			columnWidth: 100,
@@ -268,22 +285,21 @@
 				{ i: 0, type: 'header', cssClass: 'grid-header-row', editable: false }
 			],
 			rows: [
-				{ i: 0, editable: false },
-				{ i: 1, cssClass: 'grid-edited-row grid-cell-editable' },
-				{ i: 2, cssClass: 'grid-edited-row grid-cell-editable' },
+				{ i: 0, editable: false }
 			],
 			dataModel: {
-				fields: ['submit', 'status', 'estNumber', 'invType', 'activityBudget', 'desc', 'detailDesc', 'supplierName',
+				fields: ['_new_', 'submit', 'status', 'estNumber', 'invType', 'activityBudget', 'desc', 'detailDesc', 'supplierName',
 					'supplierSite', 'balance', 'unitPrice', 'useVAT', 'amtVAT', 'amtTotal', 'supplierInv', 'invDate',
 					'WHT', 'autoDueDate', 'dueDate', 'comment', 'kpiCode', 'section', 'poNumber', 'invNum', 'reqDate',
 					'reqNumber'],
 				format: 'array',
 				data: [
-					[null, 'APPROVED', 'ES1803010003', 'STANDARD', 'Activity/Hall/Promot', 'ค่าผลิตไวนิล โครงบูท พร้อมติดตั้ง', '', 'บจก. ยูพี อิงค์เจ๊ท พร๊อพ', 'HO', '40,000', '32,500', true, '2,275', '34\,775', 'INV019378', '10-MAR-18', 'หัก ณ ที่จ่าย', true, '15-MAR-18', '', '2.1.13 - Decoration', '123', 'PO180315000', 'INVPE18031910', '10-MAR-18', 'PE1803290009']
+					[false, null, 'APPROVED', 'ES1803010003', 'STANDARD', 'Activity/Hall/Promot', 'ค่าผลิตไวนิล โครงบูท พร้อมติดตั้ง', '', 'บจก. ยูพี อิงค์เจ๊ท พร๊อพ', 'HO', '40,000', '32,500', true, '2,275', '34\,775', 'INV019378', '10-MAR-18', 'หัก ณ ที่จ่าย', true, '15-MAR-18', '', '2.1.13 - Decoration', '123', 'PO180315000', 'INVPE18031910', '10-MAR-18', 'PE1803290009']
 				]
 			},
 			extensions: [
-				new CheckboxColumnExtension()
+				new CheckboxColumnExtension(),
+				new NewRowHighlighter()
 			]
 		};
 
@@ -292,7 +308,7 @@
 		grid.render(document.getElementById('gridDiv'));
 
 		document.getElementById('addRow').addEventListener('click', function () {
-			grid.data.addRow([true, 'DRAFT', '', '', '', '', '', '', '', '', '', false, '', '', '', '', '', false, '', '', '', '', '', '', '']);
+			grid.data.addRow([true, true, 'DRAFT', '', '', '', '', '', '', '', '', '', false, '', '', '', '', '', false, '', '', '', '', '', '', '']);
 			grid.view.reRender();
 		});
 

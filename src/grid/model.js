@@ -313,7 +313,7 @@ export class Model extends EventDispatcher {
 
 	getRowId (rowIndex) {
 		if (rowIndex >= this._config.headerRowCount) {
-			this._data.getRowId(rowIndex - this._config.headerRowCount);
+			return this._data.getRowId(rowIndex - this._config.headerRowCount);
 		} else {
 			return null;
 		}
