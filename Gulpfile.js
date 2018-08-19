@@ -9,7 +9,7 @@ gulp.task('build', function () {
 			debug: true
     	})
         .transform('babelify', {
-        	presets: ['es2015']
+        	presets: ['env']
         })
         .bundle()
         .pipe(source('pgrid.js'))

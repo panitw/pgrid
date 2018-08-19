@@ -9,6 +9,7 @@
 
 	<script type="text/javascript" src="../dist/pgrid.js"></script>
 	<script type="text/javascript" src="../node_modules/choices.js/assets/scripts/dist/choices.min.js"></script>
+	<script type="text/javascript" src="../node_modules/numeral/min/numeral.min.js"></script>
 	<style>
 		html,
 		body {
@@ -238,7 +239,17 @@
 					e.cell.classList.toggle('grid-cell-editable', isNew);
 				}
 			}
+		}
 
+		class NumberFormatter {
+
+			render (e) {
+				e.cellContent.innerHTML = numeral(e.data).format('0,0.00');
+			}
+			
+			update (e) {
+				e.cellContent.innerHTML = numeral(e.data).format('0,0.00');
+			}
 		}
 
 		var options = {
@@ -247,6 +258,7 @@
 			selection: {
 				cssClass: 'grid-cell-selection'
 			},
+			columnFormatter: true,
 			editing: true,
 			autoUpdate: true,
 			freezePane: {
@@ -263,7 +275,7 @@
 				{ id: 6, width: 200, editable: true, cssClass: 'grid-col-editable', title: 'Detail Description', field: 'detailDesc' },
 				{ id: 7, width: 200, editable: true, cssClass: 'grid-col-editable', title: 'Supplier Name', field: 'supplierName' },
 				{ id: 8, editable: true, cssClass: 'grid-col-editable', title: 'Supplier Site', field: 'supplierSite' },
-				{ id: 9, cssClass: 'grid-number-col', title: 'Balance', field: 'balance' },
+				{ id: 9, cssClass: 'grid-number-col', title: 'Balance', field: 'balance', formatter: new NumberFormatter() },
 				{ id: 10, cssClass: 'grid-number-col grid-col-editable', editable: true, title: 'Unit Price', field: 'unitPrice' },
 				{ id: 11, width: 40, cssClass: "grid-checkbox-col grid-col-editable", editable: true, title: 'Use VAT', field: 'useVAT' },
 				{ id: 12, cssClass: 'grid-number-col', title: 'Amt VAT', field: 'amtVAT' },
@@ -294,7 +306,7 @@
 					'reqNumber'],
 				format: 'array',
 				data: [
-					[false, null, 'APPROVED', 'ES1803010003', 'STANDARD', 'Activity/Hall/Promot', 'ค่าผลิตไวนิล โครงบูท พร้อมติดตั้ง', '', 'บจก. ยูพี อิงค์เจ๊ท พร๊อพ', 'HO', '40,000', '32,500', true, '2,275', '34\,775', 'INV019378', '10-MAR-18', 'หัก ณ ที่จ่าย', true, '15-MAR-18', '', '2.1.13 - Decoration', '123', 'PO180315000', 'INVPE18031910', '10-MAR-18', 'PE1803290009']
+					[false, null, 'APPROVED', 'ES1803010003', 'STANDARD', 'Activity/Hall/Promot', 'ค่าผลิตไวนิล โครงบูท พร้อมติดตั้ง', '', 'บจก. ยูพี อิงค์เจ๊ท พร๊อพ', 'HO', 40000, 32500, true, '2,275', '34\,775', 'INV019378', '10-MAR-18', 'หัก ณ ที่จ่าย', true, '15-MAR-18', '', '2.1.13 - Decoration', '123', 'PO180315000', 'INVPE18031910', '10-MAR-18', 'PE1803290009']
 				]
 			},
 			extensions: [

@@ -10,6 +10,7 @@ import { SelectionExtension } from '../extensions/selection';
 import { EditorExtension } from '../extensions/editor';
 import { CopyPasteExtension } from '../extensions/copypaste';
 import { ViewUpdaterExtension } from '../extensions/view-updater';
+import { FormatterExtension } from '../extensions/formatter';
 
 export class PGrid extends EventDispatcher {
 
@@ -47,6 +48,9 @@ export class PGrid extends EventDispatcher {
 		}
 		if (this._config.autoUpdate) {
 			this._extensions.loadExtension(new ViewUpdaterExtension());
+		}
+		if (this._config.columnFormatter) {
+			this._extensions.loadExtension(new FormatterExtension());
 		}
 
 		//Load initial external extensions
