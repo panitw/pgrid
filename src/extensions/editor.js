@@ -4,6 +4,13 @@ export class EditorExtension {
 		this._grid = grid;
 		this._config = config;
 		this._editorAttached = false;
+		this.scrollHandler = this.scrollHandler.bind(this);
+		this._grid.view.listen('vscroll', this.scrollHandler);
+		this._grid.view.listen('hscroll', this.scrollHandler);
+	}
+
+	scrollHandler () {
+		this._detachEditor();
 	}
 
 	keyDown (e) {
@@ -49,11 +56,22 @@ export class EditorExtension {
 
 			//If there's custom editor, use custom editor to attach the editor
 			this._grid.state.set('editing', true);
+
+			//Create float editor container
+			let cellBound = cell.getBoundingClientRect();
+			this._editorContainer = document.createElement('div');
+			this._editorContainer.style.position = 'absolute';
+			this._editorContainer.style.top = cellBound.top + 'px';
+			this._editorContainer.style.left = cellBound.left + 'px';
+			this._editorContainer.style.width = cellBound.width + 'px';
+			this._editorContainer.style.height = cellBound.height + 'px';
+			document.body.appendChild(this._editorContainer);
+
 			let customEditor = this._grid.model.getCascadedCellProp(actualCell.dataset.rowIndex, actualCell.dataset.colIndex, 'editor');
 			if (customEditor && customEditor.attach) {
-				customEditor.attach(actualCell, data, this._done.bind(this));
+				customEditor.attach(this._editorContainer, data, this._done.bind(this));
 			} else {
-				this._attachEditor(actualCell, data, this._done.bind(this));
+				this._attachEditor(this._editorContainer, data, this._done.bind(this));
 			}
 			this._editorAttached = true;
 			this._editingCol = actualCol;
@@ -67,10 +85,10 @@ export class EditorExtension {
 			this._inputElement = document.createElement('input');
 			this._inputElement.type = 'text';
 			this._inputElement.value = data;
-			this._inputElement.style.width = (cellBound.width-6) + 'px';
-			this._inputElement.style.height = (cellBound.height-3) + 'px';
+			this._inputElement.style.width = (cellBound.width) + 'px';
+			this._inputElement.style.height = (cellBound.height) + 'px';
 			this._inputElement.className = 'pgrid-cell-text-editor';
-			cell.innerHTML = '';
+			
 			cell.appendChild(this._inputElement);
 
 			this._inputElement.focus();
@@ -121,15 +139,19 @@ export class EditorExtension {
 	}
 
 	_detachEditor () {
-		if (this._inputElement) {
-			this._inputElement.removeEventListener('keydown', this._keydownHandler);
-			this._inputElement.removeEventListener('blur', this._blurHandler);
-			this._inputElement.removeEventListener('click', this._clickHandler);
-			this._inputElement.parentElement.removeChild(this._inputElement);
-			this._inputElement = null;
-			this._keydownHandler = null;
-			this._blurHandler = null;
-			this._clickHandler = null;
+		if (this._editorContainer) {
+			this._editorContainer.parentElement.removeChild(this._editorContainer);
+			this._editorContainer = null;
+			if (this._inputElement) {
+				this._inputElement.removeEventListener('keydown', this._keydownHandler);
+				this._inputElement.removeEventListener('blur', this._blurHandler);
+				this._inputElement.removeEventListener('click', this._clickHandler);
+				this._inputElement.parentElement.removeChild(this._inputElement);
+				this._inputElement = null;
+				this._keydownHandler = null;
+				this._blurHandler = null;
+				this._clickHandler = null;	
+			}
 		}
 	}
 

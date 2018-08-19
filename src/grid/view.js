@@ -201,10 +201,12 @@ export class View extends EventDispatcher {
 
 		this._vScrollHandler = (e) => {
 			this.setScrollY(e.target.scrollTop, false);
+			this.dispatch('vscroll', e);
 		};
 
 		this._hScrollHandler = (e) => {
 			this.setScrollX(e.target.scrollLeft, false);
+			this.dispatch('hscroll', e);
 		};
 
 		this._wheelHandler = (e) => {
@@ -212,6 +214,12 @@ export class View extends EventDispatcher {
 			let currentY = this.getScrollY();
 			this.setScrollX(currentX + e.deltaX);
 			this.setScrollY(currentY + e.deltaY);
+			if (e.deltaX !== 0) {
+				this.dispatch('hscroll', e);
+			}
+			if (e.deltaY !== 0) {
+				this.dispatch('vscroll', e);
+			}
 		};
 
 		this._keyDownHandler = (e) => {
