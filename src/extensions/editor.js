@@ -59,12 +59,13 @@ export class EditorExtension {
 
 			//Create float editor container
 			let cellBound = cell.getBoundingClientRect();
-			let offsetTop = cell.offsetTop;
-			let offsetLeft = cell.offsetLeft;
+			const scrollingElement = document.scrollingElement || document.documentElement; 
+			let scrollTop = scrollingElement.scrollTop;
+			let scrollLeft = scrollingElement.scrollLeft;
 			this._editorContainer = document.createElement('div');
 			this._editorContainer.style.position = 'absolute';
-			this._editorContainer.style.top = offsetTop + 'px';
-			this._editorContainer.style.left = offsetLeft + 'px';
+			this._editorContainer.style.top = (cellBound.top + scrollTop) + 'px';
+			this._editorContainer.style.left = (cellBound.left + scrollLeft) + 'px';
 			this._editorContainer.style.width = cellBound.width + 'px';
 			this._editorContainer.style.height = cellBound.height + 'px';
 			document.body.appendChild(this._editorContainer);
@@ -101,11 +102,19 @@ export class EditorExtension {
 			this._keydownHandler = (e) => {
 				switch (e.keyCode) {
 					case 13: //Enter
+						//Prevent double done() call
+						if (this._inputElement) {
+							this._inputElement.removeEventListener('blur', this._blurHandler);
+						}
 						done(e.target.value);
 						e.stopPropagation();
 						e.preventDefault();
 						break;
 					case 27: //ESC
+						//Prevent double done() call
+						if (this._inputElement) {
+							this._inputElement.removeEventListener('blur', this._blurHandler);
+						}
 						done();
 						e.preventDefault();
 						e.stopPropagation();
@@ -123,12 +132,10 @@ export class EditorExtension {
 						break;
 				}
 			};
-			this._keydownHandler = this._keydownHandler.bind(this);
 
 			this._blurHandler = (e) => {
 				done(e.target.value);
 			};
-			this._blurHandler = this._blurHandler.bind(this);
 
 			this._clickHandler = (e) => {
 				this._arrowKeyLocked = true;
@@ -142,6 +149,7 @@ export class EditorExtension {
 
 	_detachEditor () {
 		if (this._editorContainer) {
+			//Double checking to fix wiered bug
 			this._editorContainer.parentElement.removeChild(this._editorContainer);
 			this._editorContainer = null;
 			if (this._inputElement) {
