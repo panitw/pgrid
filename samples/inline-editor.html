@@ -83,6 +83,7 @@
 <body>
 
 	<button id="addRow">Add New Row</button>
+	<button id="clearRow">Clear All Rows</button>
 
 	<div style="position: absolute; top: 30px; left: 0px; right: 0px; height: 300px;">
 		<div id="gridDiv" style="width: 100%; height: 100%;"></div>
@@ -261,7 +262,6 @@
 			editing: true,
 			autoUpdate: true,
 			freezePane: {
-				top: 1,
 				left: 2
 			},
 			columns: [
@@ -322,6 +322,13 @@
 			grid.data.addRow([true, true, 'DRAFT', '', '', '', '', '', '', '', '', '', false, '', '', '', '', '', false, '', '', '', '', '', '', '']);
 			grid.view.reRender();
 		});
+
+		document.getElementById('clearRow').addEventListener('click', function () {
+			grid.data.removeAllRows();
+			grid.view.reRender();
+		});
+
+		window.grid = grid;
 
 	</script>
 
