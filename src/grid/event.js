@@ -8,7 +8,7 @@ export class EventDispatcher {
 		if (!this._handlers[eventName]) {
 			this._handlers[eventName] = [];
 		}
-		this._handlers[eventName].push(hadnler);
+		this._handlers[eventName].push(handler);
 	}
 
 	unlisten(eventName, handler) {

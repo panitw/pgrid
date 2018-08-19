@@ -4,6 +4,13 @@ export class EditorExtension {
 		this._grid = grid;
 		this._config = config;
 		this._editorAttached = false;
+		this.scrollHandler = this.scrollHandler.bind(this);
+		this._grid.view.listen('vscroll', this.scrollHandler);
+		this._grid.view.listen('hscroll', this.scrollHandler);
+	}
+
+	scrollHandler () {
+		this._detachEditor();
 	}
 
 	keyDown (e) {
