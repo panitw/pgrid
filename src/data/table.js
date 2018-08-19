@@ -155,6 +155,12 @@ export class DataTable extends EventDispatcher {
         this._data.splice(index, 1);
     }
 
+    removeAllRows () {
+        this._rid = [];
+        this._rowMap = {};
+        this._data = [];        
+    }
+
     _generateRowId () {
         this._idRunner++;
         return '' + this._idRunner;
