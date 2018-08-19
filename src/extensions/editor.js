@@ -59,10 +59,12 @@ export class EditorExtension {
 
 			//Create float editor container
 			let cellBound = cell.getBoundingClientRect();
+			let offsetTop = cell.offsetTop;
+			let offsetLeft = cell.offsetLeft;
 			this._editorContainer = document.createElement('div');
 			this._editorContainer.style.position = 'absolute';
-			this._editorContainer.style.top = cellBound.top + 'px';
-			this._editorContainer.style.left = cellBound.left + 'px';
+			this._editorContainer.style.top = offsetTop + 'px';
+			this._editorContainer.style.left = offsetLeft + 'px';
 			this._editorContainer.style.width = cellBound.width + 'px';
 			this._editorContainer.style.height = cellBound.height + 'px';
 			document.body.appendChild(this._editorContainer);
