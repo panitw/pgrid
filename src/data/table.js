@@ -35,6 +35,10 @@ export class DataTable extends EventDispatcher {
         return this._data.length;
     }
 
+    getAllData() {
+        return this._data;
+    }
+
     getData (rowId, field) {
         let row = this._rowMap[rowId];
         if (row) {
