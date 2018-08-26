@@ -60,8 +60,8 @@ export class EditorExtension {
 				const field = this._grid.model.getColumnField(actualCell.dataset.colIndex);
 				const dataRow = this._grid.data.getRowData(rowId);
 				const e = {
-					rowIndex: actualCell.dataset.rowIndex,
-					colIndex: actualCell.dataset.colIndex,
+					rowIndex: actualRow,
+					colIndex: actualCol,
 					rowId: rowId,
 					field: field,
 					dataRow: dataRow

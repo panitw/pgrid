@@ -189,6 +189,9 @@
 
 			canEdit(e) {
 				console.log('can edit checking', e);
+				if (e.rowIndex === 1) {
+					return false;
+				}
 			}
 
 			attach(cell, data, done) {
