@@ -66,7 +66,7 @@ export class EditorExtension {
 					field: field,
 					dataRow: dataRow
 				};
-				if (customEditor.canEdit(e)) {
+				if (customEditor.canEdit(e) === false) {
 					return;
 				}
 			}
