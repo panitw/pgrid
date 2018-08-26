@@ -165,10 +165,21 @@ export class EditorExtension {
 		}
 	}
 
-	_done (result) {
+	_done (result, multiFields) {
 		this._detachEditor();
 		if (result !== undefined) {
-			this._grid.model.setDataAt(this._editingRow, this._editingCol, result);
+			if (!multiFields) {
+				this._grid.model.setDataAt(this._editingRow, this._editingCol, result);
+			} else {
+				let rowId = this._grid.model.getRowId(this._editingRow);
+				if (rowId) {
+					for (let prop in result) {
+						if (result.hasOwnProperty(prop)) {
+							this._grid.data.setData(rowId, prop, result[prop]);
+						}
+					}
+				}
+			}
 		}
 		this._grid.view.updateCell(this._editingRow, this._editingCol);
 		this._editingRow = -1;
