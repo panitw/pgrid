@@ -146,6 +146,7 @@ export class DataTable extends EventDispatcher {
         let row = this._rowMap[rid];
         let index = this._data.indexOf(row);
         this._data.splice(index, 1);
+        this._rid.splice(index, 1);
         delete this._rowMap[rid];
     }
 
@@ -153,6 +154,7 @@ export class DataTable extends EventDispatcher {
         let rid = Object.keys(this._rowMap).find(key => object[key] === value);
         delete this._rowMap[rid];
         this._data.splice(index, 1);
+        this._rid.splice(index, 1);
     }
 
     removeAllRows () {
