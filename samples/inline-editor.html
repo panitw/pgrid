@@ -181,8 +181,10 @@
 
 		class StaticChoicesEditor {
 
-			constructor(choices) {
+			constructor(choices, updateField, displayUpdateField) {
 				this._choices = choices;
+				this._updateField = updateField;
+				this._displayUpdateField = displayUpdateField;
 			}
 
 			attach(cell, data, done) {
@@ -221,7 +223,14 @@
 				//Finish selection
 				select.addEventListener('choice', (e) => {
 					let selectedValue = e.detail.choice.value;
-					done(selectedValue);
+					if (this._updateField && this._displayUpdateField) {
+						let updateValue = {};
+						updateValue[this._updateField] = e.detail.choice.value;
+						updateValue[this._displayUpdateField] = e.detail.choice.label;
+						done(updateValue, true);
+					} else {
+						done(selectedValue);
+					}
 				});
 			}
 		}
@@ -268,7 +277,7 @@
 				{ id: 0, width: 50, cssClass: "grid-checkbox-col", editable: true, title: 'Submit', field: 'submit' },
 				{ id: 1, title: 'Status', field: 'status' },
 				{ id: 2, width: 110, editable: true, cssClass: "grid-number-col grid-col-editable", title: 'Estimate Number', field: 'estNumber' },
-				{ id: 3, width: 150, editable: true, cssClass: 'grid-col-editable', title: 'Invoice Type', field: 'invType', editor: new StaticChoicesEditor([{ label: 'STANDARD', value: 'STANDARD' }, { label: 'PREPAYMENT', value: 'PREPAYMENT' }]) },
+				{ id: 3, width: 150, editable: true, cssClass: 'grid-col-editable', title: 'Invoice Type', field: 'invType', editor: new StaticChoicesEditor([{ label: 'STANDARD', value: 'S' }, { label: 'PREPAYMENT', value: 'P' }], 'invType', 'estNumber') },
 				{ id: 4, width: 200, editable: true, cssClass: 'grid-col-editable', title: 'Activity Budget', field: 'activityBudget', editor: new SearchChoicesEditor('https://restcountries.eu/rest/v2/name/', 'name', 'name') },
 				{ id: 5, width: 200, title: 'Description', field: 'desc' },
 				{ id: 6, width: 200, editable: true, cssClass: 'grid-col-editable', title: 'Detail Description', field: 'detailDesc' },
