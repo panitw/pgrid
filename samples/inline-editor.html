@@ -187,10 +187,6 @@
 				this._displayUpdateField = displayUpdateField;
 			}
 
-			canEdit(e) {
-				console.log('can edit checking', e);
-			}
-
 			attach(cell, data, done) {
 				//Clear old cell content
 				cell.innerHTML = '';
@@ -265,6 +261,15 @@
 			}
 		}
 
+		var cellEditableCheck = {
+			cellEditableCheck: (e) => {
+				console.log(e);
+				if (e.rowIndex === 1) {
+					e.canEdit = false;
+				}
+			}
+		}
+
 		var options = {
 			rowHeight: 47,
 			columnWidth: 100,
@@ -320,7 +325,8 @@
 			},
 			extensions: [
 				new CheckboxColumnExtension(),
-				new NewRowHighlighter()
+				new NewRowHighlighter(),
+				cellEditableCheck
 			]
 		};
 

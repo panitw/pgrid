@@ -2,10 +2,11 @@ import { EventDispatcher } from './event';
 
 export class Model extends EventDispatcher {
 
-	constructor (config, data) {
+	constructor (config, data, extension) {
 		super();
 		this._config = config;
 		this._data = data;
+		this._extension = extension;
 
 		this._columnModel = [];
 		this._rowModel = {};
@@ -60,6 +61,7 @@ export class Model extends EventDispatcher {
 		let rowModel = this.getRowModel(rowIndex);
 		let colModel = this.getColumnModel(colIndex);
 		let cellModel = this.getCellModel(rowIndex, colIndex);
+		let result = false;
 
 		if ((rowModel && rowModel.editable) ||
 			(colModel && colModel.editable) ||
@@ -67,12 +69,36 @@ export class Model extends EventDispatcher {
 			if ((rowModel && rowModel.editable === false) ||
 				(colModel && colModel.editable === false) ||
 				(cellModel && cellModel.editable === false)) {
-				return false;
+				result = false;
+			} else {
+				result = true;
 			}
-			return true;
 		}
-		return false;	
-}
+
+		//Editibility can be overridden by extension
+		if (this._extension.hasExtension('cellEditableCheck')) {
+			
+			//Can Edit Overriding
+			const rowId = this.getRowId(rowIndex);
+			const field = this.getColumnField(colIndex);
+			const dataRow = this._data.getRowData(rowId);
+			const e = {
+				rowIndex: rowIndex,
+				colIndex: colIndex,
+				rowId: rowId,
+				field: field,
+				dataRow: dataRow,
+				rowModel: rowModel,
+				colModel: colModel,
+				cellModel: cellModel,
+				canEdit: result
+			};
+			this._extension.executeExtension('cellEditableCheck', e);
+			result = e.canEdit;
+		}
+
+		return result;
+	}
 
 	isHeaderRow (rowIndex) {
 		return rowIndex < this._config.headerRowCount;
