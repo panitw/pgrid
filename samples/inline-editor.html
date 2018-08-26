@@ -187,6 +187,10 @@
 				this._displayUpdateField = displayUpdateField;
 			}
 
+			canEdit(e) {
+				console.log('can edit checking', e);
+			}
+
 			attach(cell, data, done) {
 				//Clear old cell content
 				cell.innerHTML = '';
@@ -303,9 +307,6 @@
 			],
 			headerRows: [
 				{ i: 0, type: 'header', cssClass: 'grid-header-row', editable: false }
-			],
-			rows: [
-				{ i: 0, editable: false }
 			],
 			dataModel: {
 				fields: ['_new_', 'submit', 'status', 'estNumber', 'invType', 'activityBudget', 'desc', 'detailDesc', 'supplierName',

@@ -9,6 +9,7 @@ export class Extension {
 			cellAfterRender: [],
 			cellUpdate: [],
 			cellAfterUpdate: [],
+			cellBeforeEdit: [],
 			keyDown: [],
 			gridAfterRender: [],
 			dataBeforeRender: [],

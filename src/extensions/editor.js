@@ -51,6 +51,26 @@ export class EditorExtension {
 		let actualRow = parseInt(actualCell.dataset.rowIndex);
 		let actualCol = parseInt(actualCell.dataset.colIndex);
 		if (this._grid.model.canEdit(actualRow, actualCol)) {
+			//Check if there's any custom editor
+			let customEditor = this._grid.model.getCascadedCellProp(actualCell.dataset.rowIndex, actualCell.dataset.colIndex, 'editor');
+
+			//Customer Editor canEdit overriding
+			if (customEditor && customEditor.canEdit) {
+				const rowId = this._grid.model.getRowId(actualCell.dataset.rowIndex);
+				const field = this._grid.model.getColumnField(actualCell.dataset.colIndex);
+				const dataRow = this._grid.data.getRowData(rowId);
+				const e = {
+					rowIndex: actualCell.dataset.rowIndex,
+					colIndex: actualCell.dataset.colIndex,
+					rowId: rowId,
+					field: field,
+					dataRow: dataRow
+				};
+				if (customEditor.canEdit(e) === false) {
+					return;
+				}
+			}
+
 			//Get data to be edited
 			let data = this._grid.model.getDataAt(actualRow, actualCol);
 
@@ -70,12 +90,12 @@ export class EditorExtension {
 			this._editorContainer.style.height = cellBound.height + 'px';
 			document.body.appendChild(this._editorContainer);
 
-			let customEditor = this._grid.model.getCascadedCellProp(actualCell.dataset.rowIndex, actualCell.dataset.colIndex, 'editor');
 			if (customEditor && customEditor.attach) {
 				customEditor.attach(this._editorContainer, data, this._done.bind(this));
 			} else {
 				this._attachEditor(this._editorContainer, data, this._done.bind(this));
 			}
+
 			this._editorAttached = true;
 			this._editingCol = actualCol;
 			this._editingRow = actualRow;
