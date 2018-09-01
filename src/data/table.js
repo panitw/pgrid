@@ -110,7 +110,7 @@ export class DataTable extends EventDispatcher {
             let eventArg = {
                 updates: this._processedEvent
             };
-            this._extension.executeExtension('dataFinishUpdate', );
+            this._extension.executeExtension('dataFinishUpdate', eventArg);
             this.dispatch(CHANGE_EVENT_NAME, eventArg);
             //Clear processed event list
             this._processedEvent.length = 0;
