@@ -1,5 +1,7 @@
 import { EventDispatcher } from "../grid/event";
 
+const CHANGE_EVENT_NAME = 'dataChanged';
+
 export class DataTable extends EventDispatcher {
     
     constructor (dataModel, extension) {
@@ -73,6 +75,7 @@ export class DataTable extends EventDispatcher {
 
     setData (rowId, field, value) {
         const beforeUpdateArg = {
+            changeType: 'fieldChange',
 			rowId: rowId,
 			field: field,
 			data: value,
@@ -104,10 +107,12 @@ export class DataTable extends EventDispatcher {
         }
 
         if (!blocked) {
-            this._extension.executeExtension('dataFinishUpdate', {
+            let eventArg = {
                 updates: this._processedEvent
-            });
-            //Clear processed event list            
+            };
+            this._extension.executeExtension('dataFinishUpdate', );
+            this.dispatch(CHANGE_EVENT_NAME, eventArg);
+            //Clear processed event list
             this._processedEvent.length = 0;
         }
     }
@@ -125,20 +130,36 @@ export class DataTable extends EventDispatcher {
     }
     
     insertRow (rowIndex, rowData) {
+        let rid = null;
+        let inserted = false;
         if (this._dataFormat === 'rows') {
-            let rid = this._generateRowId();
+            rid = this._generateRowId();
             this._rid.splice(rowIndex, 0, rid);
             this._rowMap[rid] = rowData;
             this._data.splice(rowIndex, 0, rowData);
+            inserted = true;
         } else
         if (this._dataFormat === 'array') {
             if (Array.isArray(this._fields)) {
-                let rid = this._generateRowId();
+                rid = this._generateRowId();
                 this._rid.splice(rowIndex, 0, rid);
                 let newObj = this._createObject(rowData, this._fields);
                 this._rowMap[rid] = newObj;
                 this._data.splice(rowIndex, 0, newObj);
+                inserted = true;
             }
+        }
+
+        //Dispatch change event
+        if (inserted) {
+            const eventArg = {
+                updates: [{
+                    changeType: 'rowAdded',
+                    rowId: rid,
+                    data: this.getRowData(rid)
+                }]
+            };
+            this.dispatch(CHANGE_EVENT_NAME, eventArg);
         }
     }
 
@@ -148,19 +169,32 @@ export class DataTable extends EventDispatcher {
         this._data.splice(index, 1);
         this._rid.splice(index, 1);
         delete this._rowMap[rid];
+
+        const eventArg = {
+            updates: [{
+                changeType: 'rowRemoved',
+                rowId: rid
+            }]
+        };
+        this.dispatch(CHANGE_EVENT_NAME, eventArg);
     }
 
     removeRowAt (index) {
         let rid = Object.keys(this._rowMap).find(key => object[key] === value);
-        delete this._rowMap[rid];
-        this._data.splice(index, 1);
-        this._rid.splice(index, 1);
+        this.removeRow(rid);
     }
 
-    removeAllRows () {
+    removeAllRows () {       
         this._rid = [];
         this._rowMap = {};
-        this._data = [];        
+        this._data = [];
+
+        const eventArg = {
+            updates: [{
+                changeType: 'global'
+            }]
+        };
+        this.dispatch(CHANGE_EVENT_NAME, eventArg);
     }
 
     _generateRowId () {
