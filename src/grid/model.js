@@ -325,6 +325,15 @@ export class Model extends EventDispatcher {
 		}
 	}
 
+    getRowDataAt (rowIndex) {
+		if (this.isHeaderRow(rowIndex)) {
+            return undefined;
+		} else {
+			const dataRowIndex = rowIndex - this._config.headerRowCount;
+            return this._data.getRowDataAt(dataRowIndex);
+		}
+	}
+
 	setDataAt (rowIndex, colIndex, data) {
 		const dataRowIndex = rowIndex - this._config.headerRowCount;
 		const colModel = this.getColumnModel(colIndex);

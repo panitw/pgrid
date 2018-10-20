@@ -52,9 +52,6 @@ export class EditorExtension {
 		let actualCol = parseInt(actualCell.dataset.colIndex);
 		if (this._grid.model.canEdit(actualRow, actualCol)) {
 
-			//Get data to be edited
-			let data = this._grid.model.getDataAt(actualRow, actualCol);
-
 			//If there's custom editor, use custom editor to attach the editor
 			this._grid.state.set('editing', true);
 
@@ -71,10 +68,20 @@ export class EditorExtension {
 			this._editorContainer.style.height = cellBound.height + 'px';
 			document.body.appendChild(this._editorContainer);
 
+            //Get edited data field
+            let data = this._grid.model.getDataAt(actualRow, actualCol);
+
 			//Check if there's any custom editor
 			let customEditor = this._grid.model.getCascadedCellProp(actualCell.dataset.rowIndex, actualCell.dataset.colIndex, 'editor');
 			if (customEditor && customEditor.attach) {
-				customEditor.attach(this._editorContainer, data, this._done.bind(this));
+                let dataRow = this._grid.model.getRowDataAt(actualRow, actualCol);
+                let eventArg = {
+                    cell: this._editorContainer,
+                    data: data,
+                    dataRow: dataRow,
+                    done: this._done.bind(this)
+                };
+				customEditor.attach(eventArg);
 			} else {
 				this._attachEditor(this._editorContainer, data, this._done.bind(this));
 			}

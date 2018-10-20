@@ -101,13 +101,13 @@
 				this._valueField = valueField;
 			}
 
-			attach(cell, data, done) {
+			attach(e) {
 				//Clear old cell content
-				cell.innerHTML = '';
+				e.cell.innerHTML = '';
 
 				//Create select element
 				let select = document.createElement('select');
-				cell.appendChild(select);
+				e.cell.appendChild(select);
 
 				//Creat Choices component
 				this._choicesObj = new Choices(select, {
@@ -122,7 +122,7 @@
 				this._choicesObj.showDropdown();
 
 				//Hack to auto focus
-				let searchBox = cell.querySelector('.choices__input.choices__input--cloned');
+				let searchBox = e.cell.querySelector('.choices__input.choices__input--cloned');
 				if (searchBox) {
 					searchBox.focus();
 				}
@@ -167,14 +167,14 @@
 
 				select.addEventListener('hideDropdown', () => {
 					setTimeout(() => {
-						done();
+						e.done();
 					}, 100);
 				});
 
 				//Finish selection
-				select.addEventListener('choice', (e) => {
-					let selectedValue = e.detail.choice.value;
-					done(selectedValue);
+				select.addEventListener('choice', (e2) => {
+					let selectedValue = e2.detail.choice.value;
+					e.done(selectedValue);
 				});
 			}
 		}
@@ -187,17 +187,17 @@
 				this._displayUpdateField = displayUpdateField;
 			}
 
-			attach(cell, data, done) {
+			attach(e) {
 				//Clear old cell content
-				cell.innerHTML = '';
+				e.cell.innerHTML = '';
 
 				//Create select element
 				let select = document.createElement('select');
-				cell.appendChild(select);
+				e.cell.appendChild(select);
 
 				//Pre-select a choice with an existing value
 				this._choices.forEach((item) => {
-					item.selected = (item.value === data);
+					item.selected = (item.value === e.data);
 				});
 
 				//Creat Choices component
@@ -209,27 +209,27 @@
 				this._choicesObj.unhighlightAll();
 
 				//Hack to auto focus
-				let searchBox = cell.querySelector('.choices__input.choices__input--cloned');
+				let searchBox = e.cell.querySelector('.choices__input.choices__input--cloned');
 				if (searchBox) {
 					searchBox.focus();
 				}
 
 				select.addEventListener('hideDropdown', () => {
 					setTimeout(() => {
-						done();
+						e.done();
 					}, 100);
 				});
 
 				//Finish selection
-				select.addEventListener('choice', (e) => {
-					let selectedValue = e.detail.choice.value;
+				select.addEventListener('choice', (e2) => {
+					let selectedValue = e2.detail.choice.value;
 					if (this._updateField && this._displayUpdateField) {
 						let updateValue = {};
-						updateValue[this._updateField] = e.detail.choice.value;
-						updateValue[this._displayUpdateField] = e.detail.choice.label;
-						done(updateValue, true);
+						updateValue[this._updateField] = e2.detail.choice.value;
+						updateValue[this._displayUpdateField] = e2.detail.choice.label;
+						e.done(updateValue, true);
 					} else {
-						done(selectedValue);
+						e.done(selectedValue);
 					}
 				});
 			}
