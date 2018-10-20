@@ -1,5 +1,6 @@
 import { EventDispatcher } from './event';
 import ResizeObserver from 'resize-observer-polyfill';
+import { timingSafeEqual } from 'crypto';
 
 export class View extends EventDispatcher {
 
@@ -85,6 +86,7 @@ export class View extends EventDispatcher {
 		this._bottomLeftInner.innerHTML = '';
 		this._bottomInner.innerHTML = '';
 
+        this._model.calcTotalSize();
 		this._resturecture();
 	}
 
