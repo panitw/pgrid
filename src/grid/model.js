@@ -54,7 +54,7 @@ export class Model extends EventDispatcher {
 			}
 		}
 
-		this._calcTotalSize();
+		this.calcTotalSize();
 	}
 
 	canEdit (rowIndex, colIndex) {
@@ -369,7 +369,7 @@ export class Model extends EventDispatcher {
 		}
 	}
 
-	_calcTotalSize() {
+	calcTotalSize() {
 		this._calcTotalWidth();
 		this._calcTotalHeight();
 		this._calcBottomFreezeSize();
