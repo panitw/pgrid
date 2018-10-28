@@ -111,7 +111,9 @@ export class DataTable extends EventDispatcher {
                 updates: this._processedEvent
             };
             this._extension.executeExtension('dataFinishUpdate', eventArg);
-            this.dispatch(CHANGE_EVENT_NAME, eventArg);
+            setTimeout(() => {
+                this.dispatch(CHANGE_EVENT_NAME, eventArg);                
+            }, 100);
             //Clear processed event list
             this._processedEvent.length = 0;
         }
@@ -194,7 +196,9 @@ export class DataTable extends EventDispatcher {
                 changeType: 'global'
             }]
         };
-        this.dispatch(CHANGE_EVENT_NAME, eventArg);
+        setTimeout(() => {
+            this.dispatch(CHANGE_EVENT_NAME, eventArg);
+        }, 100);    
     }
 
     _generateRowId () {
