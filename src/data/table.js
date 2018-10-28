@@ -114,8 +114,7 @@ export class DataTable extends EventDispatcher {
             setTimeout(() => {
                 this.dispatch(CHANGE_EVENT_NAME, eventArg);                
             }, 100);
-            //Clear processed event list
-            this._processedEvent.length = 0;
+            this._processedEvent = [];
         }
     }
 
