@@ -10,6 +10,7 @@ export class FormatterExtension {
         if (model && model.formatter && model.formatter.render) {
             let newEvent = Object.assign({}, e);
             newEvent.colModel = model;
+            newEvent.grid = this._grid;
             model.formatter.render(newEvent);
             e.handled = true;
         }
@@ -20,6 +21,7 @@ export class FormatterExtension {
         if (model && model.formatter && model.formatter.update) {
             let newEvent = Object.assign({}, e);
             newEvent.colModel = model;
+            newEvent.grid = this._grid;
             model.formatter.update(newEvent);
             e.handled = true;
         }
