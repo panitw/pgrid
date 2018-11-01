@@ -74,6 +74,14 @@ export class DataTable extends EventDispatcher {
     }
 
     setData (rowId, field, value) {
+        
+        let row = this._rowMap[rowId];
+
+        //Skip updating if the data is not changing
+        if (row && row[field] === value) {
+            return;
+        }
+        
         const beforeUpdateArg = {
             changeType: 'fieldChange',
 			rowId: rowId,
@@ -95,7 +103,6 @@ export class DataTable extends EventDispatcher {
         }
 
 		if (!beforeUpdateArg.cancel) {
-            let row = this._rowMap[rowId];
             if (row) {
                 row[field] = beforeUpdateArg.data;
                 if (!this._blockEvent) {
