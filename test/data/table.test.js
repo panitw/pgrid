@@ -7,6 +7,7 @@ describe('DataTable', () => {
     let defaultModel = null;
     let mockExtension = null;
     let table = null;
+    let eventSpy = null;
 
     beforeEach(function() {
         defaultModel = {
@@ -25,6 +26,8 @@ describe('DataTable', () => {
         }
 
         table = new DataTable(defaultModel, mockExtension);
+        eventSpy = sinon.spy();
+        table.listen('dataChanged', eventSpy);
     });
 
     it('should return correct row count after constructed with data', () => {
@@ -78,6 +81,81 @@ describe('DataTable', () => {
         equal(table.getDataAt(0, 'f1'), 10);
         table.setDataAt(0, 'f1', 100);
         equal(table.getDataAt(0, 'f1'), 100);
+    });
+
+    it('should dispatch "dataChanged" event when the new data is set', () => {
+        const rowId0 = table.getRowId(0);
+        const clock = sinon.useFakeTimers();
+        table.setDataAt(0, 'f1', 200);
+
+        //Event is called after 100ms, so turn the clock forward 100ms
+        clock.tick(100);
+
+        equal(eventSpy.callCount, 1);
+        deepEqual(eventSpy.getCall(0).args[0], {
+            updates: [{
+                changeType: 'fieldChange',
+                rowId: rowId0,
+                field: 'f1',
+                data: 200,
+                cancel: false
+            }]
+        });
+
+        clock.restore();
+    });
+
+    it('should call extension correctly when setting data', () => {
+        const rowId0 = table.getRowId(0);
+        table.setDataAt(0, 'f1', 100);
+
+        const testEventArg = {
+            changeType: 'fieldChange',
+			rowId: rowId0,
+			field: 'f1',
+			data: 100,
+			cancel: false
+        };
+
+        equal(mockExtension.executeExtension.getCall(0).args[0], 'dataBeforeUpdate');
+        deepEqual(mockExtension.executeExtension.getCall(0).args[1], testEventArg);
+
+        equal(mockExtension.executeExtension.getCall(1).args[0], 'dataAfterUpdate');
+        deepEqual(mockExtension.executeExtension.getCall(1).args[1], testEventArg);
+
+        equal(mockExtension.executeExtension.getCall(2).args[0], 'dataFinishUpdate');
+        deepEqual(mockExtension.executeExtension.getCall(2).args[1], {
+            updates: [testEventArg]
+        });
+    });
+
+    it('should not dispatch any event if the value does not change when setData', () => {
+        table.setDataAt(0, 'f1', 10);
+        equal(mockExtension.executeExtension.callCount, 0);
+    });
+
+    it('should cancel the update if the dataBeforeUpdate set cancel flag to "true"', () => {
+        const rowId0 = table.getRowId(0);
+        mockExtension.executeExtension = (ext, extArg) => {
+            if (ext === 'dataBeforeUpdate') {
+                extArg.cancel = true;
+            }
+        };
+        let spy = sinon.spy(mockExtension, 'executeExtension');
+        table.setDataAt(0, 'f1', 100);
+        equal(table.getDataAt(0, 'f1'), 10);
+        equal(spy.callCount, 2);
+        equal(spy.getCall(0).args[0], 'dataBeforeUpdate');
+        equal(spy.getCall(1).args[0], 'dataFinishUpdate');
+        deepEqual(spy.getCall(1).args[1], {
+            updates: [{
+                changeType: 'fieldChange',
+                rowId: rowId0,
+                field: 'f1',
+                data: 100,
+                cancel: true
+            }]
+        });
     });
 
     it('should not set the data at the invalid row index', () => {
