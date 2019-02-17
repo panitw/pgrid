@@ -3,7 +3,7 @@ import { EventDispatcher } from "../grid/event";
 const CHANGE_EVENT_NAME = 'dataChanged';
 
 export class DataTable extends EventDispatcher {
-    
+
     constructor (dataModel, extension) {
         super();
 
@@ -14,9 +14,10 @@ export class DataTable extends EventDispatcher {
         this._data = [];
         this._blockEvent = false;
         this._processedEvent = [];
+        this._transformedRid = [];
 
         let { format, data, fields } = dataModel;
-        
+
         // Set default format at rows
         if (!format) {
             format = 'rows';
@@ -74,14 +75,14 @@ export class DataTable extends EventDispatcher {
     }
 
     setData (rowId, field, value) {
-        
+
         let row = this._rowMap[rowId];
 
         //Skip updating if the data is not changing
         if (row && row[field] === value) {
             return;
         }
-        
+
         const beforeUpdateArg = {
             changeType: 'fieldChange',
 			rowId: rowId,
@@ -89,11 +90,11 @@ export class DataTable extends EventDispatcher {
 			data: value,
 			cancel: false
         };
-        
+
         this._processedEvent.push(beforeUpdateArg);
 
         let blocked = false;
-        
+
         if (!this._blockEvent) {
 			this._blockEvent = true;
 			this._extension.executeExtension('dataBeforeUpdate', beforeUpdateArg);
@@ -119,7 +120,7 @@ export class DataTable extends EventDispatcher {
             };
             this._extension.executeExtension('dataFinishUpdate', eventArg);
             setTimeout(() => {
-                this.dispatch(CHANGE_EVENT_NAME, eventArg);                
+                this.dispatch(CHANGE_EVENT_NAME, eventArg);
             }, 100);
             this._processedEvent = [];
         }
@@ -136,7 +137,7 @@ export class DataTable extends EventDispatcher {
         const count = this.getRowCount();
         this.insertRow(count, rowData);
     }
-    
+
     insertRow (rowIndex, rowData) {
         let rid = null;
         let inserted = false;
@@ -171,7 +172,7 @@ export class DataTable extends EventDispatcher {
         }
     }
 
-    removeRow (rid) { 
+    removeRow (rid) {
         let row = this._rowMap[rid];
         let index = this._data.indexOf(row);
         this._data.splice(index, 1);
@@ -192,7 +193,7 @@ export class DataTable extends EventDispatcher {
         this.removeRow(rid);
     }
 
-    removeAllRows () {       
+    removeAllRows () {
         this._rid = [];
         this._rowMap = {};
         this._data = [];
@@ -204,7 +205,11 @@ export class DataTable extends EventDispatcher {
         };
         setTimeout(() => {
             this.dispatch(CHANGE_EVENT_NAME, eventArg);
-        }, 100);    
+        }, 100);
+    }
+
+    search (query, columns) {
+
     }
 
     _generateRowId () {
