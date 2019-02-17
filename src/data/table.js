@@ -189,7 +189,7 @@ export class DataTable extends EventDispatcher {
     }
 
     removeRowAt (index) {
-        let rid = Object.keys(this._rowMap).find(key => object[key] === value);
+        let rid = this.getRowId(index);
         this.removeRow(rid);
     }
 

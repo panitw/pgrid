@@ -222,4 +222,32 @@ describe('DataTable', () => {
         });
     });
 
+    it('should remove row by rowId correctly', () => {
+        let rowId0 = table.getRowId(0);
+        const rowCountBefore = table.getRowCount();
+        table.removeRow(rowId0);
+        equal(table.getRowCount(), rowCountBefore - 1);
+        equal(eventSpy.callCount, 1);
+        deepEqual(eventSpy.getCall(0).args[0], {
+            updates: [{
+                changeType: 'rowRemoved',
+                rowId: rowId0
+            }]
+        });
+    });
+
+    it('should remove row by index correctly', () => {
+        let rowId0 = table.getRowId(0);
+        const rowCountBefore = table.getRowCount();
+        table.removeRowAt(0);
+        equal(table.getRowCount(), rowCountBefore - 1);
+        equal(eventSpy.callCount, 1);
+        deepEqual(eventSpy.getCall(0).args[0], {
+            updates: [{
+                changeType: 'rowRemoved',
+                rowId: rowId0
+            }]
+        });
+    });
+
 });
