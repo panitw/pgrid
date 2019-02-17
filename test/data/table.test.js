@@ -130,8 +130,16 @@ describe('DataTable', () => {
     });
 
     it('should not dispatch any event if the value does not change when setData', () => {
+        const clock = sinon.useFakeTimers();
         table.setDataAt(0, 'f1', 10);
+
+        //Event is called after 100ms, so turn the clock forward 100ms
+        clock.tick(100);
+
+        equal(eventSpy.callCount, 0);
         equal(mockExtension.executeExtension.callCount, 0);
+
+        clock.restore();
     });
 
     it('should cancel the update if the dataBeforeUpdate set cancel flag to "true"', () => {
@@ -181,6 +189,16 @@ describe('DataTable', () => {
             deepEqual(table.getDataAt(table.getRowCount() - 1, f), newRow[f]);
         }
         deepEqual(table.getRowDataAt(table.getRowCount() - 1), newRow);
+
+        //Event rowAdded is fired
+        equal(eventSpy.callCount, 1);
+        deepEqual(eventSpy.getCall(0).args[0], {
+            updates: [{
+                changeType: 'rowAdded',
+                rowId: table.getRowId(table.getRowCount() - 1),
+                data: newRow
+            }]
+        });
     });
 
     it('should insert row at index 0 correctly', () => {
@@ -192,6 +210,16 @@ describe('DataTable', () => {
             deepEqual(table.getDataAt(0, f), newRow[f]);
         }
         deepEqual(table.getRowDataAt(0), newRow);
+
+        //Event rowAdded is fired
+        equal(eventSpy.callCount, 1);
+        deepEqual(eventSpy.getCall(0).args[0], {
+            updates: [{
+                changeType: 'rowAdded',
+                rowId: table.getRowId(0),
+                data: newRow
+            }]
+        });
     });
 
 });
