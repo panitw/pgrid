@@ -250,4 +250,24 @@ describe('DataTable', () => {
         });
     });
 
+    it('should remove all rows correctly', () => {
+        const clock = sinon.useFakeTimers();
+        notEqual(table.getRowCount(), 0);
+        table.removeAllRows();
+
+        equal(table.getRowCount(), 0);
+        equal(table.getRowDataAt(0), undefined);
+        equal(table.getRowId(0), undefined);
+        equal(table.getDataAt(0, 'f1'), undefined);
+
+        clock.tick(100);
+        equal(eventSpy.callCount, 1);
+        deepEqual(eventSpy.getCall(0).args[0], {
+            updates: [{
+                changeType: 'global',
+            }]
+        });
+        clock.restore();
+    });
+
 });

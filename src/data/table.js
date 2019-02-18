@@ -208,7 +208,7 @@ export class DataTable extends EventDispatcher {
         }, 100);
     }
 
-    search (query, columns) {
+    search (query) {
 
     }
 
