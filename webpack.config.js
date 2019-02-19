@@ -5,12 +5,6 @@ module.exports = {
         publicPath: '/',
         filename: 'pgrid.js'
     },
-    module: {
-        rules: [{
-            test: /\.less$/,
-            loader: 'less-loader' // compiles Less to CSS
-        }]
-    },
     target: 'web',
     mode: 'production',
     node: {

@@ -1,5 +1,4 @@
 import { PGrid } from './grid/grid';
-import '../styles/pgrid.less';
 
 window.PGrid = PGrid;
 
