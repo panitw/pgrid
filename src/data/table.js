@@ -3,7 +3,7 @@ import { EventDispatcher } from "../grid/event";
 const CHANGE_EVENT_NAME = 'dataChanged';
 
 export class DataTable extends EventDispatcher {
-    
+
     constructor (dataModel, extension) {
         super();
 
@@ -14,9 +14,12 @@ export class DataTable extends EventDispatcher {
         this._data = [];
         this._blockEvent = false;
         this._processedEvent = [];
+        this._transformedRid = [];
+        this._searchQuery = null;
+        this._searchFields = null;
 
         let { format, data, fields } = dataModel;
-        
+
         // Set default format at rows
         if (!format) {
             format = 'rows';
@@ -34,7 +37,7 @@ export class DataTable extends EventDispatcher {
     }
 
     getRowCount () {
-        return this._data.length;
+        return this._transformedRid.length;
     }
 
     getAllData() {
@@ -50,9 +53,12 @@ export class DataTable extends EventDispatcher {
     }
 
     getDataAt (rowIndex, field) {
-        let row = this._data[rowIndex];
-        if (row) {
-            return row[field];
+        let rowId = this._transformedRid[rowIndex];
+        if (rowId) {
+            let row = this._rowMap[rowId];
+            if (row) {
+                return row[field];
+            }
         }
         return undefined;
     }
@@ -62,26 +68,30 @@ export class DataTable extends EventDispatcher {
     }
 
     getRowDataAt (rowIndex) {
-        return this._data[rowIndex];
+        let rowId = this._transformedRid[rowIndex];
+        if (rowId) {
+            return this._rowMap[rowId];
+        }
+        return undefined;
     }
 
     getRowIndex (rowId) {
-        return this._rid.indexOf(rowId);
+        return this._transformedRid.indexOf(rowId);
     }
 
     getRowId (rowIndex) {
-        return this._rid[rowIndex];
+        return this._transformedRid[rowIndex];
     }
 
     setData (rowId, field, value) {
-        
+
         let row = this._rowMap[rowId];
 
         //Skip updating if the data is not changing
         if (row && row[field] === value) {
             return;
         }
-        
+
         const beforeUpdateArg = {
             changeType: 'fieldChange',
 			rowId: rowId,
@@ -89,11 +99,11 @@ export class DataTable extends EventDispatcher {
 			data: value,
 			cancel: false
         };
-        
+
         this._processedEvent.push(beforeUpdateArg);
 
         let blocked = false;
-        
+
         if (!this._blockEvent) {
 			this._blockEvent = true;
 			this._extension.executeExtension('dataBeforeUpdate', beforeUpdateArg);
@@ -119,14 +129,14 @@ export class DataTable extends EventDispatcher {
             };
             this._extension.executeExtension('dataFinishUpdate', eventArg);
             setTimeout(() => {
-                this.dispatch(CHANGE_EVENT_NAME, eventArg);                
+                this.dispatch(CHANGE_EVENT_NAME, eventArg);
             }, 100);
             this._processedEvent = [];
         }
     }
 
     setDataAt (rowIndex, field, value) {
-        const rowId = this._rid[rowIndex];
+        const rowId = this._transformedRid[rowIndex];
         if (rowId !== undefined) {
             this.setData(rowId, field, value);
         }
@@ -136,7 +146,7 @@ export class DataTable extends EventDispatcher {
         const count = this.getRowCount();
         this.insertRow(count, rowData);
     }
-    
+
     insertRow (rowIndex, rowData) {
         let rid = null;
         let inserted = false;
@@ -169,13 +179,22 @@ export class DataTable extends EventDispatcher {
             };
             this.dispatch(CHANGE_EVENT_NAME, eventArg);
         }
+
+        //Re-apply transformation if it's already there
+        if (this._searchQuery) {
+            this.search(this._searchQuery, this._searchFields);
+        } else {
+            this._transformedRid = this._rid.slice();
+        }
     }
 
-    removeRow (rid) { 
+    removeRow (rid) {
         let row = this._rowMap[rid];
         let index = this._data.indexOf(row);
+        let tIndex = this._transformedRid.indexOf(rid);
         this._data.splice(index, 1);
         this._rid.splice(index, 1);
+        this._transformedRid.splice(tIndex, 1);
         delete this._rowMap[rid];
 
         const eventArg = {
@@ -188,12 +207,13 @@ export class DataTable extends EventDispatcher {
     }
 
     removeRowAt (index) {
-        let rid = Object.keys(this._rowMap).find(key => object[key] === value);
+        let rid = this.getRowId(index);
         this.removeRow(rid);
     }
 
-    removeAllRows () {       
+    removeAllRows () {
         this._rid = [];
+        this._transformedRid = [];
         this._rowMap = {};
         this._data = [];
 
@@ -204,7 +224,56 @@ export class DataTable extends EventDispatcher {
         };
         setTimeout(() => {
             this.dispatch(CHANGE_EVENT_NAME, eventArg);
-        }, 100);    
+        }, 100);
+    }
+
+    search (query, fields) {
+        //Store for later use
+        this._searchQuery = query;
+        this._searchFields = fields;
+
+        //Cache field map for faster field search
+        let fieldMap = null;
+        if (fields) {
+            fieldMap = fields.reduce((acc, val) => {
+                acc[val] = true;
+            }, {});
+        }
+
+        //Filter rows
+        const regex = new RegExp(query, 'i');
+        this._transformedRid = this._rid.filter((rid) => {
+            const rowData = this._rowMap[rid];
+            if (rowData) {
+                for (var field in rowData) {
+                    if ((!fieldMap || fieldMap[field]) && rowData[field]) {
+                        if (regex.test(rowData[field])) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        });
+
+        //Dispatch global change event
+        const eventArg = {
+            updates: [{
+                changeType: 'global'
+            }]
+        };
+        this.dispatch(CHANGE_EVENT_NAME, eventArg);
+    }
+
+    clearSearch () {
+        this._transformedRid = this._rid.slice();
+        this._searchQuery = null;
+        this._searchFields = null;
+        const eventArg = {
+            updates: [{
+                changeType: 'global'
+            }]
+        };
+        this.dispatch(CHANGE_EVENT_NAME, eventArg);
     }
 
     _generateRowId () {
