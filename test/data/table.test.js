@@ -339,6 +339,18 @@ describe('DataTable', () => {
             deepEqual(table.getRowDataAt(1), rowsData[2]);
             deepEqual(table.getRowDataAt(2), rowsData[4]);
         });
+
+        it('should be able to re-search again', () => {
+            table.search('s2');
+            equal(table.getRowCount(), 1);
+            deepEqual(table.getRowDataAt(0), rowsData[1]);
+
+            table.search('true');
+            equal(table.getRowCount(), 3);
+            deepEqual(table.getRowDataAt(0), rowsData[0]);
+            deepEqual(table.getRowDataAt(1), rowsData[2]);
+            deepEqual(table.getRowDataAt(2), rowsData[4]);
+        });
     });
 
 });
