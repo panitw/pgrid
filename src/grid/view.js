@@ -1,6 +1,5 @@
 import { EventDispatcher } from './event';
 import ResizeObserver from 'resize-observer-polyfill';
-import { timingSafeEqual } from 'crypto';
 
 export class View extends EventDispatcher {
 
