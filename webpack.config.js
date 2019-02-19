@@ -1,11 +1,15 @@
-const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
-
 module.exports = {
     entry: './src/main.js',
     output: {
         path: __dirname + '/dist',
         publicPath: '/',
         filename: 'pgrid.js'
+    },
+    module: {
+        rules: [{
+            test: /\.less$/,
+            loader: 'less-loader' // compiles Less to CSS
+        }]
     },
     target: 'web',
     mode: 'production',
