@@ -1,10 +1,8 @@
-import leche from 'leche';
+import { withData } from 'leche';
 import { equal, deepEqual, notEqual } from 'assert';
 import { cloneDeep } from 'lodash';
 import sinon from 'sinon';
 import { DataTable } from '../../src/data/table';
-
-const withData = leche.withData;
 
 const rowsData = [
     {f1: 10, f2: 's1', f3: true, f4: new Date('2019-01-01'), f5: {x: 10, y: 20}},
@@ -313,6 +311,34 @@ describe('DataTable', () => {
             clock.restore();
         });
 
+        it('should correctly search string data', () => {
+            table.search('s2');
+            equal(table.getRowCount(), 1);
+            deepEqual(table.getRowDataAt(0), rowsData[1]);
+
+            //Global event was dispatched
+            equal(eventSpy.callCount, 1);
+            deepEqual(eventSpy.getCall(0).args[0], {
+                updates: [{
+                    changeType: 'global',
+                }]
+            });
+
+            //Clear search
+            table.clearSearch();
+            equal(table.getRowCount(), rowsData.length);
+            for (let i=0; i<rowsData.length; i++) {
+                deepEqual(table.getRowDataAt(i), rowsData[i]);
+            }
+        });
+
+        it('should correctly search non-string data', () => {
+            table.search('true');
+            equal(table.getRowCount(), 3);
+            deepEqual(table.getRowDataAt(0), rowsData[0]);
+            deepEqual(table.getRowDataAt(1), rowsData[2]);
+            deepEqual(table.getRowDataAt(2), rowsData[4]);
+        });
     });
 
 });
