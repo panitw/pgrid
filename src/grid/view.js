@@ -107,6 +107,10 @@ export class View extends EventDispatcher {
 	}
 
 	setScrollY (y, adjustScrollBar) {
+        let maxScrollY = this._leftInner.scrollHeight - this._leftInner.clientHeight;
+        if (y > maxScrollY) {
+            y = maxScrollY;
+        }
 		this._centerInner.scrollTop = y;
 		this._leftInner.scrollTop = y;
 		if (adjustScrollBar || adjustScrollBar === undefined) {
