@@ -169,7 +169,9 @@ export class View extends EventDispatcher {
 
 			//If there's cellUpdate extension, then execute it to update the cell data
 			//Else use default way to put the data directly to the cell content
-			let handledByExt = false;
+            let handledByExt = false;
+            let rowId = this._model.getRowId(rowIndex);
+            let field = this._model.getColumnField(colIndex);
 			if (this._extensions.hasExtension('cellUpdate')) {
 				arg = {
 					data,
@@ -177,8 +179,8 @@ export class View extends EventDispatcher {
 					cellContent,
 					rowIndex,
 					colIndex,
-					rowId: this._model.getRowId(rowIndex),
-					field: this._model.getColumnField(colIndex),
+					rowId,
+					field,
 					handled: false
 				}
 				this._extensions.executeExtension('cellUpdate', arg);
@@ -194,11 +196,14 @@ export class View extends EventDispatcher {
 			}
 
 			this._extensions.executeExtension('cellAfterUpdate', {
-				cell: cell,
-				rowIndex: rowIndex,
-				colIndex: colIndex,
-				data: data
-			});
+                data,
+                cell,
+                cellContent,
+                rowIndex,
+                colIndex,
+                rowId,
+                field,
+            });
 		}
 	}
 
