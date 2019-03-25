@@ -49,7 +49,7 @@ export class CopyPasteExtension {
             for (let i=0; i<s.h; i++) {
                 let cols = [];
                 for (let j=0; j<s.w; j++) {
-                    cols.push(this._grid.data.getDataAt(s.r + i, s.c + j));
+                    cols.push(this._grid.model.getDataAt(s.r + i, s.c + j));
                 }
                 rows.push(cols.join('\t'));
             }
@@ -72,7 +72,7 @@ export class CopyPasteExtension {
                         let pasteRow =  s.r + i;
                         let pasteCol = s.c + j;
                         if (this._grid.model.canEdit(pasteRow, pasteCol)) {
-                            this._grid.data.setDataAt(pasteRow, pasteCol, cols[j]);
+                            this._grid.model.setDataAt(pasteRow, pasteCol, cols[j]);
                             this._grid.view.updateCell(pasteRow, pasteCol);
                         }
                     }
