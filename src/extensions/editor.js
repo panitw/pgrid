@@ -33,7 +33,7 @@ export class EditorExtension {
 						}
 					}
 				}
-			}	
+			}
 		}
 	}
 
@@ -57,7 +57,7 @@ export class EditorExtension {
 
 			//Create float editor container
 			let cellBound = cell.getBoundingClientRect();
-			const scrollingElement = document.scrollingElement || document.documentElement; 
+			const scrollingElement = document.scrollingElement || document.documentElement;
 			let scrollTop = scrollingElement.scrollTop;
 			let scrollLeft = scrollingElement.scrollLeft;
 			this._editorContainer = document.createElement('div');
@@ -101,7 +101,7 @@ export class EditorExtension {
 			this._inputElement.style.width = (cellBound.width) + 'px';
 			this._inputElement.style.height = (cellBound.height) + 'px';
 			this._inputElement.className = 'pgrid-cell-text-editor';
-			
+
 			cell.appendChild(this._inputElement);
 
 			this._inputElement.focus();
@@ -134,10 +134,14 @@ export class EditorExtension {
 					case 37: //Left
 					case 39: //Right
 						if (!this._arrowKeyLocked) {
-							done(e.target.value);
+                            const activeTag = document.activeElement.tagName;
+                            if (activeTag !== 'INPUT') {
+                                done(e.target.value);
+                            }
 						} else {
 							e.preventDefault();
-							e.stopPropagation();
+                            e.stopPropagation();
+                            return;
 						}
 						break;
 				}
@@ -170,7 +174,7 @@ export class EditorExtension {
 				this._inputElement = null;
 				this._keydownHandler = null;
 				this._blurHandler = null;
-				this._clickHandler = null;	
+				this._clickHandler = null;
 			}
 		}
 	}
