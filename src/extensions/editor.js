@@ -163,8 +163,12 @@ export class EditorExtension {
 
 	_detachEditor () {
 		if (this._editorContainer) {
-			//Double checking to fix wiered bug
-			this._editorContainer.parentElement.removeChild(this._editorContainer);
+            try {
+                this._editorContainer.parentElement.removeChild(this._editorContainer);
+            }
+            catch (ex) {
+                //Prevent wired bug when detach editor inside blur event handler
+            }
 			this._editorContainer = null;
 			if (this._inputElement) {
 				this._inputElement.removeEventListener('keydown', this._keydownHandler);
@@ -196,8 +200,6 @@ export class EditorExtension {
 			}
 		}
 		this._grid.view.updateCell(this._editingRow, this._editingCol);
-		this._editingRow = -1;
-		this._editingCol = -1;
 		this._editorAttached = false;
 		this._grid.state.set('editing', false);
 
