@@ -17,6 +17,7 @@ export class DataTable extends EventDispatcher {
         this._transformedRid = [];
         this._searchQuery = null;
         this._searchFields = null;
+        this._freezeCount = 0;
 
         let { format, data, fields } = dataModel;
 
@@ -83,6 +84,17 @@ export class DataTable extends EventDispatcher {
         return this._transformedRid[rowIndex];
     }
 
+    freeze () {
+        this._freezeCount++;
+    }
+
+    unfreeze () {
+        this._freezeCount--;
+        if (this._freezeCount < 0) {
+            this._freezeCount = 0;
+        }
+    }
+
     setData (rowId, field, value) {
 
         let row = this._rowMap[rowId];
@@ -128,9 +140,11 @@ export class DataTable extends EventDispatcher {
                 updates: this._processedEvent
             };
             this._extension.executeExtension('dataFinishUpdate', eventArg);
-            setTimeout(() => {
-                this.dispatch(CHANGE_EVENT_NAME, eventArg);
-            }, 100);
+            if (this._freezeCount === 0) {
+                setTimeout(() => {
+                    this.dispatch(CHANGE_EVENT_NAME, eventArg);
+                }, 100);
+            }
             this._processedEvent = [];
         }
     }
@@ -170,14 +184,16 @@ export class DataTable extends EventDispatcher {
 
         //Dispatch change event
         if (inserted) {
-            const eventArg = {
-                updates: [{
-                    changeType: 'rowAdded',
-                    rowId: rid,
-                    data: this.getRowData(rid)
-                }]
-            };
-            this.dispatch(CHANGE_EVENT_NAME, eventArg);
+            if (this._freezeCount === 0) {
+                const eventArg = {
+                    updates: [{
+                        changeType: 'rowAdded',
+                        rowId: rid,
+                        data: this.getRowData(rid)
+                    }]
+                };
+                this.dispatch(CHANGE_EVENT_NAME, eventArg);
+            }
         }
 
         //Re-apply transformation if it's already there
@@ -197,13 +213,15 @@ export class DataTable extends EventDispatcher {
         this._transformedRid.splice(tIndex, 1);
         delete this._rowMap[rid];
 
-        const eventArg = {
-            updates: [{
-                changeType: 'rowRemoved',
-                rowId: rid
-            }]
-        };
-        this.dispatch(CHANGE_EVENT_NAME, eventArg);
+        if (this._freezeCount === 0) {
+            const eventArg = {
+                updates: [{
+                    changeType: 'rowRemoved',
+                    rowId: rid
+                }]
+            };
+            this.dispatch(CHANGE_EVENT_NAME, eventArg);
+        }
     }
 
     removeRowAt (index) {
@@ -217,14 +235,16 @@ export class DataTable extends EventDispatcher {
         this._rowMap = {};
         this._data = [];
 
-        const eventArg = {
-            updates: [{
-                changeType: 'global'
-            }]
-        };
-        setTimeout(() => {
-            this.dispatch(CHANGE_EVENT_NAME, eventArg);
-        }, 100);
+        if (this._freezeCount === 0) {
+            const eventArg = {
+                updates: [{
+                    changeType: 'global'
+                }]
+            };
+            setTimeout(() => {
+                this.dispatch(CHANGE_EVENT_NAME, eventArg);
+            }, 100);
+        }
     }
 
     search (query, fields) {
@@ -256,24 +276,28 @@ export class DataTable extends EventDispatcher {
         });
 
         //Dispatch global change event
-        const eventArg = {
-            updates: [{
-                changeType: 'global'
-            }]
-        };
-        this.dispatch(CHANGE_EVENT_NAME, eventArg);
+        if (this._freezeCount === 0) {
+            const eventArg = {
+                updates: [{
+                    changeType: 'global'
+                }]
+            };
+            this.dispatch(CHANGE_EVENT_NAME, eventArg);
+        }
     }
 
     clearSearch () {
         this._transformedRid = this._rid.slice();
         this._searchQuery = null;
         this._searchFields = null;
-        const eventArg = {
-            updates: [{
-                changeType: 'global'
-            }]
-        };
-        this.dispatch(CHANGE_EVENT_NAME, eventArg);
+        if (this._freezeCount === 0) {
+            const eventArg = {
+                updates: [{
+                    changeType: 'global'
+                }]
+            };
+            this.dispatch(CHANGE_EVENT_NAME, eventArg);
+        }
     }
 
     _generateRowId () {
