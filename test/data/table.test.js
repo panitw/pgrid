@@ -185,6 +185,40 @@ describe('DataTable', () => {
             clock.restore();
         });
 
+        it('should not dispatch any event if the table is frozen', () => {
+            const clock = sinon.useFakeTimers();
+            table.freeze();
+            table.setDataAt(0, 'f1', 100);
+
+            //Event is called after 100ms, so turn the clock forward 100ms
+            clock.tick(100);
+            equal(eventSpy.callCount, 0);
+
+            //Event is fired again after unfreeze() is called
+            table.unfreeze();
+            table.setDataAt(0, 'f1', 200);
+            clock.tick(100);
+            equal(eventSpy.callCount, 1);
+
+            clock.restore();
+        });
+
+        it('should not dispatch any event if the table freeze() is called more times than unfreeze()', () => {
+            const clock = sinon.useFakeTimers();
+            table.freeze();
+            table.freeze();
+            table.unfreeze();
+            table.setDataAt(0, 'f1', 100);
+
+            //Event is called after 100ms, so turn the clock forward 100ms
+            clock.tick(100);
+
+            equal(eventSpy.callCount, 0);
+
+            clock.restore();
+            table.unfreeze();
+        });
+
         it('should cancel the update if the dataBeforeUpdate set cancel flag to "true"', () => {
             const rowId0 = table.getRowId(0);
             mockExtension.executeExtension = (ext, extArg) => {
@@ -351,6 +385,7 @@ describe('DataTable', () => {
             deepEqual(table.getRowDataAt(1), rowsData[2]);
             deepEqual(table.getRowDataAt(2), rowsData[4]);
         });
+
     });
 
 });
