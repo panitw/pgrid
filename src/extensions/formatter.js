@@ -4,26 +4,50 @@ export class FormatterExtension {
 		this._grid = grid;
 		this._config = config;
     }
-    
-    cellRender (e) {
-        const model = this._grid.model.getColumnModel(e.colIndex);
-        if (model && model.formatter && model.formatter.render) {
+
+    render (e, model, formatter) {
+        if (formatter.render) {
             let newEvent = Object.assign({}, e);
             newEvent.colModel = model;
             newEvent.grid = this._grid;
-            model.formatter.render(newEvent);
+            formatter.render(newEvent);
             e.handled = true;
+        }
+    }
+
+    update (e, model, formatter) {
+        if (formatter.update) {
+            let newEvent = Object.assign({}, e);
+            newEvent.colModel = model;
+            newEvent.grid = this._grid;
+            formatter.update(newEvent);
+            e.handled = true;
+        }
+    }
+
+    cellRender (e) {
+        const model = this._grid.model.getColumnModel(e.colIndex);
+        if (model && model.formatter) {
+            if (Array.isArray(model.formatter)) {
+                for (let i=0; i<model.formatter.length; i++) {
+                    this.render(e, model, model.formatter[i]);
+                }
+            } else {
+                this.render(e, model, model.formatter);
+            }
         }
     }
 
     cellUpdate (e) {
         const model = this._grid.model.getColumnModel(e.colIndex);
-        if (model && model.formatter && model.formatter.update) {
-            let newEvent = Object.assign({}, e);
-            newEvent.colModel = model;
-            newEvent.grid = this._grid;
-            model.formatter.update(newEvent);
-            e.handled = true;
+        if (model && model.formatter) {
+            if (Array.isArray(model.formatter)) {
+                for (let i=0; i<model.formatter.length; i++) {
+                    this.update(e, model, model.formatter[i]);
+                }
+            } else {
+                this.update(e, model, model.formatter);
+            }
         }
     }
 
