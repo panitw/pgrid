@@ -133,16 +133,10 @@ export class EditorExtension {
 					case 38: //Up
 					case 37: //Left
 					case 39: //Right
-						if (!this._arrowKeyLocked) {
-                            const activeTag = document.activeElement.tagName;
-                            if (activeTag !== 'INPUT') {
-                                done(e.target.value);
-                            }
-						} else {
-							e.preventDefault();
-                            e.stopPropagation();
-                            return;
-						}
+                        const activeTag = document.activeElement.tagName;
+                        if (activeTag !== 'INPUT') {
+                            done(e.target.value);
+                        }
 						break;
 				}
 			};
@@ -151,13 +145,8 @@ export class EditorExtension {
 				done(e.target.value);
 			};
 
-			this._clickHandler = (e) => {
-				this._arrowKeyLocked = true;
-			};
-
 			this._inputElement.addEventListener('keydown', this._keydownHandler);
 			this._inputElement.addEventListener('blur', this._blurHandler);
-			this._inputElement.addEventListener('click', this._clickHandler);
 		}
 	}
 
