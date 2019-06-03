@@ -6,7 +6,9 @@ export class View extends EventDispatcher {
 	constructor (model, extensions) {
 		super();
 		this._model = model;
-		this._extensions = extensions;
+        this._extensions = extensions;
+        this._recycledCells = [];
+        this._cellReference = {};
 		this._template = 	'<div class="pgrid-content-pane" style="position: relative;">' +
 							'	<div class="pgrid-top-left-pane" style="position: absolute;">' +
 							'		<div class="pgrid-top-left-inner" style="width: 100%; height: 100%; overflow: hidden; position: relative;"></div>' +
@@ -94,52 +96,77 @@ export class View extends EventDispatcher {
 	}
 
 	setScrollX (x, adjustScrollBar) {
-		this._topInner.scrollLeft = x;
-		this._centerInner.scrollLeft = x;
-		this._bottomInner.scrollLeft = x;
+		this._topPane.scrollLeft = x;
+		this._centerPane.scrollLeft = x;
+		this._bottomPane.scrollLeft = x;
 		if (adjustScrollBar || adjustScrollBar === undefined) {
 			this._hScroll.scrollLeft = x;
 		}
 	}
 
 	getScrollX () {
-		return this._centerInner.scrollLeft;
+		return this._centerPane.scrollLeft;
 	}
 
 	setScrollY (y, adjustScrollBar) {
-        let maxScrollY = this._leftInner.scrollHeight - this._leftInner.clientHeight;
+        let maxScrollY = this._leftInner.clientHeight - this._leftPane.clientHeight;
         if (y > maxScrollY) {
             y = maxScrollY;
         }
-		this._centerInner.scrollTop = y;
-		this._leftInner.scrollTop = y;
+		this._centerPane.scrollTop = y;
+		this._leftPane.scrollTop = y;
 		if (adjustScrollBar || adjustScrollBar === undefined) {
 			this._vScroll.scrollTop = y;
 		}
 	}
 
 	getScrollY () {
-		return this._centerInner.scrollTop;
+		return this._centerPane.scrollTop;
 	}
 
 	scrollToCell (rowIndex, colIndex, alignTop) {
 		let cell = this.getCell(rowIndex, colIndex);
-		let origScrollTop = cell.parentElement.scrollTop;
-		let origScrollLeft = cell.parentElement.scrollLeft;
+		let origScrollTop = cell.parentElement.parentElement.scrollTop;
+		let origScrollLeft = cell.parentElement.parentElement.scrollLeft;
 
 		cell.scrollIntoViewIfNeeded(false);
 
-		if (origScrollTop !== cell.parentElement.scrollTop) {
-			this.setScrollY(cell.parentElement.scrollTop, true);
+		if (origScrollTop !== cell.parentElement.parentElement.scrollTop) {
+			this.setScrollY(cell.parentElement.parentElement.scrollTop, true);
 		}
-		if (origScrollLeft !== cell.parentElement.scrollLeft) {
-			this.setScrollX(cell.parentElement.scrollLeft, true);
+		if (origScrollLeft !== cell.parentElement.parentElement.scrollLeft) {
+			this.setScrollX(cell.parentElement.parentElement.scrollLeft, true);
 		}
 	}
 
 	getCell (rowIndex, colIndex) {
-		let cell = this._element.querySelector('[data-row-index="'+rowIndex+'"][data-col-index="'+colIndex+'"]');
-		return cell;
+        let cell = this._element.querySelector('[data-row-index="'+rowIndex+'"][data-col-index="'+colIndex+'"]');
+        if (cell) {
+            return cell;
+        } else {
+            let leftFreezeSize = this._model.getLeftFreezeSize();
+            let topFreezeSize = this._model.getTopFreezeSize();
+            let bottomFreezeSize = this._model.getBottomFreezeSize();
+            let cellRect = this._getCellRect(rowIndex, colIndex);
+            let scrollX = this.getScrollX();
+            let scrollY = this.getScrollY();
+            let gridRect = this._element.getBoundingClientRect();
+            if (cellRect.x > leftFreezeSize) {
+                if (cellRect.x < (scrollX + leftFreezeSize)) {
+                    this.setScrollX(cellRect.x - leftFreezeSize);
+                } else
+                if (scrollX + gridRect.width < cellRect.x + cellRect.width) {
+                    this.setScrollX((cellRect.x + cellRect.width) - gridRect.width);
+                }
+            }
+            if (cellRect.y < (scrollY + topFreezeSize)) {
+                this.setScrollY(cellRect.y);
+            } else
+            if ((scrollY + gridRect.height) - bottomFreezeSize < cellRect.y + cellRect.height) {
+                this.setScrollY((cellRect.y + cellRect.height) - gridRect.height);
+            }
+            this._renderCells();
+        }
 	}
 
 	updateCell (rowIndex, colIndex) {
@@ -210,12 +237,14 @@ export class View extends EventDispatcher {
 	_attachHandlers () {
 
 		this._vScrollHandler = (e) => {
-			this.setScrollY(e.target.scrollTop, false);
+            this.setScrollY(e.target.scrollTop, false);
+            this._renderCells();
 			this.dispatch('vscroll', e);
 		};
 
 		this._hScrollHandler = (e) => {
 			this.setScrollX(e.target.scrollLeft, false);
+            this._renderCells();
 			this.dispatch('hscroll', e);
 		};
 
@@ -224,6 +253,7 @@ export class View extends EventDispatcher {
 			let currentY = this.getScrollY();
 			this.setScrollX(currentX + e.deltaX);
 			this.setScrollY(currentY + e.deltaY);
+            this._renderCells();
 			if (e.deltaX !== 0) {
 				this.dispatch('hscroll', e);
 			}
@@ -326,7 +356,23 @@ export class View extends EventDispatcher {
 				this._contentPane.style.height = 'calc(100% - ' + this._scrollWidth + 'px)';
 				break;
 		}
-	}
+    }
+
+    _getCellRect (rowIndex, colIndex) {
+		let topRunner = 0;
+        let leftRunner = 0;
+        let cellWidth = 0;
+        let cellHeight = 0;
+        for (let i=0; i<rowIndex; i++) {
+            cellHeight = this._model.getRowHeight(i)
+            topRunner += cellHeight;
+        }
+        for (let i=0; i<colIndex; i++) {
+            cellWidth = this._model.getColumnWidth(i);
+            leftRunner += cellWidth;
+        }
+        return {x: leftRunner, y: topRunner, width: cellWidth, height: cellHeight};
+    }
 
 	_renderCells () {
 		let topFreeze = this._model.getTopFreezeRows();
@@ -337,27 +383,42 @@ export class View extends EventDispatcher {
 		let topRunner = 0;
 		let leftRunner = 0;
 		let colWidth = [];
+        let paneScrollLeft = 0;
+        let paneScrollTop = 0;
+        let paneWidth = 0;
+        let paneHeight = 0;
 
 		//Render top rows
 		topRunner = 0;
 		for (let j=0; j<topFreeze; j++) {
 			let rowHeight = this._model.getRowHeight(j);
 			//Render top left cells
-			leftRunner = 0;
+            leftRunner = 0;
+            paneScrollLeft = this._topLeftPane.scrollLeft;
+            paneScrollTop = this._topLeftPane.scrollTop;
+            paneWidth = this._topLeftPane.offsetWidth;
+            paneHeight = this._topLeftPane.offsetHeight;
 			for (let i=0; i<leftFreeze; i++) {
 				colWidth[i] = this._model.getColumnWidth(i);
-				this._renderCell(j, i, this._topLeftInner, leftRunner, topRunner, colWidth[i], rowHeight);
+                this._renderCell(j, i, this._topLeftInner, paneWidth, paneHeight, paneScrollLeft, paneScrollTop, leftRunner, topRunner, colWidth[i], rowHeight);
 				leftRunner += colWidth[i];
-			}
+            }
+
 			//Render top cells
 			leftRunner = 0;
+            paneScrollLeft = this._topPane.scrollLeft;
+            paneScrollTop = this._topPane.scrollTop;
+            paneWidth = this._topPane.offsetWidth;
+            paneHeight = this._topPane.offsetHeight;
 			for (let i=leftFreeze; i<columnCount; i++) {
 				colWidth[i] = this._model.getColumnWidth(i);
-				this._renderCell(j, i, this._topInner, leftRunner, topRunner, colWidth[i], rowHeight);
+				this._renderCell(j, i, this._topInner, paneWidth, paneHeight, paneScrollLeft, paneScrollTop, leftRunner, topRunner, colWidth[i], rowHeight);
 				leftRunner += colWidth[i];
 			}
 			topRunner += rowHeight;
-		}
+        }
+        this._topInner.style.width = leftRunner + 'px';
+        this._topInner.style.height = topRunner + 'px';
 
 		//Render middle rows
 		topRunner = 0;
@@ -365,18 +426,29 @@ export class View extends EventDispatcher {
 			let rowHeight = this._model.getRowHeight(j);
 			//Render left cells
 			leftRunner = 0;
+            paneScrollLeft = this._leftPane.scrollLeft;
+            paneScrollTop = this._leftPane.scrollTop;
+            paneWidth = this._leftPane.offsetWidth;
+            paneHeight = this._leftPane.offsetHeight;
 			for (let i=0; i<leftFreeze; i++) {
-				this._renderCell(j, i, this._leftInner, leftRunner, topRunner, colWidth[i], rowHeight);
+				this._renderCell(j, i, this._leftInner, paneWidth, paneHeight, paneScrollLeft, paneScrollTop, leftRunner, topRunner, colWidth[i], rowHeight);
 				leftRunner += colWidth[i];
 			}
 			//Render center cells
 			leftRunner = 0;
+            paneScrollLeft = this._centerPane.scrollLeft;
+            paneScrollTop = this._centerPane.scrollTop;
+            paneWidth = this._centerPane.offsetWidth;
+            paneHeight = this._centerPane.offsetHeight;
 			for (let i=leftFreeze; i<columnCount; i++) {
-				this._renderCell(j, i, this._centerInner, leftRunner, topRunner, colWidth[i], rowHeight);
+				this._renderCell(j, i, this._centerInner, paneWidth, paneHeight, paneScrollLeft, paneScrollTop, leftRunner, topRunner, colWidth[i], rowHeight);
 				leftRunner += colWidth[i];
 			}
 			topRunner += rowHeight;
 		}
+        this._leftInner.style.height = topRunner + 'px';
+        this._centerInner.style.width = leftRunner + 'px';
+        this._centerInner.style.height = topRunner + 'px';
 
 		//Render bottom rows
 		topRunner = 0;
@@ -384,43 +456,102 @@ export class View extends EventDispatcher {
 			let rowHeight = this._model.getRowHeight(j);
 			//Render left cells
 			leftRunner = 0;
+            paneScrollLeft = this._bottomLeftPane.scrollLeft;
+            paneScrollTop = this._bottomLeftPane.scrollTop;
+            paneWidth = this._bottomLeftPane.offsetWidth;
+            paneHeight = this._bottomLeftPane.offsetHeight;
 			for (let i=0; i<leftFreeze; i++) {
-				this._renderCell(j, i, this._bottomLeftInner, leftRunner, topRunner, colWidth[i], rowHeight);
+				this._renderCell(j, i, this._bottomLeftInner, paneWidth, paneHeight, paneScrollLeft, paneScrollTop, leftRunner, topRunner, colWidth[i], rowHeight);
 				leftRunner += colWidth[i];
 			}
 			//Render center cells
 			leftRunner = 0;
+            paneScrollLeft = this._bottomPane.scrollLeft;
+            paneScrollTop = this._bottomPane.scrollTop;
+            paneWidth = this._bottomPane.offsetWidth;
+            paneHeight = this._bottomPane.offsetHeight;
 			for (let i=leftFreeze; i<columnCount; i++) {
-				this._renderCell(j, i, this._bottomInner, leftRunner, topRunner, colWidth[i], rowHeight);
+				this._renderCell(j, i, this._bottomInner, paneWidth, paneHeight, paneScrollLeft, paneScrollTop, leftRunner, topRunner, colWidth[i], rowHeight);
 				leftRunner += colWidth[i];
 			}
 			topRunner += rowHeight;
 		}
-	}
+        this._bottomInner.style.width = leftRunner + 'px';
+        this._bottomInner.style.height = topRunner + 'px';
+    }
 
-	_renderCell (rowIndex, colIndex, pane, x, y, width, height) {
-		let data = this._model.getDataAt(rowIndex, colIndex);
+    _isCellVisible (paneWidth, paneHeight, paneScrollLeft, paneScrollTop, cellX, cellY, cellWidth, cellHeight) {
+        if (cellX + cellWidth < paneScrollLeft ||
+            cellY + cellHeight < paneScrollTop ||
+            cellX > paneScrollLeft + paneWidth ||
+            cellY > paneScrollTop + paneHeight) {
+            return false;
+        } else {
+            return true;
+        }
+    }
 
-		//Data can be transformed before rendering using dataBeforeRender extension
-		let arg = {data: data};
-		this._extensions.executeExtension('dataBeforeRender', arg);
-		data = arg.data;
+    _createCell (rowIndex, colIndex, x, y, width, height) {
+        let cell = null;
+        let key = rowIndex + ',' + colIndex;
+        if (this._recycledCells.length > 0) {
+            cell = this._recycledCells.pop();
+        } else {
+            cell = document.createElement('div');
 
-		let cell = document.createElement('div');
-		let cellClasses = this._model.getCellClasses(rowIndex, colIndex);
-		cell.className = 'pgrid-cell ' + cellClasses.join(' ');
+            let cellContent = document.createElement('div');
+            cellContent.className = 'pgrid-cell-content';
+            cell.appendChild(cellContent);
+        }
 		cell.style.left = x + 'px';
 		cell.style.top = y + 'px';
 		cell.style.width = width + 'px';
 		cell.style.height = height + 'px';
-		cell.dataset.rowIndex = rowIndex;
-		cell.dataset.colIndex = colIndex;
+        cell.dataset.rowIndex = rowIndex;
+        cell.dataset.colIndex = colIndex;
+        cell.dataset.key = key;
 
-		let cellContent = document.createElement('div');
-		cellContent.className = 'pgrid-cell-content';
-		cell.appendChild(cellContent);
+        this._cellReference[key] = cell;
+        return cell;
+    }
+
+    _recycleCell (cell) {
+        this._cellReference[cell.dataset.key] = null;
+        this._recycledCells.push(cell);
+        cell.parentNode.removeChild(cell);
+    }
+
+	_renderCell (rowIndex, colIndex, pane, paneWidth, paneHeight, paneScrollLeft, paneScrollTop, x, y, width, height) {
+        let key = rowIndex + ',' + colIndex;
+
+        //If the cell is outside of the viewport, then recycle the cell if it has already been created
+        if (!this._isCellVisible(paneWidth, paneHeight, paneScrollLeft, paneScrollTop, x, y, width, height)) {
+            let cell = this._cellReference[key];
+            if (cell) {
+                this._recycleCell(cell);
+            }
+            return false;
+        }
+
+        //If the cell already rendered, just skip the rendering
+        let existingCell = this._cellReference[key];
+        if (existingCell) {
+            return true;
+        }
+
+		let data = this._model.getDataAt(rowIndex, colIndex);
+
+        //Data can be transformed before rendering using dataBeforeRender extension
+		let arg = {data: data};
+		this._extensions.executeExtension('dataBeforeRender', arg);
+		data = arg.data;
+
+		let cell = this._createCell(rowIndex, colIndex, x, y, width, height);
+		let cellClasses = this._model.getCellClasses(rowIndex, colIndex);
+		cell.className = 'pgrid-cell ' + cellClasses.join(' ');
+
 		pane.appendChild(cell);
-
+        let cellContent = cell.firstChild;
 		let eventArg = {
 			cell,
 			cellContent,
