@@ -85,7 +85,8 @@ export class View extends EventDispatcher {
 		this._leftInner.innerHTML = '';
 		this._centerInner.innerHTML = '';
 		this._bottomLeftInner.innerHTML = '';
-		this._bottomInner.innerHTML = '';
+        this._bottomInner.innerHTML = '';
+        this._cellReference = [];
 
         this._model.calcTotalSize();
 		this._resturecture();
