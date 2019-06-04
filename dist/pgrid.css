@@ -68,6 +68,11 @@
 .pgrid ::-webkit-scrollbar-corner {
   background: transparent;
 }
+.pgrid .pgrid-content-pane .pgrid-center-pane,
+.pgrid .pgrid-content-pane .pgrid-left-pane,
+.pgrid .pgrid-content-pane .pgrid-top-pane {
+  overflow: hidden;
+}
 .pgrid .pgrid-cell-text-editor {
   border: none;
   outline: none;
