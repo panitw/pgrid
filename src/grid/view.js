@@ -581,7 +581,9 @@ export class View extends EventDispatcher {
 		this._extensions.executeExtension('cellAfterRender', eventArg);
 		this._extensions.executeExtension('cellAfterUpdate', eventArg);
 
-		eventArg = null;
+        eventArg = null;
+
+        return true;
 	}
 
 	_measureScrollbarWidth () {
