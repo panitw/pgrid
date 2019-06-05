@@ -167,6 +167,7 @@ export class View extends EventDispatcher {
                 this.setScrollY((cellRect.y + cellRect.height) - gridRect.height);
             }
             this._renderCells();
+            return this._element.querySelector('[data-row-index="'+rowIndex+'"][data-col-index="'+colIndex+'"]');
         }
 	}
 
