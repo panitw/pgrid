@@ -10,6 +10,7 @@ export class Extension {
 			cellUpdate: [],
 			cellAfterUpdate: [],
 			cellEditableCheck: [],
+			cellAfterRecycled: [],
 			keyDown: [],
 			gridAfterRender: [],
 			dataBeforeRender: [],
