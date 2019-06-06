@@ -4,12 +4,13 @@ export class EditorExtension {
 		this._grid = grid;
 		this._config = config;
 		this._editorAttached = false;
-		this.scrollHandler = this.scrollHandler.bind(this);
-		this._grid.view.listen('vscroll', this.scrollHandler);
-		this._grid.view.listen('hscroll', this.scrollHandler);
+        this._scrollHandler = this._scrollHandler.bind(this);
+		this._grid.view.listen('vscroll', this._scrollHandler);
+		this._grid.view.listen('hscroll', this._scrollHandler);
+        this._cellDblClickedHandler = this._cellDblClickedHandler.bind(this);
 	}
 
-	scrollHandler () {
+	_scrollHandler () {
 		this._detachEditor();
 	}
 
@@ -38,13 +39,19 @@ export class EditorExtension {
 	}
 
 	cellAfterRender (e) {
-		e.cell.addEventListener('dblclick', (e) => {
-			let actualCell = e.target;
-			if (actualCell) {
-				this._editCell(actualCell);
-			}
-		});
-	}
+		e.cell.addEventListener('dblclick', this._cellDblClickedHandler);
+    }
+
+    cellAfterRecycled (e) {
+        e.cell.removeEventListener('dblclick', this._cellDblClickedHandler, false);
+    }
+
+    _cellDblClickedHandler (e) {
+        let actualCell = e.target;
+        if (actualCell) {
+            this._editCell(actualCell);
+        }
+    }
 
 	_editCell (cell) {
 		let actualCell = cell;

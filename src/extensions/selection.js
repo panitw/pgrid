@@ -4,7 +4,8 @@ export class SelectionExtension {
 		this._grid = grid;
 		this._config = config;
 		this._currentSelection = null;
-		this._selectionClass = (this._config.selection && this._config.selection.cssClass)?this._config.selection.cssClass:'pgrid-cell-selection';
+        this._selectionClass = (this._config.selection && this._config.selection.cssClass)?this._config.selection.cssClass:'pgrid-cell-selection';
+        this._mouseDownEventHandler = this._mouseDownEventHandler.bind(this);
 	}
 
 	keyDown (e) {
@@ -53,19 +54,25 @@ export class SelectionExtension {
 	}
 
 	cellAfterRender (e) {
-		e.cell.addEventListener('mousedown', (e) => {
-			const actualCell = e.target;
-			const actualRow = parseInt(actualCell.dataset.rowIndex);
-			const actualCol = parseInt(actualCell.dataset.colIndex);
-			const rowModel = this._grid.model.getRowModel(actualRow);
-			const isHeader = this._grid.model.isHeaderRow(actualRow);
-			if (!rowModel || !isHeader) {
-				if (actualCell.classList.contains('pgrid-cell')) {
-					this._selectCell(actualCell, actualRow, actualCol);
-				}
-			}
-		});
-	}
+		e.cell.addEventListener('mousedown', this._mouseDownEventHandler);
+    }
+
+    cellAfterRecycled (e) {
+        e.cell.removeEventListener('mousedown', this._mouseDownEventHandler, false);
+    }
+
+    _mouseDownEventHandler (e) {
+        const actualCell = e.target;
+        const actualRow = parseInt(actualCell.dataset.rowIndex);
+        const actualCol = parseInt(actualCell.dataset.colIndex);
+        const rowModel = this._grid.model.getRowModel(actualRow);
+        const isHeader = this._grid.model.isHeaderRow(actualRow);
+        if (!rowModel || !isHeader) {
+            if (actualCell.classList.contains('pgrid-cell')) {
+                this._selectCell(actualCell, actualRow, actualCol);
+            }
+        }
+    }
 
 	_selectCell (cell, rowIndex, colIndex) {
 		//Clear old selection

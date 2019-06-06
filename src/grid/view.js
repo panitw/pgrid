@@ -526,6 +526,7 @@ export class View extends EventDispatcher {
         this._cellReference[cell.dataset.key] = null;
         cell.style.visibility = 'hidden';
         this._recycledCells.push(cell);
+		this._extensions.executeExtension('cellAfterRecycled', { cell });
     }
 
 	_renderCell (rowIndex, colIndex, pane, paneWidth, paneHeight, paneScrollLeft, paneScrollTop, x, y, width, height) {
