@@ -16,15 +16,17 @@ export class ViewUpdaterExtension {
                 rowIndex = rowIndexCache[rowId];
             } else {
                 rowIndex = this._grid.model.getRowIndex(rowId);
-                rowIndexCache[rowId] = rowIndex;                
+                rowIndexCache[rowId] = rowIndex;
             }
             if (colIndexCache[field]) {
                 colIndex = colIndexCache[field];
             } else {
                 colIndex = this._grid.model.getColumnIndex(field);
-                colIndexCache[rowId] = colIndex;                
-            }            
-            this._grid.view.updateCell(rowIndex, colIndex);
+                colIndexCache[rowId] = colIndex;
+            }
+            if (colIndex !== -1) {
+                this._grid.view.updateCell(rowIndex, colIndex);
+            }
         }
     }
 
