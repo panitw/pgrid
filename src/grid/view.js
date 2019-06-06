@@ -140,10 +140,13 @@ export class View extends EventDispatcher {
 		}
 	}
 
-	getCell (rowIndex, colIndex) {
+	getCell (rowIndex, colIndex, createNewCell) {
         let cell = this._element.querySelector('[data-row-index="'+rowIndex+'"][data-col-index="'+colIndex+'"]');
         if (cell) {
             return cell;
+        } else
+        if (createNewCell === false) {
+            return null;
         } else {
             let leftFreezeSize = this._model.getLeftFreezeSize();
             let topFreezeSize = this._model.getTopFreezeSize();
@@ -172,21 +175,11 @@ export class View extends EventDispatcher {
 	}
 
 	updateCell (rowIndex, colIndex) {
-		let cell = this.getCell(rowIndex, colIndex);
+        //Ignore updating cell that's outside of the viewport
+		let cell = this.getCell(rowIndex, colIndex, false);
 		if (cell) {
 			//Create cell content wrapper if not any
-			let cellContent = null;
-			if (!cell.firstChild || !cell.firstChild.classList.contains('pgrid-cell-content')) {
-				//Clear cell
-				cell.innerHTML = '';
-
-				//Add new cell content
-				cellContent = document.createElement('div');
-				cellContent.className = 'pgrid-cell-content';
-				cell.appendChild(cellContent);
-			} else {
-				cellContent = cell.firstChild;
-			}
+			let cellContent = cell.firstChild;
 
 			//Get data to be updated
 			let data = this._model.getDataAt(rowIndex, colIndex);
