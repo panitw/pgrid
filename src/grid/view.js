@@ -523,10 +523,25 @@ export class View extends EventDispatcher {
     }
 
     _recycleCell (cell) {
+        //Clear cell reference cache
         this._cellReference[cell.dataset.key] = null;
+
+        //Clear cell content
+        cell.title = '';
+        let cellContent = cell.querySelector('.pgrid-cell-content');
+        if (cellContent) {
+            while (cellContent.firstChild) {
+                cellContent.removeChild(cellContent.firstChild);
+            }
+        }
+
+        //Hide the cell instead of removing it from the DOM
         cell.style.visibility = 'hidden';
+
+        //Push cell in the recycled list to be reused later
         this._recycledCells.push(cell);
-		this._extensions.executeExtension('cellAfterRecycled', { cell });
+
+        this._extensions.executeExtension('cellAfterRecycled', { cell });
     }
 
 	_renderCell (rowIndex, colIndex, pane, paneWidth, paneHeight, paneScrollLeft, paneScrollTop, x, y, width, height) {
