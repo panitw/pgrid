@@ -63,6 +63,9 @@ export class SelectionExtension {
 
     _mouseDownEventHandler (e) {
         const actualCell = e.target;
+        if (actualCell.classList.contains('pgrid-cell-content')) {
+            actualCell = actualCell.parentElement;
+        }
         const actualRow = parseInt(actualCell.dataset.rowIndex);
         const actualCol = parseInt(actualCell.dataset.colIndex);
         const rowModel = this._grid.model.getRowModel(actualRow);

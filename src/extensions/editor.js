@@ -49,6 +49,9 @@ export class EditorExtension {
     _cellDblClickedHandler (e) {
         let actualCell = e.target;
         if (actualCell) {
+            if (actualCell.classList.contains('pgrid-cell-content')) {
+                actualCell = actualCell.parentElement;
+            }
             this._editCell(actualCell);
         }
     }
