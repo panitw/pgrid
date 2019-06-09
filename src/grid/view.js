@@ -495,10 +495,11 @@ export class View extends EventDispatcher {
         let key = rowIndex + ',' + colIndex;
         if (this._recycledCells.length > 0) {
             cell = this._recycledCells.pop();
-            cell.style.visibility = 'visible';
+            cell.style.display = 'block';
         } else {
             cell = document.createElement('div');
-
+        }
+        if (!cell.firstChild) {
             let cellContent = document.createElement('div');
             cellContent.className = 'pgrid-cell-content';
             cell.appendChild(cellContent);
@@ -521,7 +522,7 @@ export class View extends EventDispatcher {
 
         //Clear cell content
         cell.title = '';
-        let cellContent = cell.querySelector('.pgrid-cell-content');
+        let cellContent = cell.firstChild;
         if (cellContent) {
             while (cellContent.firstChild) {
                 cellContent.removeChild(cellContent.firstChild);
@@ -529,7 +530,7 @@ export class View extends EventDispatcher {
         }
 
         //Hide the cell instead of removing it from the DOM
-        cell.style.visibility = 'hidden';
+        cell.style.display = 'none';
 
         //Push cell in the recycled list to be reused later
         this._recycledCells.push(cell);
