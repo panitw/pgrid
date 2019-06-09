@@ -62,7 +62,7 @@ export class SelectionExtension {
     }
 
     _mouseDownEventHandler (e) {
-        const actualCell = e.target;
+        let actualCell = e.target;
         if (actualCell.classList.contains('pgrid-cell-content')) {
             actualCell = actualCell.parentElement;
         }
