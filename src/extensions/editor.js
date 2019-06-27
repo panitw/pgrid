@@ -161,9 +161,8 @@ export class EditorExtension {
 	}
 
 	_detachEditor () {
-		if (this._editorContainer) {
-			//Double checking to fix wiered bug
-			this._editorContainer.parentElement.removeChild(this._editorContainer);
+		if (this._editorContainer && document.body === this._editorContainer.parentNode) {
+            document.body.removeChild(this._editorContainer);
 			this._editorContainer = null;
 			if (this._inputElement) {
 				this._inputElement.removeEventListener('keydown', this._keydownHandler);
