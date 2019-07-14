@@ -20,22 +20,25 @@ export class EditorExtension {
 				let selection = this._grid.state.get('selection');
 				if (selection && selection.length > 0) {
 					let rowIndex = selection[0].r;
-					let colIndex = selection[0].c;
-					let edit = false;
-					if (e.keyCode === 13 || (e.keyCode > 31 && !(e.keyCode >= 37 && e.keyCode <= 40))) {
-						edit = true;
-					}
-					if (edit &&
-						rowIndex >= 0 && rowIndex < this._grid.model.getRowCount() &&
-						colIndex >= 0 && colIndex < this._grid.model.getColumnCount()) {
-						let cell = this._grid.view.getCell(rowIndex, colIndex);
-						if (cell) {
-							this._editCell(cell);
-						}
-					}
+                    let colIndex = selection[0].c;
+                    if (rowIndex >= 0 && rowIndex < this._grid.model.getRowCount() &&
+                        colIndex >= 0 && colIndex < this._grid.model.getColumnCount()) {
+                        if (e.keyCode === 46) {
+                            let cell = this._grid.view.getCell(rowIndex, colIndex);
+                            if (cell) {
+                                this._clearCell(cell);
+                            }
+                        } else
+                        if (e.keyCode === 13 || (e.keyCode > 31 && !(e.keyCode >= 37 && e.keyCode <= 40))) {
+                            let cell = this._grid.view.getCell(rowIndex, colIndex);
+                            if (cell) {
+                                this._editCell(cell);
+                            }
+                        }
+                    }
 				}
 			}
-		}
+        }
 	}
 
 	cellAfterRender (e) {
@@ -53,6 +56,25 @@ export class EditorExtension {
                 actualCell = actualCell.parentElement;
             }
             this._editCell(actualCell);
+        }
+    }
+
+    _clearCell (cell) {
+		let rowIndex = parseInt(cell.dataset.rowIndex);
+		let colIndex = parseInt(cell.dataset.colIndex);
+        if (this._grid.model.canEdit(rowIndex, colIndex)) {
+            this._editingRow = rowIndex;
+            this._editingCol = colIndex;
+
+            let customEditor = this._grid.model.getCascadedCellProp(rowIndex, colIndex, 'editor');
+            if (customEditor && customEditor.clear) {
+                let eventArg = {
+                    done: this._done.bind(this)
+                };
+                customEditor.clear(eventArg);
+            } else {
+                this._done(null);
+            }
         }
     }
 
