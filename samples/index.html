@@ -102,6 +102,10 @@
 				this._valueField = valueField;
 			}
 
+            clear (e) {
+                e.done(null);
+            }
+
 			attach(e) {
 				//Clear old cell content
 				e.cell.innerHTML = '';
@@ -182,13 +186,17 @@
 
 		class StaticChoicesEditor {
 
-			constructor(choices, updateField, displayUpdateField) {
+			constructor (choices, updateField, displayUpdateField) {
 				this._choices = choices;
 				this._updateField = updateField;
 				this._displayUpdateField = displayUpdateField;
-			}
+            }
 
-			attach(e) {
+            clear (e) {
+                e.done(null);
+            }
+
+			attach (e) {
 				//Clear old cell content
 				e.cell.innerHTML = '';
 
