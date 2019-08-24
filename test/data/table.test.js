@@ -140,6 +140,7 @@ describe('DataTable', () => {
                     changeType: 'fieldChange',
                     rowId: rowId0,
                     field: 'f1',
+                    prevData: 10,
                     data: 200,
                     cancel: false
                 }]
@@ -156,6 +157,7 @@ describe('DataTable', () => {
                 changeType: 'fieldChange',
                 rowId: rowId0,
                 field: 'f1',
+                prevData: 10,
                 data: 100,
                 cancel: false
             };
@@ -237,6 +239,7 @@ describe('DataTable', () => {
                     changeType: 'fieldChange',
                     rowId: rowId0,
                     field: 'f1',
+                    prevData: 10,
                     data: 100,
                     cancel: true
                 }]
