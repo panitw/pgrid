@@ -107,7 +107,8 @@ export class DataTable extends EventDispatcher {
         const beforeUpdateArg = {
             changeType: 'fieldChange',
 			rowId: rowId,
-			field: field,
+            field: field,
+            prevData: row[field],
 			data: value,
 			cancel: false
         };
