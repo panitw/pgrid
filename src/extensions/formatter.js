@@ -16,11 +16,15 @@ export class FormatterExtension {
     }
 
     update (e, model, formatter) {
+        let newEvent = Object.assign({}, e);
+        newEvent.colModel = model;
+        newEvent.grid = this._grid;
         if (formatter.update) {
-            let newEvent = Object.assign({}, e);
-            newEvent.colModel = model;
-            newEvent.grid = this._grid;
             formatter.update(newEvent);
+            e.handled = true;
+        } else
+        if (formatter.render) {
+            formatter.render(newEvent);
             e.handled = true;
         }
     }
