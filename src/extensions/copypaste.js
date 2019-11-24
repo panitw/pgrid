@@ -6,7 +6,8 @@ export class CopyPasteExtension {
 
 	init (grid, config) {
 		this._grid = grid;
-		this._config = config;
+        this._config = config;
+        this._srcSelection = null;
 	}
 
 	keyDown (e) {
@@ -53,6 +54,7 @@ export class CopyPasteExtension {
                 }
                 rows.push(cols.join('\t'));
             }
+            this._srcSelection = s;
             return rows.join('\n');
         } else {
             return null;
@@ -77,6 +79,23 @@ export class CopyPasteExtension {
                         }
                     }
                 }
+
+                let srcRowId = -1;
+                let srcField = null;
+                if (this._srcSelection) {
+                    srcRowId = this._grid.model.getRowId(this._srcSelection.r);
+                    srcField = this._grid.model.getColumnField(this._srcSelection.c);
+                }
+                this._grid.dispatch('cellPasted', {
+                    srcRowId: srcRowId,
+                    srcField: srcField,
+                    srcSelection: this._srcSelection,
+                    descRowId: this._grid.model.getRowId(s.r),
+                    destField: this._grid.model.getColumnField(s.c),
+                    destSelection: s,
+                    data: data
+                });
+                this._srcSelection = null;
             }
         }
     }

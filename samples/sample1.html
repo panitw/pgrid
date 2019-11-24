@@ -169,6 +169,9 @@
 		var grid = new PGrid(options);
 
 		grid.render(document.getElementById('gridDiv'));
+		grid.listen('cellPasted', function (e) {
+			console.log(e);
+		});
 
 	</script>
 
