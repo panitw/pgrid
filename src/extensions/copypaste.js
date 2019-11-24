@@ -90,7 +90,7 @@ export class CopyPasteExtension {
                     srcRowId: srcRowId,
                     srcField: srcField,
                     srcSelection: this._srcSelection,
-                    descRowId: this._grid.model.getRowId(s.r),
+                    destRowId: this._grid.model.getRowId(s.r),
                     destField: this._grid.model.getColumnField(s.c),
                     destSelection: s,
                     data: data
