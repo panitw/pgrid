@@ -55,6 +55,11 @@ export class SelectionExtension {
 
 	cellAfterRender (e) {
 		e.cell.addEventListener('mousedown', this._mouseDownEventHandler);
+		let selection = this._grid.state.get('selection');
+		if (selection && selection.length > 0 && selection[0].r === e.rowIndex && selection[0].c === e.colIndex) {
+			e.cell.classList.add(this._selectionClass);
+			this._currentSelection = e.cell;
+		}
     }
 
     cellAfterRecycled (e) {
