@@ -3,6 +3,7 @@ export class Extension {
 	constructor (grid, config) {
 		this._grid = grid;
 		this._config = config;
+		this._extensionTable = {};
 
 		this._extensions = {
 			cellRender: [],
@@ -20,7 +21,7 @@ export class Extension {
 		}
 	}
 
-	loadExtension (ext) {
+	loadExtension (ext, name) {
 		if (ext['init']) {
 			ext['init'](this._grid, this._config);
 		}
@@ -29,10 +30,21 @@ export class Extension {
 				this._extensions[extPoint].push(ext);
 			}
 		}
+		if (name) {
+			if (!this._extensionTable[name]) {
+				this._extensionTable[name] = ext;
+			} else {
+				throw new Error('Extension name \'' + name + '\' has already been loaded');
+			}
+		}
 	}
 
 	hasExtension (extPoint) {
 		return (this._extensions[extPoint] && this._extensions[extPoint].length > 0)
+	}
+
+	getExtension (name) {
+		return this._extensionTable[name];
 	}
 
 	queryExtension (extPoint) {

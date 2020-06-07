@@ -59,7 +59,22 @@ export class SelectionExtension {
 
     cellAfterRecycled (e) {
         e.cell.removeEventListener('mousedown', this._mouseDownEventHandler, false);
-    }
+	}
+	
+	selectCell (colIndex, rowIndex) {
+		if (rowIndex >= 0 && rowIndex < this._grid.model.getRowCount() &&
+			colIndex >= 0 && colIndex < this._grid.model.getColumnCount()) {
+			const isHeader = this._grid.model.isHeaderRow(rowIndex);
+			const rowModel = this._grid.model.getRowModel(rowIndex);
+			if (!rowModel || !isHeader) {
+				let cell = this._grid.view.getCell(rowIndex, colIndex);
+				if (cell) {
+					this._selectCell(cell, rowIndex, colIndex);
+					this._grid.view.scrollToCell(rowIndex, colIndex, false);
+				}
+			}
+		}
+	}
 
     _mouseDownEventHandler (e) {
         let actualCell = e.target;
