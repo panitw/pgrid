@@ -143,12 +143,17 @@ export class EditorExtension {
 
 			this._keydownHandler = (e) => {
 				switch (e.keyCode) {
+					case 9: //Tab
 					case 13: //Enter
 						//Prevent double done() call
 						if (this._inputElement) {
 							this._inputElement.removeEventListener('blur', this._blurHandler);
 						}
-						done(e.target.value);
+						if (e.keyCode === 9) {
+							done(e.target.value, undefined, true);
+						} else {
+							done(e.target.value);
+						}
 						e.stopPropagation();
 						e.preventDefault();
 						break;
@@ -199,7 +204,7 @@ export class EditorExtension {
 		}
 	}
 
-	_done (result, multiFields) {
+	_done (result, multiFields, goNext) {
 		this._detachEditor();
 		if (result !== undefined) {
 			if (!multiFields) {
@@ -216,13 +221,21 @@ export class EditorExtension {
 			}
 		}
 		this._grid.view.updateCell(this._editingRow, this._editingCol);
-		this._editingRow = -1;
-		this._editingCol = -1;
 		this._editorAttached = false;
 		this._grid.state.set('editing', false);
 
 		//Re-focus at the grid
 		this._grid.view.getElement().focus();
+
+		if (goNext) {
+			const selectionExtension = this._grid.extension.getExtension('DEFAULT_EXT_SELECTION');
+			if (selectionExtension) {
+				selectionExtension.selectCell(this._editingCol + 1, this._editingRow);
+			}
+		}
+
+		this._editingRow = -1;
+		this._editingCol = -1;
 	}
 
 }

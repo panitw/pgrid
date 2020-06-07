@@ -38,19 +38,19 @@ export class PGrid extends EventDispatcher {
 
 		//Load default extensions
 		if (this._config.selection) {
-			this._extensions.loadExtension(new SelectionExtension());
+			this._extensions.loadExtension(new SelectionExtension(), 'DEFAULT_EXT_SELECTION');
 		}
 		if (this._config.editing) {
-			this._extensions.loadExtension(new EditorExtension());
+			this._extensions.loadExtension(new EditorExtension(), 'DEFAULT_EXT_EDITOR');
 		}
 		if (this._config.copypaste) {
-			this._extensions.loadExtension(new CopyPasteExtension());
+			this._extensions.loadExtension(new CopyPasteExtension(), 'DEFAULT_EXT_COPYPASTE');
 		}
 		if (this._config.autoUpdate) {
-			this._extensions.loadExtension(new ViewUpdaterExtension());
+			this._extensions.loadExtension(new ViewUpdaterExtension(), 'DEFAULT_EXT_VIEW_UPDATER');
 		}
 		if (this._config.columnFormatter) {
-			this._extensions.loadExtension(new FormatterExtension());
+			this._extensions.loadExtension(new FormatterExtension(), 'DEFAULT_EXT_FORMATTER');
 		}
 
 		//Load initial external extensions
