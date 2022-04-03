@@ -158,7 +158,7 @@ export class DataTable extends EventDispatcher {
     }
 
     addRow (rowData) {
-        const count = this.getRowCount();
+        const count = this._data.length;
         this.insertRow(count, rowData);
     }
 
