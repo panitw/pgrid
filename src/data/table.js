@@ -261,15 +261,25 @@ export class DataTable extends EventDispatcher {
             }, {});
         }
 
+        //Create regex array
+        let queryRegex = null;
+        if (Array.isArray(query)) {
+            queryRegex = query.map(q => new RegExp(q, 'i'));
+        } else {
+            queryRegex = [new RegExp(query, 'i')];
+        }
+
         //Filter rows
-        const regex = new RegExp(query, 'i');
         this._transformedRid = this._rid.filter((rid) => {
             const rowData = this._rowMap[rid];
             if (rowData) {
                 for (var field in rowData) {
                     if ((!fieldMap || fieldMap[field]) && rowData[field]) {
-                        if (regex.test(rowData[field])) {
-                            return true;
+                        for (let i=0; i<queryRegex.length; i++) {
+                            const regex = queryRegex[i];
+                            if (regex.test(rowData[field])) {
+                                return true;
+                            }
                         }
                     }
                 }

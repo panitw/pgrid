@@ -389,6 +389,13 @@ describe('DataTable', () => {
             deepEqual(table.getRowDataAt(2), rowsData[4]);
         });
 
+        it('should support multiple string search', () => {
+            table.search(['s1', 's2']);
+            equal(table.getRowCount(), 2);
+            deepEqual(table.getRowDataAt(0), rowsData[0]);
+            deepEqual(table.getRowDataAt(1), rowsData[1]);
+        });
+
     });
 
 });
