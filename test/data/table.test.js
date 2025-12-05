@@ -396,6 +396,13 @@ describe('DataTable', () => {
             deepEqual(table.getRowDataAt(1), rowsData[1]);
         });
 
+        it('should support getting rowId by index of all data before rows are filtered by search', () => {
+            let row2Id = table.getRowId(2);
+            table.search(['s3']);
+            let row2IdAfterSearch = table.getOriginalRowId(2);
+            equal(row2Id, row2IdAfterSearch, 'should be able to get the correct rowId');
+        });
+
     });
 
 });

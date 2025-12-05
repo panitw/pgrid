@@ -84,6 +84,10 @@ export class DataTable extends EventDispatcher {
         return this._transformedRid[rowIndex];
     }
 
+    getOriginalRowId (rowIndex) {
+        return this._rid[rowIndex];
+    }
+
     freeze () {
         this._freezeCount++;
     }
