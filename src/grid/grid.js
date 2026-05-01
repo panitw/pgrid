@@ -12,6 +12,7 @@ import { CopyPasteExtension } from '../extensions/copypaste';
 import { ViewUpdaterExtension } from '../extensions/view-updater';
 import { FormatterExtension } from '../extensions/formatter';
 import { ColumnResizeExtension } from '../extensions/column-resize';
+import { TextOverflowExtension } from '../extensions/text-overflow';
 
 export class PGrid extends EventDispatcher {
 
@@ -55,6 +56,9 @@ export class PGrid extends EventDispatcher {
 		}
 		if (this._config.columnResize) {
 			this._extensions.loadExtension(new ColumnResizeExtension(), 'DEFAULT_EXT_COLUMN_RESIZE');
+		}
+		if (this._config.textOverflow) {
+			this._extensions.loadExtension(new TextOverflowExtension(), 'DEFAULT_EXT_TEXT_OVERFLOW');
 		}
 
 		//Load initial external extensions

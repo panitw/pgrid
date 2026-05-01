@@ -26,6 +26,28 @@
 			background-color: @grid-cell-selection-bg;
 		}
 
+		&.pgrid-text-overflow-host {
+			overflow: hidden;
+		}
+
+		.pgrid-cell-content.pgrid-text-ellipsis {
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+
+		.pgrid-cell-content.pgrid-text-clip {
+			white-space: nowrap;
+			overflow: hidden;
+		}
+
+		.pgrid-cell-content.pgrid-text-wrap {
+			white-space: normal;
+			overflow: hidden;
+			word-break: break-word;
+			max-height: 100%;
+		}
+
 		.selectable();
 	}
 }

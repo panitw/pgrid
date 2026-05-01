@@ -71,6 +71,14 @@
 	<div class="toolbar">
 		<strong>Column Resize</strong>
 		<span>Drag the right edge of any header cell to resize.</span>
+		<label>
+			Overflow:
+			<select id="mode">
+				<option value="ellipsis" selected>ellipsis</option>
+				<option value="wrap">wrap</option>
+				<option value="clip">clip</option>
+			</select>
+		</label>
 		<button id="reset">Reset Widths</button>
 		<span id="log"></span>
 	</div>
@@ -140,6 +148,7 @@
 				minWidth: 40,
 				maxWidth: 600
 			},
+			textOverflow: 'ellipsis',
 			freezePane: { left: 2 },
 			columns,
 			headerRows: [
@@ -158,6 +167,15 @@
 		const logEl = document.getElementById('log');
 		grid.listen('columnResized', (e) => {
 			logEl.textContent = 'Resized "' + e.field + '" → ' + e.width + 'px';
+		});
+
+		document.getElementById('mode').addEventListener('change', (ev) => {
+			columns.forEach((col) => {
+				const m = grid.model.getColumnModel(col.id);
+				if (m) m.textOverflow = ev.target.value;
+			});
+			grid.view.reRender();
+			logEl.textContent = 'Text overflow → ' + ev.target.value;
 		});
 
 		document.getElementById('reset').addEventListener('click', () => {
