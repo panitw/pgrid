@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <title>Custom Extension · PGrid</title>
-    <link rel="stylesheet" href="/samples/_shared.css">
+    <link rel="stylesheet" href="./_shared.css">
     <style>
         .row-zebra-odd { background-color: #fafbfc; }
 
@@ -26,8 +26,21 @@
 </head>
 <body>
     <div class="sample-page">
-        <div class="sample-header">
-            <a class="back" href="/samples/index.html">← All demos</a>
+        
+        <header class="docs-top">
+            <a class="brand" href="../docs/index.html">PGrid <span class="tag">docs</span></a>
+            <nav>
+                <a href="../docs/getting-started.html">Getting Started</a>
+                <a href="../docs/configuration.html">Configuration</a>
+                <a href="../docs/data.html">Data</a>
+                <a href="../docs/extensions.html">Extensions</a>
+                <a href="../docs/api.html">API</a>
+                <a href="./index.html" class="active">Samples</a>
+                <a href="https://github.com/panitw/pgrid" target="_blank" rel="noopener">GitHub ↗</a>
+            </nav>
+        </header>
+<div class="sample-header">
+            <a class="back" href="./index.html">← All demos</a>
             <h1>Writing a Custom Extension</h1>
             <span class="desc">Three small extensions: row hover highlight, zebra striping, and a salary indicator stripe. Each is just an object with hook methods.</span>
         </div>
@@ -38,8 +51,8 @@
     </div>
 
     <script type="module">
-        import { PGrid } from '/src/index.js';
-        import { generateEmployees, EMPLOYEE_FIELDS } from '/samples/_data.js';
+        import { PGrid } from "../src/index.js";
+        import { generateEmployees, EMPLOYEE_FIELDS } from "./_data.js";
 
         // 1. Zebra striping — alternate row backgrounds.
         const zebraExtension = {

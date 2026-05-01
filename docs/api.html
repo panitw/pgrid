@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>API Reference · PGrid</title>
+    <link rel="stylesheet" href="./_docs.css">
+</head>
+<body>
+    <header class="docs-top">
+        <a class="brand" href="./index.html">PGrid <span class="tag">docs</span></a>
+        <nav>
+            <a href="./getting-started.html">Getting Started</a>
+            <a href="./configuration.html">Configuration</a>
+            <a href="./data.html">Data</a>
+            <a href="./extensions.html">Extensions</a>
+            <a href="./api.html">API</a>
+            <a href="../samples/index.html" target="_blank" rel="noopener">Samples ↗</a>
+            <a href="https://github.com/panitw/pgrid" target="_blank" rel="noopener">GitHub ↗</a>
+        </nav>
+    </header>
+
+    <div class="docs-layout">
+        <aside class="docs-sidebar">
+            <h4>Guides</h4>
+            <ul>
+                <li><a href="./getting-started.html">Getting Started</a></li>
+                <li><a href="./configuration.html">Configuration</a></li>
+                <li><a href="./data.html">Working with Data</a></li>
+                <li><a href="./extensions.html">Extensions</a></li>
+            </ul>
+            <h4>Reference</h4>
+            <ul>
+                <li><a href="./api.html">API</a></li>
+                <li><a href="../samples/index.html" target="_blank" rel="noopener">Samples ↗</a></li>
+            </ul>
+            <h4>On this page</h4>
+            <ul>
+                <li><a href="#pgrid">PGrid</a></li>
+                <li><a href="#data-table">DataTable (grid.data)</a></li>
+                <li><a href="#model">Model (grid.model)</a></li>
+                <li><a href="#view">View (grid.view)</a></li>
+                <li><a href="#extensions">Extension registry</a></li>
+                <li><a href="#events">Events</a></li>
+            </ul>
+        </aside>
+
+        <article class="docs-article">
+            <h1>API Reference</h1>
+            <p class="lead">Compact reference for the public surface. For longer-form examples see the <a href="./getting-started.html">guides</a> and <a href="../samples/index.html" target="_blank" rel="noopener">samples</a>.</p>
+
+            <h2 id="pgrid">PGrid</h2>
+            <p>The top-level grid class.</p>
+<pre><code>import { PGrid } from '@panitw/pgrid';
+
+const grid = new PGrid(config);
+grid.render(document.getElementById('grid'));</code></pre>
+            <table>
+                <thead><tr><th>Member</th><th>Description</th></tr></thead>
+                <tbody>
+                    <tr><td><code>new PGrid(config)</code></td><td>Construct a grid. See <a href="./configuration.html">Configuration</a>.</td></tr>
+                    <tr><td><code>grid.render(element)</code></td><td>Mount the grid into a DOM element.</td></tr>
+                    <tr><td><code>grid.view</code></td><td>The View. <a href="#view">See below.</a></td></tr>
+                    <tr><td><code>grid.model</code></td><td>The Model. <a href="#model">See below.</a></td></tr>
+                    <tr><td><code>grid.data</code></td><td>The DataTable. <a href="#data-table">See below.</a></td></tr>
+                    <tr><td><code>grid.extension</code></td><td>The Extension registry.</td></tr>
+                    <tr><td><code>grid.state</code></td><td>Runtime state (selection, editing flag).</td></tr>
+                    <tr><td><code>grid.listen(event, fn)</code></td><td>Subscribe to grid-level events.</td></tr>
+                </tbody>
+            </table>
+
+            <h2 id="data-table">DataTable — <code>grid.data</code></h2>
+
+            <h3>Reading</h3>
+            <table>
+                <tbody>
+                    <tr><td><code>getRowCount()</code></td><td>Number of rows in the visible projection.</td></tr>
+                    <tr><td><code>getAllData()</code></td><td>Underlying array of row objects (insertion order).</td></tr>
+                    <tr><td><code>getData(rowId, field)</code></td><td>Value by row id + field.</td></tr>
+                    <tr><td><code>getDataAt(rowIndex, field)</code></td><td>Value by visible index + field.</td></tr>
+                    <tr><td><code>getRowData(rowId)</code></td><td>Row object by row id.</td></tr>
+                    <tr><td><code>getRowDataAt(rowIndex)</code></td><td>Row object by visible index.</td></tr>
+                    <tr><td><code>getRowIndex(rowId)</code></td><td>Visible index of a row id (or <code>-1</code>).</td></tr>
+                    <tr><td><code>getRowId(rowIndex)</code></td><td>Row id at a visible index.</td></tr>
+                    <tr><td><code>getOriginalRowId(index)</code></td><td>Row id by original (insertion-order) index.</td></tr>
+                </tbody>
+            </table>
+
+            <h3>Writing</h3>
+            <table>
+                <tbody>
+                    <tr><td><code>setData(rowId, field, value)</code></td><td>Update a field by row id. Fires <code>dataChanged</code>.</td></tr>
+                    <tr><td><code>setDataAt(rowIndex, field, value)</code></td><td>Same, by visible index.</td></tr>
+                    <tr><td><code>addRow(row)</code></td><td>Append a row.</td></tr>
+                    <tr><td><code>insertRow(index, row)</code></td><td>Insert at index (in insertion order).</td></tr>
+                    <tr><td><code>removeRow(rowId)</code></td><td>Remove by id.</td></tr>
+                    <tr><td><code>removeRowAt(rowIndex)</code></td><td>Remove by visible index.</td></tr>
+                    <tr><td><code>removeAllRows()</code></td><td>Clear the table.</td></tr>
+                </tbody>
+            </table>
+
+            <h3>Search &amp; batch</h3>
+            <table>
+                <tbody>
+                    <tr><td><code>search(query, fields?)</code></td><td>Filter the visible projection. <code>query</code> is a string or array of regex sources; <code>fields</code> restricts which fields match.</td></tr>
+                    <tr><td><code>clearSearch()</code></td><td>Restore the full projection.</td></tr>
+                    <tr><td><code>freeze()</code></td><td>Suppress per-write events; pair with <code>unfreeze()</code> for batched mutations.</td></tr>
+                    <tr><td><code>unfreeze()</code></td><td>Resume events.</td></tr>
+                </tbody>
+            </table>
+
+            <h3>Events</h3>
+            <table>
+                <tbody>
+                    <tr><td><code>listen('dataChanged', fn)</code></td><td>Fires after writes settle. Receives <code>{ updates: [...] }</code>.</td></tr>
+                </tbody>
+            </table>
+
+            <h2 id="model">Model — <code>grid.model</code></h2>
+            <p>Layout + schema. Maps cells/rows/columns to their config and exposes coordinate conversions.</p>
+            <table>
+                <tbody>
+                    <tr><td><code>getRowCount()</code></td><td>Total rows including headers.</td></tr>
+                    <tr><td><code>getColumnCount()</code></td><td>Total columns.</td></tr>
+                    <tr><td><code>getRowHeight(rowIndex)</code></td><td>Pixel height of a row.</td></tr>
+                    <tr><td><code>getColumnWidth(colIndex)</code></td><td>Pixel width of a column.</td></tr>
+                    <tr><td><code>getTotalWidth()</code> / <code>getTotalHeight()</code></td><td>Sum of all column widths / row heights.</td></tr>
+                    <tr><td><code>isHeaderRow(rowIndex)</code></td><td>True if the row is part of the header.</td></tr>
+                    <tr><td><code>getRowModel(rowIndex)</code></td><td>Per-row config.</td></tr>
+                    <tr><td><code>getColumnModel(colIndex)</code></td><td>Per-column config.</td></tr>
+                    <tr><td><code>getCellModel(r, c)</code></td><td>Per-cell config (or undefined).</td></tr>
+                    <tr><td><code>getCascadedCellProp(r, c, prop)</code></td><td>Resolve a property from cell → row → column.</td></tr>
+                    <tr><td><code>getDataAt(rowIndex, colIndex)</code></td><td>Cell value (returns column title for headers).</td></tr>
+                    <tr><td><code>getRowDataAt(rowIndex)</code></td><td>The row object backing a visible index.</td></tr>
+                    <tr><td><code>setDataAt(rowIndex, colIndex, value)</code></td><td>Write through to the data table.</td></tr>
+                    <tr><td><code>getRowIndex(rowId)</code> / <code>getRowId(rowIndex)</code></td><td>Coordinate conversion (header-row aware).</td></tr>
+                    <tr><td><code>getColumnIndex(field)</code> / <code>getColumnField(colIndex)</code></td><td>Field ↔ index conversion.</td></tr>
+                    <tr><td><code>canEdit(rowIndex, colIndex)</code></td><td>Resolve edit permission, including <code>cellEditableCheck</code> hooks.</td></tr>
+                </tbody>
+            </table>
+
+            <h2 id="view">View — <code>grid.view</code></h2>
+            <p>The DOM layer.</p>
+            <table>
+                <tbody>
+                    <tr><td><code>render(element)</code></td><td>Mount the grid (called by <code>PGrid.render</code>).</td></tr>
+                    <tr><td><code>reRender()</code></td><td>Full re-render. Use after bulk data changes.</td></tr>
+                    <tr><td><code>updateCell(rowIndex, colIndex)</code></td><td>In-place update of one cell.</td></tr>
+                    <tr><td><code>getElement()</code></td><td>The mounted DOM element.</td></tr>
+                    <tr><td><code>getCell(rowIndex, colIndex)</code></td><td>The <code>.pgrid-cell</code> node, if currently mounted.</td></tr>
+                    <tr><td><code>scrollToCell(rowIndex, colIndex, alignTop)</code></td><td>Scroll to a cell.</td></tr>
+                    <tr><td><code>setScrollX(x)</code> / <code>setScrollY(y)</code></td><td>Programmatic scroll.</td></tr>
+                </tbody>
+            </table>
+
+            <h3>View events</h3>
+            <table>
+                <tbody>
+                    <tr><td><code>'hscroll'</code> / <code>'vscroll'</code></td><td>Horizontal / vertical scroll.</td></tr>
+                </tbody>
+            </table>
+
+            <h2 id="extensions">Extension registry — <code>grid.extension</code></h2>
+            <p>Loads, looks up, and dispatches extensions.</p>
+            <table>
+                <tbody>
+                    <tr><td><code>loadExtension(ext, name?)</code></td><td>Register an extension at runtime. Optional name for later lookup.</td></tr>
+                    <tr><td><code>getExtension(name)</code></td><td>Resolve a previously named extension.</td></tr>
+                    <tr><td><code>hasExtension(hookName)</code></td><td>True if any registered extension implements the named hook.</td></tr>
+                    <tr><td><code>executeExtension(hookName, e)</code></td><td>Invoke a hook on every registered extension. Used internally.</td></tr>
+                </tbody>
+            </table>
+            <p>Built-in extensions register under known names so they can find each other:</p>
+            <table>
+                <tbody>
+                    <tr><td><code>'DEFAULT_EXT_SELECTION'</code></td><td>SelectionExtension (when <code>selection</code> is enabled).</td></tr>
+                    <tr><td><code>'DEFAULT_EXT_EDITOR'</code></td><td>EditorExtension.</td></tr>
+                    <tr><td><code>'DEFAULT_EXT_COPYPASTE'</code></td><td>CopyPasteExtension.</td></tr>
+                    <tr><td><code>'DEFAULT_EXT_VIEW_UPDATER'</code></td><td>ViewUpdaterExtension.</td></tr>
+                    <tr><td><code>'DEFAULT_EXT_FORMATTER'</code></td><td>FormatterExtension.</td></tr>
+                    <tr><td><code>'DEFAULT_EXT_COLUMN_RESIZE'</code></td><td>ColumnResizeExtension.</td></tr>
+                    <tr><td><code>'DEFAULT_EXT_TEXT_OVERFLOW'</code></td><td>TextOverflowExtension.</td></tr>
+                </tbody>
+            </table>
+
+            <h2 id="events">Events</h2>
+            <p>All event-emitting objects expose the same API.</p>
+            <table>
+                <tbody>
+                    <tr><td><code>obj.listen(name, fn)</code></td><td>Subscribe.</td></tr>
+                    <tr><td><code>obj.unlisten(name, fn)</code></td><td>Unsubscribe.</td></tr>
+                    <tr><td><code>obj.dispatch(name, arg)</code></td><td>Emit.</td></tr>
+                </tbody>
+            </table>
+
+            <h3>Notable events</h3>
+            <table>
+                <thead><tr><th>Event</th><th>Source</th><th>Payload</th></tr></thead>
+                <tbody>
+                    <tr><td><code>dataChanged</code></td><td><code>grid.data</code></td><td><code>{ updates: [...] }</code></td></tr>
+                    <tr><td><code>cellPasted</code></td><td><code>grid</code></td><td><code>{ srcRowId, srcField, srcSelection, destRowId, destField, destSelection, data }</code></td></tr>
+                    <tr><td><code>columnResizing</code></td><td><code>grid</code></td><td><code>{ colIndex, field, width }</code></td></tr>
+                    <tr><td><code>columnResized</code></td><td><code>grid</code></td><td><code>{ colIndex, field, width }</code></td></tr>
+                    <tr><td><code>hscroll</code> / <code>vscroll</code></td><td><code>grid.view</code></td><td>—</td></tr>
+                </tbody>
+            </table>
+
+            <div class="docs-pagination">
+                <a href="./extensions.html">
+                    <div class="arrow">← Previous</div>
+                    <div class="ttl">Extensions</div>
+                </a>
+                <a class="next" href="../samples/index.html" target="_blank" rel="noopener">
+                    <div class="arrow">Next →</div>
+                    <div class="ttl">Samples</div>
+                </a>
+            </div>
+        </article>
+    </div>
+
+    <script>
+        document.querySelectorAll('.docs-top nav a, .docs-sidebar a').forEach(a => {
+            const href = a.getAttribute('href') || '';
+            const path = href.replace('./', '/').split('#')[0];
+            if (path && location.pathname.endsWith(path)) a.classList.add('active');
+        });
+    </script>
+</body>
+</html>

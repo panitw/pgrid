@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Configuration · PGrid</title>
+    <link rel="stylesheet" href="./_docs.css">
+</head>
+<body>
+    <header class="docs-top">
+        <a class="brand" href="./index.html">PGrid <span class="tag">docs</span></a>
+        <nav>
+            <a href="./getting-started.html">Getting Started</a>
+            <a href="./configuration.html">Configuration</a>
+            <a href="./data.html">Data</a>
+            <a href="./extensions.html">Extensions</a>
+            <a href="./api.html">API</a>
+            <a href="../samples/index.html" target="_blank" rel="noopener">Samples ↗</a>
+            <a href="https://github.com/panitw/pgrid" target="_blank" rel="noopener">GitHub ↗</a>
+        </nav>
+    </header>
+
+    <div class="docs-layout">
+        <aside class="docs-sidebar">
+            <h4>Guides</h4>
+            <ul>
+                <li><a href="./getting-started.html">Getting Started</a></li>
+                <li><a href="./configuration.html">Configuration</a></li>
+                <li><a href="./data.html">Working with Data</a></li>
+                <li><a href="./extensions.html">Extensions</a></li>
+            </ul>
+            <h4>Reference</h4>
+            <ul>
+                <li><a href="./api.html">API</a></li>
+                <li><a href="../samples/index.html" target="_blank" rel="noopener">Samples ↗</a></li>
+            </ul>
+            <h4>On this page</h4>
+            <ul>
+                <li><a href="#top-level">Top-level options</a></li>
+                <li><a href="#columns">Columns</a></li>
+                <li><a href="#rows">Rows</a></li>
+                <li><a href="#cells">Cells</a></li>
+                <li><a href="#headers">Headers</a></li>
+                <li><a href="#freeze">Freeze panes</a></li>
+                <li><a href="#features">Feature toggles</a></li>
+            </ul>
+        </aside>
+
+        <article class="docs-article">
+            <h1>Configuration</h1>
+            <p class="lead">Every option you can pass to <code>new PGrid(config)</code>, with examples.</p>
+
+            <h2 id="top-level">Top-level options</h2>
+            <table>
+                <thead>
+                    <tr><th>Key</th><th>Type</th><th>Default</th><th>Description</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>rowHeight</code></td><td><code>number</code></td><td><code>32</code></td><td>Default row height in pixels.</td></tr>
+                    <tr><td><code>columnWidth</code></td><td><code>number</code></td><td><code>100</code></td><td>Default column width in pixels.</td></tr>
+                    <tr><td><code>headerRowCount</code></td><td><code>number</code></td><td><code>1</code></td><td>Number of rows treated as headers.</td></tr>
+                    <tr><td><code>columns</code></td><td><code>Column[]</code></td><td><code>[]</code></td><td>Column definitions. <a href="#columns">See below</a>.</td></tr>
+                    <tr><td><code>headerRows</code></td><td><code>Row[]</code></td><td><code>[]</code></td><td>Per-header-row config (CSS, height, etc).</td></tr>
+                    <tr><td><code>rows</code></td><td><code>Row[]</code></td><td><code>[]</code></td><td>Per-data-row overrides. <a href="#rows">See below</a>.</td></tr>
+                    <tr><td><code>cells</code></td><td><code>Cell[]</code></td><td><code>[]</code></td><td>Per-cell overrides. <a href="#cells">See below</a>.</td></tr>
+                    <tr><td><code>dataModel</code></td><td><code>object</code></td><td>—</td><td>How to load your data. <a href="./data.html">See Data</a>.</td></tr>
+                    <tr><td><code>freezePane</code></td><td><code>object</code></td><td>—</td><td><code>{ left, top, bottom }</code> — see <a href="#freeze">Freeze panes</a>.</td></tr>
+                    <tr><td><code>extensions</code></td><td><code>Extension[]</code></td><td><code>[]</code></td><td>Custom extensions. <a href="./extensions.html">See Extensions</a>.</td></tr>
+                </tbody>
+            </table>
+
+            <p>Feature toggles (each loads a built-in extension when truthy):</p>
+            <table>
+                <thead>
+                    <tr><th>Key</th><th>Type</th><th>Description</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>selection</code></td><td><code>{ cssClass }</code></td><td>Click + keyboard cell selection. <a href="../samples/selection-keyboard.html" target="_blank" rel="noopener">Demo</a></td></tr>
+                    <tr><td><code>editing</code></td><td><code>true</code></td><td>Inline text editor. <a href="../samples/inline-editing.html" target="_blank" rel="noopener">Demo</a></td></tr>
+                    <tr><td><code>copypaste</code></td><td><code>true</code></td><td>Range copy/paste. <a href="../samples/copy-paste.html" target="_blank" rel="noopener">Demo</a></td></tr>
+                    <tr><td><code>autoUpdate</code></td><td><code>true</code></td><td>Re-render when data changes.</td></tr>
+                    <tr><td><code>columnFormatter</code></td><td><code>true</code></td><td>Honor <code>column.formatter</code>. <a href="../samples/formatters.html" target="_blank" rel="noopener">Demo</a></td></tr>
+                    <tr><td><code>columnResize</code></td><td><code>{ minWidth, maxWidth }</code></td><td>Drag-to-resize headers. <a href="../samples/column-resize.html" target="_blank" rel="noopener">Demo</a></td></tr>
+                    <tr><td><code>textOverflow</code></td><td><code>'ellipsis' | 'wrap' | 'clip'</code></td><td>Default overflow mode. <a href="../samples/text-overflow.html" target="_blank" rel="noopener">Demo</a></td></tr>
+                </tbody>
+            </table>
+
+            <h2 id="columns">Columns</h2>
+            <p>A column definition supports the following keys.</p>
+            <table>
+                <thead>
+                    <tr><th>Key</th><th>Type</th><th>Description</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>id</code></td><td><code>number</code></td><td>Unique id; the array index is used if omitted.</td></tr>
+                    <tr><td><code>field</code></td><td><code>string</code></td><td>Key in your data row.</td></tr>
+                    <tr><td><code>title</code></td><td><code>string</code></td><td>Header label (HTML is allowed).</td></tr>
+                    <tr><td><code>width</code></td><td><code>number</code></td><td>Column width in pixels.</td></tr>
+                    <tr><td><code>cssClass</code></td><td><code>string</code></td><td>Class added to every cell in this column.</td></tr>
+                    <tr><td><code>editable</code></td><td><code>boolean</code></td><td>Allow inline editing. Requires <code>editing: true</code>.</td></tr>
+                    <tr><td><code>resizable</code></td><td><code>boolean</code></td><td>Allow column resize. Defaults to <code>true</code> when <code>columnResize</code> is on.</td></tr>
+                    <tr><td><code>textOverflow</code></td><td><code>'ellipsis' | 'wrap' | 'clip'</code></td><td>Override the grid default for this column.</td></tr>
+                    <tr><td><code>editor</code></td><td><code>{ attach, clear }</code></td><td>Custom editor. <a href="./extensions.html#editors">See Extensions</a>.</td></tr>
+                    <tr><td><code>formatter</code></td><td><code>{ render, update? }</code></td><td>Cell renderer. <a href="../samples/formatters.html" target="_blank" rel="noopener">See demo</a>.</td></tr>
+                </tbody>
+            </table>
+
+<pre><code>columns: [
+    { id: 0, field: 'id',     title: 'ID',     width: 100, cssClass: 'col-id' },
+    { id: 1, field: 'name',   title: 'Name',   width: 180, editable: true },
+    { id: 2, field: 'salary', title: 'Salary', width: 130, cssClass: 'col-money',
+        formatter: {
+            render: e =&gt; e.cellContent.textContent = '$' + (e.data || 0).toLocaleString()
+        }
+    }
+]</code></pre>
+
+            <h2 id="rows">Rows</h2>
+            <p>Per-data-row overrides — typically used to apply CSS classes or set per-row height. Match by zero-based data row index <code>i</code>.</p>
+<pre><code>rows: [
+    { i: 0, cssClass: 'highlight-row', height: 48 },
+    { i: 5, cssClass: 'forecast-row' }
+]</code></pre>
+
+            <h2 id="cells">Cells</h2>
+            <p>Per-cell overrides match by row + column coordinates.</p>
+<pre><code>cells: [
+    { r: 0, c: 2, cssClass: 'subtotal-cell', editable: false }
+]</code></pre>
+
+            <h2 id="headers">Headers</h2>
+            <p>By default the grid has one header row. Increase <code>headerRowCount</code> for multi-row headers, then style each via <code>headerRows</code>.</p>
+<pre><code>{
+    headerRowCount: 2,
+    headerRows: [
+        { i: 0, cssClass: 'header-group', height: 32 },
+        { i: 1, cssClass: 'header-leaf',  height: 28 }
+    ]
+}</code></pre>
+
+            <h2 id="freeze">Freeze panes</h2>
+            <p>The grid lays out as six panes: top-left / top / left / center / bottom-left / bottom. Freezing leading columns or top/bottom rows pins them while the rest scrolls.</p>
+<pre><code>freezePane: {
+    left: 2,        // first 2 columns stay fixed when scrolling horizontally
+    top: 0,         // additional fixed rows beyond the header
+    bottom: 1       // last row stays fixed (e.g. a totals row)
+}</code></pre>
+            <p>Live demo: <a href="../samples/freeze-panes.html" target="_blank" rel="noopener">Freeze panes</a>.</p>
+
+            <h2 id="features">Feature toggles</h2>
+            <p>Each toggle loads a built-in extension. They're opt-in so you only pay for what you use.</p>
+<pre><code>{
+    selection: { cssClass: 'cell-selected' },
+    editing: true,
+    copypaste: true,
+    autoUpdate: true,
+    columnFormatter: true,
+    columnResize: { minWidth: 60, maxWidth: 400 },
+    textOverflow: 'ellipsis'
+}</code></pre>
+
+            <p>For boolean checkbox columns, also load the named extension:</p>
+<pre><code>import { PGrid, CheckboxColumnExtension } from '@panitw/pgrid';
+
+new PGrid({
+    /* … */
+    extensions: [new CheckboxColumnExtension()]
+});</code></pre>
+            <p>Live demo: <a href="../samples/checkbox-column.html" target="_blank" rel="noopener">Checkbox column</a>.</p>
+
+            <div class="docs-pagination">
+                <a href="./getting-started.html">
+                    <div class="arrow">← Previous</div>
+                    <div class="ttl">Getting Started</div>
+                </a>
+                <a class="next" href="./data.html">
+                    <div class="arrow">Next →</div>
+                    <div class="ttl">Working with Data</div>
+                </a>
+            </div>
+        </article>
+    </div>
+
+    <script>
+        document.querySelectorAll('.docs-top nav a, .docs-sidebar a').forEach(a => {
+            const href = a.getAttribute('href') || '';
+            const path = href.replace('./', '/').split('#')[0];
+            if (path && location.pathname.endsWith(path)) a.classList.add('active');
+        });
+    </script>
+</body>
+</html>

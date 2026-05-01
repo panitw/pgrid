@@ -3,10 +3,23 @@
 <head>
     <meta charset="utf-8">
     <title>PGrid · Demos</title>
-    <link rel="stylesheet" href="/samples/_shared.css">
+    <link rel="stylesheet" href="./_shared.css">
 </head>
 <body>
-    <div class="landing">
+    
+        <header class="docs-top">
+            <a class="brand" href="../docs/index.html">PGrid <span class="tag">docs</span></a>
+            <nav>
+                <a href="../docs/getting-started.html">Getting Started</a>
+                <a href="../docs/configuration.html">Configuration</a>
+                <a href="../docs/data.html">Data</a>
+                <a href="../docs/extensions.html">Extensions</a>
+                <a href="../docs/api.html">API</a>
+                <a href="./index.html" class="active">Samples</a>
+                <a href="https://github.com/panitw/pgrid" target="_blank" rel="noopener">GitHub ↗</a>
+            </nav>
+        </header>
+<div class="landing">
         <div class="landing-head">
             <h1>PGrid Demos</h1>
             <p>A virtualized, extensible JavaScript data grid. Each demo focuses on one feature so you can see the moving parts in isolation.</p>
@@ -14,17 +27,17 @@
 
         <div class="landing-section-title">Getting Started</div>
         <div class="landing-grid">
-            <a class="landing-card" href="/samples/basic.html">
+            <a class="landing-card" href="./basic.html">
                 <div class="card-num">01</div>
                 <h3>Basic Grid</h3>
                 <p>Minimum viable setup — columns, header row, and data. No extensions.</p>
             </a>
-            <a class="landing-card" href="/samples/selection-keyboard.html">
+            <a class="landing-card" href="./selection-keyboard.html">
                 <div class="card-num">02</div>
                 <h3>Selection & Keyboard</h3>
                 <p>Click to select. Arrow keys, Tab, programmatic scroll-to-cell.</p>
             </a>
-            <a class="landing-card" href="/samples/freeze-panes.html">
+            <a class="landing-card" href="./freeze-panes.html">
                 <div class="card-num">03</div>
                 <h3>Freeze Panes</h3>
                 <p>Lock leading columns and top/bottom rows. 6-pane layout.</p>
@@ -33,22 +46,22 @@
 
         <div class="landing-section-title">Editing</div>
         <div class="landing-grid">
-            <a class="landing-card" href="/samples/inline-editing.html">
+            <a class="landing-card" href="./inline-editing.html">
                 <div class="card-num">04</div>
                 <h3>Inline Editing</h3>
                 <p>Built-in text editor — double-click, Enter, Tab, ESC, Delete.</p>
             </a>
-            <a class="landing-card" href="/samples/custom-editors.html">
+            <a class="landing-card" href="./custom-editors.html">
                 <div class="card-num">05</div>
                 <h3>Custom Editors</h3>
                 <p>Dropdowns, date pickers, star ratings. Any HTML you want.</p>
             </a>
-            <a class="landing-card" href="/samples/conditional-editable.html">
+            <a class="landing-card" href="./conditional-editable.html">
                 <div class="card-num">06</div>
                 <h3>Conditional Editable</h3>
                 <p>Lock cells dynamically with the <code>cellEditableCheck</code> hook.</p>
             </a>
-            <a class="landing-card" href="/samples/copy-paste.html">
+            <a class="landing-card" href="./copy-paste.html">
                 <div class="card-num">07</div>
                 <h3>Copy / Paste</h3>
                 <p>Range copy/paste. Tab-separated for spreadsheet interop.</p>
@@ -57,22 +70,22 @@
 
         <div class="landing-section-title">Display</div>
         <div class="landing-grid">
-            <a class="landing-card" href="/samples/formatters.html">
+            <a class="landing-card" href="./formatters.html">
                 <div class="card-num">08</div>
                 <h3>Cell Formatters</h3>
                 <p>Pills, currency, progress bars, stars — column-level renderers.</p>
             </a>
-            <a class="landing-card" href="/samples/checkbox-column.html">
+            <a class="landing-card" href="./checkbox-column.html">
                 <div class="card-num">09</div>
                 <h3>Checkbox Column</h3>
                 <p>Boolean fields rendered as live, two-way checkboxes.</p>
             </a>
-            <a class="landing-card" href="/samples/text-overflow.html">
+            <a class="landing-card" href="./text-overflow.html">
                 <div class="card-num">10</div>
                 <h3>Text Overflow</h3>
                 <p>Ellipsis, wrap, or clip — cascaded per cell, column, or row.</p>
             </a>
-            <a class="landing-card" href="/samples/column-resize.html">
+            <a class="landing-card" href="./column-resize.html">
                 <div class="card-num">11</div>
                 <h3>Column Resize</h3>
                 <p>Drag-to-resize headers with min/max bounds.</p>
@@ -81,12 +94,12 @@
 
         <div class="landing-section-title">Data</div>
         <div class="landing-grid">
-            <a class="landing-card" href="/samples/search-filter.html">
+            <a class="landing-card" href="./search-filter.html">
                 <div class="card-num">12</div>
                 <h3>Search & Filter</h3>
                 <p>Filter visible rows by regex; restrict to specific fields.</p>
             </a>
-            <a class="landing-card" href="/samples/dynamic-data.html">
+            <a class="landing-card" href="./dynamic-data.html">
                 <div class="card-num">13</div>
                 <h3>Dynamic Data</h3>
                 <p>Add, insert, remove. Auto-update view with bulk freeze/unfreeze.</p>
@@ -95,12 +108,12 @@
 
         <div class="landing-section-title">Extending</div>
         <div class="landing-grid">
-            <a class="landing-card" href="/samples/custom-extension.html">
+            <a class="landing-card" href="./custom-extension.html">
                 <div class="card-num">14</div>
                 <h3>Custom Extensions</h3>
                 <p>Zebra striping, row hover, indicator stripes — three small examples.</p>
             </a>
-            <a class="landing-card" href="/samples/kitchen-sink.html">
+            <a class="landing-card" href="./kitchen-sink.html">
                 <div class="card-num">15</div>
                 <h3>Kitchen Sink</h3>
                 <p>Every feature wired together in one grid.</p>

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>PGrid · A virtualized JavaScript data grid</title>
+    <link rel="stylesheet" href="./_docs.css">
+</head>
+<body>
+    <header class="docs-top">
+        <a class="brand" href="./index.html">PGrid <span class="tag">docs</span></a>
+        <nav>
+            <a href="./getting-started.html">Getting Started</a>
+            <a href="./configuration.html">Configuration</a>
+            <a href="./data.html">Data</a>
+            <a href="./extensions.html">Extensions</a>
+            <a href="./api.html">API</a>
+            <a href="../samples/index.html" target="_blank" rel="noopener">Samples ↗</a>
+            <a href="https://github.com/panitw/pgrid" target="_blank" rel="noopener">GitHub ↗</a>
+        </nav>
+    </header>
+
+    <main style="max-width: 1080px; margin: 0 auto; padding: 0 32px;">
+        <section class="hero">
+            <h1>A virtualized JavaScript data grid that gets out of your way.</h1>
+            <p>PGrid is a small, extensible data grid for the browser. It renders only what's visible, freezes panes on any side, and treats every built-in feature — selection, editing, copy/paste, formatting — as an extension you can replace or compose.</p>
+            <div class="cta-row">
+                <a class="btn btn-primary" href="./getting-started.html">Get started →</a>
+                <a class="btn btn-secondary" href="../samples/index.html" target="_blank" rel="noopener">Browse samples</a>
+                <a class="btn btn-secondary" href="https://github.com/panitw/pgrid">View on GitHub</a>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>Quick example</h2>
+            <p class="section-desc">A working grid in fewer than 25 lines.</p>
+<pre><code>import { PGrid } from '@panitw/pgrid';
+import '@panitw/pgrid/styles';
+
+const grid = new PGrid({
+    rowHeight: 32,
+    columnWidth: 130,
+    selection: { cssClass: 'cell-selected' },
+    editing: true,
+    autoUpdate: true,
+    columns: [
+        { id: 0, field: 'name',  title: 'Name',  width: 180, editable: true },
+        { id: 1, field: 'email', title: 'Email', width: 240 },
+        { id: 2, field: 'role',  title: 'Role',  width: 140 }
+    ],
+    headerRows: [{ i: 0, cssClass: 'grid-header' }],
+    dataModel: {
+        format: 'rows',
+        fields: ['name', 'email', 'role'],
+        data: [
+            { name: 'Ada Lovelace',  email: 'ada@example.com',   role: 'Engineer' },
+            { name: 'Linus Torvalds', email: 'linus@example.com', role: 'Manager'  }
+        ]
+    }
+});
+
+grid.render(document.getElementById('grid'));</code></pre>
+        </section>
+
+        <section class="section">
+            <h2>Features</h2>
+            <p class="section-desc">Every feature has a focused, runnable demo. Click any card to see it live.</p>
+            <div class="feature-grid">
+                <a class="feature-card" href="../samples/basic.html" target="_blank" rel="noopener">
+                    <div class="ttl">Virtualized rendering</div>
+                    <div class="sub">Only visible cells exist in the DOM. Handles tens of thousands of rows.</div>
+                </a>
+                <a class="feature-card" href="../samples/freeze-panes.html" target="_blank" rel="noopener">
+                    <div class="ttl">Freeze panes</div>
+                    <div class="sub">Pin leading columns and top/bottom rows. 6-pane layout.</div>
+                </a>
+                <a class="feature-card" href="../samples/selection-keyboard.html" target="_blank" rel="noopener">
+                    <div class="ttl">Selection &amp; keyboard</div>
+                    <div class="sub">Click, arrow, Tab, scroll-to-cell.</div>
+                </a>
+                <a class="feature-card" href="../samples/inline-editing.html" target="_blank" rel="noopener">
+                    <div class="ttl">Inline editing</div>
+                    <div class="sub">Built-in text editor — Enter, Tab, ESC, Delete.</div>
+                </a>
+                <a class="feature-card" href="../samples/custom-editors.html" target="_blank" rel="noopener">
+                    <div class="ttl">Custom editors</div>
+                    <div class="sub">Dropdowns, date pickers, anything you build.</div>
+                </a>
+                <a class="feature-card" href="../samples/copy-paste.html" target="_blank" rel="noopener">
+                    <div class="ttl">Copy / paste</div>
+                    <div class="sub">Range copy/paste, spreadsheet-compatible TSV.</div>
+                </a>
+                <a class="feature-card" href="../samples/formatters.html" target="_blank" rel="noopener">
+                    <div class="ttl">Cell formatters</div>
+                    <div class="sub">Pills, currency, progress bars — any HTML.</div>
+                </a>
+                <a class="feature-card" href="../samples/checkbox-column.html" target="_blank" rel="noopener">
+                    <div class="ttl">Checkbox columns</div>
+                    <div class="sub">Boolean fields render as live checkboxes.</div>
+                </a>
+                <a class="feature-card" href="../samples/text-overflow.html" target="_blank" rel="noopener">
+                    <div class="ttl">Text overflow</div>
+                    <div class="sub">Ellipsis, wrap, or clip. Cascaded resolution.</div>
+                </a>
+                <a class="feature-card" href="../samples/column-resize.html" target="_blank" rel="noopener">
+                    <div class="ttl">Column resize</div>
+                    <div class="sub">Drag-to-resize headers with min/max bounds.</div>
+                </a>
+                <a class="feature-card" href="../samples/search-filter.html" target="_blank" rel="noopener">
+                    <div class="ttl">Search &amp; filter</div>
+                    <div class="sub">Regex filter; restrict to specific fields.</div>
+                </a>
+                <a class="feature-card" href="../samples/dynamic-data.html" target="_blank" rel="noopener">
+                    <div class="ttl">Dynamic data</div>
+                    <div class="sub">Add, insert, remove. Auto re-render.</div>
+                </a>
+                <a class="feature-card" href="../samples/conditional-editable.html" target="_blank" rel="noopener">
+                    <div class="ttl">Conditional editing</div>
+                    <div class="sub">Lock cells dynamically with a hook.</div>
+                </a>
+                <a class="feature-card" href="../samples/custom-extension.html" target="_blank" rel="noopener">
+                    <div class="ttl">Custom extensions</div>
+                    <div class="sub">Hook into render, update, key events.</div>
+                </a>
+                <a class="feature-card" href="../samples/kitchen-sink.html" target="_blank" rel="noopener">
+                    <div class="ttl">Kitchen sink</div>
+                    <div class="sub">Every feature wired together.</div>
+                </a>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>Why PGrid?</h2>
+            <ul>
+                <li><strong>Tiny core.</strong> Selection, editing, copy/paste, formatting — every feature is itself an extension. The core just renders cells.</li>
+                <li><strong>No framework lock-in.</strong> Plain ES modules. Drop into React, Vue, or vanilla apps the same way.</li>
+                <li><strong>Spreadsheet-grade interactions.</strong> 6-pane freeze layout, copy/paste with TSV interop, keyboard navigation, in-place editors.</li>
+                <li><strong>Real virtualization.</strong> Handles large datasets — only visible cells are in the DOM, and they're recycled as you scroll.</li>
+            </ul>
+        </section>
+
+        <footer style="padding: 48px 0 64px; color: var(--text-subtle); font-size: 12px; text-align: center; border-top: 1px solid var(--border); margin-top: 48px;">
+            <a href="https://github.com/panitw/pgrid" target="_blank" rel="noopener">GitHub</a> ·
+            <a href="../samples/index.html" target="_blank" rel="noopener">Samples</a> ·
+            MIT licensed
+        </footer>
+    </main>
+
+    <script>
+        // Highlight current top-nav link
+        document.querySelectorAll('.docs-top nav a').forEach(a => {
+            const href = a.getAttribute('href');
+            if (href && location.pathname.endsWith(href.replace('./', '/'))) a.classList.add('active');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Getting Started · PGrid</title>
+    <link rel="stylesheet" href="./_docs.css">
+</head>
+<body>
+    <header class="docs-top">
+        <a class="brand" href="./index.html">PGrid <span class="tag">docs</span></a>
+        <nav>
+            <a href="./getting-started.html">Getting Started</a>
+            <a href="./configuration.html">Configuration</a>
+            <a href="./data.html">Data</a>
+            <a href="./extensions.html">Extensions</a>
+            <a href="./api.html">API</a>
+            <a href="../samples/index.html" target="_blank" rel="noopener">Samples ↗</a>
+            <a href="https://github.com/panitw/pgrid" target="_blank" rel="noopener">GitHub ↗</a>
+        </nav>
+    </header>
+
+    <div class="docs-layout">
+        <aside class="docs-sidebar">
+            <h4>Guides</h4>
+            <ul>
+                <li><a href="./getting-started.html">Getting Started</a></li>
+                <li><a href="./configuration.html">Configuration</a></li>
+                <li><a href="./data.html">Working with Data</a></li>
+                <li><a href="./extensions.html">Extensions</a></li>
+            </ul>
+            <h4>Reference</h4>
+            <ul>
+                <li><a href="./api.html">API</a></li>
+                <li><a href="../samples/index.html" target="_blank" rel="noopener">Samples ↗</a></li>
+            </ul>
+            <h4>On this page</h4>
+            <ul>
+                <li><a href="#install">Install</a></li>
+                <li><a href="#first-grid">Your first grid</a></li>
+                <li><a href="#walkthrough">Walkthrough</a></li>
+                <li><a href="#styling">Styling</a></li>
+                <li><a href="#cdn">Use without a bundler</a></li>
+                <li><a href="#next">Next steps</a></li>
+            </ul>
+        </aside>
+
+        <article class="docs-article">
+            <h1>Getting Started</h1>
+            <p class="lead">Install PGrid, render your first grid, and learn what each part of the configuration is doing.</p>
+
+            <h2 id="install">Install</h2>
+            <p>PGrid ships as an ES module on npm.</p>
+<pre><code>npm install @panitw/pgrid</code></pre>
+            <p>Or load it directly from a CDN — see <a href="#cdn">Use without a bundler</a>.</p>
+
+            <h2 id="first-grid">Your first grid</h2>
+            <p>Create a container element and instantiate <code>PGrid</code>.</p>
+<pre><code>&lt;!-- index.html --&gt;
+&lt;link rel="stylesheet" href="node_modules/@panitw/pgrid/dist/pgrid.css"&gt;
+&lt;div id="grid" style="width: 100%; height: 400px;"&gt;&lt;/div&gt;
+&lt;script type="module" src="./app.js"&gt;&lt;/script&gt;</code></pre>
+
+<pre><code>// app.js
+import { PGrid } from '@panitw/pgrid';
+
+const grid = new PGrid({
+    rowHeight: 32,
+    columnWidth: 130,
+    columns: [
+        { id: 0, field: 'name',  title: 'Name',  width: 180 },
+        { id: 1, field: 'email', title: 'Email', width: 240 },
+        { id: 2, field: 'role',  title: 'Role',  width: 140 }
+    ],
+    headerRows: [{ i: 0 }],
+    dataModel: {
+        format: 'rows',
+        fields: ['name', 'email', 'role'],
+        data: [
+            { name: 'Ada Lovelace',   email: 'ada@example.com',   role: 'Engineer' },
+            { name: 'Linus Torvalds', email: 'linus@example.com', role: 'Manager'  }
+        ]
+    }
+});
+
+grid.render(document.getElementById('grid'));</code></pre>
+
+            <div class="callout">
+                <strong>Important:</strong> the container must have a defined height. PGrid fills its container, so a parent with <code>height: 0</code> produces an invisible grid.
+            </div>
+
+            <p>Live demo: <a href="../samples/basic.html" target="_blank" rel="noopener">Basic grid sample</a>.</p>
+
+            <h2 id="walkthrough">Walkthrough</h2>
+            <p>Let's break down what each part of the configuration does.</p>
+
+            <h3>Columns</h3>
+            <p>The <code>columns</code> array describes each column's <code>field</code> (key into your data), <code>title</code> (header label), and optional <code>width</code>. The first column has <code>id: 0</code>, the second <code>id: 1</code>, etc.</p>
+
+            <h3>Header rows</h3>
+            <p><code>headerRows</code> declares the rows above the data. Each entry has an index <code>i</code> and optional styling. Most grids only need a single header row at index 0.</p>
+
+            <h3>Data model</h3>
+            <p>The <code>dataModel</code> describes how to interpret your data. Two formats are supported:</p>
+            <ul>
+                <li><code>'rows'</code> — array of plain objects keyed by field name (shown above).</li>
+                <li><code>'array'</code> — array of arrays; <code>fields</code> tells PGrid the column order.</li>
+            </ul>
+
+            <h3>Render</h3>
+            <p><code>grid.render(element)</code> mounts the grid into the given container. After mount, you can interact with the grid through <code>grid.data</code>, <code>grid.model</code>, and <code>grid.view</code> (see the <a href="./api.html">API reference</a>).</p>
+
+            <h2 id="styling">Styling</h2>
+            <p>PGrid's stylesheet ships at <code>@panitw/pgrid/dist/pgrid.css</code>. It defines the structural layout (cells, panes, scrollbars) and can be themed via your own CSS.</p>
+            <p>Cell-level styling is applied through <code>cssClass</code> on columns, rows, and individual cells:</p>
+<pre><code>columns: [
+    { id: 0, field: 'name',   title: 'Name',   cssClass: 'col-name' },
+    { id: 1, field: 'salary', title: 'Salary', cssClass: 'col-money' }
+]</code></pre>
+<pre><code>.col-money {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}</code></pre>
+            <p>For a worked example, see <a href="../samples/formatters.html" target="_blank" rel="noopener">Cell formatters</a>.</p>
+
+            <h2 id="cdn">Use without a bundler</h2>
+            <p>PGrid is also published as a UMD bundle. Drop two files into a page and the global <code>PGrid</code> namespace becomes available.</p>
+<pre><code>&lt;link rel="stylesheet" href="https://unpkg.com/@panitw/pgrid/dist/pgrid.css"&gt;
+&lt;script src="https://unpkg.com/@panitw/pgrid/dist/pgrid.js"&gt;&lt;/script&gt;
+&lt;div id="grid" style="height: 400px;"&gt;&lt;/div&gt;
+&lt;script&gt;
+    const grid = new PGrid.PGrid({ /* same config as above */ });
+    grid.render(document.getElementById('grid'));
+&lt;/script&gt;</code></pre>
+
+            <h2 id="next">Next steps</h2>
+            <ul>
+                <li><a href="./configuration.html">Configuration</a> — every option, with examples.</li>
+                <li><a href="./data.html">Working with data</a> — add/remove rows, search, listen for changes.</li>
+                <li><a href="./extensions.html">Extensions</a> — turn on built-ins or write your own.</li>
+                <li><a href="../samples/index.html" target="_blank" rel="noopener">Samples</a> — runnable demos for every feature.</li>
+            </ul>
+
+            <div class="docs-pagination">
+                <a href="./index.html">
+                    <div class="arrow">← Previous</div>
+                    <div class="ttl">Home</div>
+                </a>
+                <a class="next" href="./configuration.html">
+                    <div class="arrow">Next →</div>
+                    <div class="ttl">Configuration</div>
+                </a>
+            </div>
+        </article>
+    </div>
+
+    <script>
+        document.querySelectorAll('.docs-top nav a, .docs-sidebar a').forEach(a => {
+            const href = a.getAttribute('href') || '';
+            const path = href.replace('./', '/').split('#')[0];
+            if (path && location.pathname.endsWith(path)) a.classList.add('active');
+        });
+    </script>
+</body>
+</html>

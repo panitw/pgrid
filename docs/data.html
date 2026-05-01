@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Working with Data · PGrid</title>
+    <link rel="stylesheet" href="./_docs.css">
+</head>
+<body>
+    <header class="docs-top">
+        <a class="brand" href="./index.html">PGrid <span class="tag">docs</span></a>
+        <nav>
+            <a href="./getting-started.html">Getting Started</a>
+            <a href="./configuration.html">Configuration</a>
+            <a href="./data.html">Data</a>
+            <a href="./extensions.html">Extensions</a>
+            <a href="./api.html">API</a>
+            <a href="../samples/index.html" target="_blank" rel="noopener">Samples ↗</a>
+            <a href="https://github.com/panitw/pgrid" target="_blank" rel="noopener">GitHub ↗</a>
+        </nav>
+    </header>
+
+    <div class="docs-layout">
+        <aside class="docs-sidebar">
+            <h4>Guides</h4>
+            <ul>
+                <li><a href="./getting-started.html">Getting Started</a></li>
+                <li><a href="./configuration.html">Configuration</a></li>
+                <li><a href="./data.html">Working with Data</a></li>
+                <li><a href="./extensions.html">Extensions</a></li>
+            </ul>
+            <h4>Reference</h4>
+            <ul>
+                <li><a href="./api.html">API</a></li>
+                <li><a href="../samples/index.html" target="_blank" rel="noopener">Samples ↗</a></li>
+            </ul>
+            <h4>On this page</h4>
+            <ul>
+                <li><a href="#formats">Data formats</a></li>
+                <li><a href="#read">Reading values</a></li>
+                <li><a href="#write">Writing values</a></li>
+                <li><a href="#crud">Add, insert, remove</a></li>
+                <li><a href="#search">Search &amp; filter</a></li>
+                <li><a href="#events">Listening for changes</a></li>
+                <li><a href="#bulk">Bulk updates</a></li>
+            </ul>
+        </aside>
+
+        <article class="docs-article">
+            <h1>Working with Data</h1>
+            <p class="lead">PGrid keeps your data in a <code>DataTable</code> that you reach via <code>grid.data</code>. It supports two input formats and exposes a small CRUD + search API.</p>
+
+            <h2 id="formats">Data formats</h2>
+            <p>The <code>dataModel</code> config tells PGrid how to interpret your data.</p>
+
+            <h3>Object rows (default)</h3>
+<pre><code>dataModel: {
+    format: 'rows',
+    fields: ['name', 'email', 'role'],
+    data: [
+        { name: 'Ada',   email: 'ada@example.com',   role: 'Engineer' },
+        { name: 'Linus', email: 'linus@example.com', role: 'Manager'  }
+    ]
+}</code></pre>
+
+            <h3>Tuple arrays</h3>
+            <p>Useful when your data comes from CSV or a database driver that returns rows as arrays.</p>
+<pre><code>dataModel: {
+    format: 'array',
+    fields: ['name', 'email', 'role'],
+    data: [
+        ['Ada',   'ada@example.com',   'Engineer'],
+        ['Linus', 'linus@example.com', 'Manager']
+    ]
+}</code></pre>
+            <p><code>fields</code> tells PGrid the column order so it can normalize each tuple into an object internally.</p>
+
+            <h2 id="read">Reading values</h2>
+            <p>PGrid distinguishes between <strong>row id</strong> (stable, assigned at insert) and <strong>row index</strong> (position in the currently visible projection — affected by sort/filter/search).</p>
+<pre><code>// By visible row index
+const value = grid.data.getDataAt(rowIndex, 'email');
+
+// By stable row id
+const rowId = grid.data.getRowId(rowIndex);
+const value = grid.data.getData(rowId, 'email');
+
+// Whole row
+const row = grid.data.getRowDataAt(rowIndex);   // by index
+const row = grid.data.getRowData(rowId);        // by id</code></pre>
+
+            <div class="callout">
+                <strong>Why both?</strong> When you filter the grid, the row at index 5 may correspond to a different underlying record than before. Operations that need to survive filtering (like persisting edits to your backend) should use the row id.
+            </div>
+
+            <h2 id="write">Writing values</h2>
+            <p>Use the model when you have visible coordinates; use the data table when you have a row id.</p>
+<pre><code>// By coordinates (visible)
+grid.model.setDataAt(rowIndex, colIndex, newValue);
+
+// By row id + field
+grid.data.setData(rowId, 'salary', 80000);</code></pre>
+            <p>If <code>autoUpdate: true</code> is set, the affected cell re-renders automatically.</p>
+
+            <h2 id="crud">Add, insert, remove</h2>
+<pre><code>grid.data.addRow({ name: 'Grace', email: 'grace@example.com', role: 'Engineer' });
+grid.data.insertRow(0, newRow);    // at the top
+grid.data.removeRow(rowId);
+grid.data.removeRowAt(rowIndex);
+grid.data.removeAllRows();
+grid.view.reRender();</code></pre>
+
+            <p>Live demo: <a href="../samples/dynamic-data.html" target="_blank" rel="noopener">Dynamic data</a>.</p>
+
+            <h2 id="search">Search &amp; filter</h2>
+            <p>The DataTable maintains a separate <em>visible projection</em> that you can filter without losing the original data.</p>
+<pre><code>// Single regex pattern, all fields (case-insensitive)
+grid.data.search('ada');
+
+// Restrict to specific fields
+grid.data.search('engineer', ['role', 'department']);
+
+// Multiple patterns OR-match
+grid.data.search(['^ada', '^linus']);
+
+// Reset
+grid.data.clearSearch();</code></pre>
+            <p>After mutating the projection, call <code>grid.view.reRender()</code>. Live demo: <a href="../samples/search-filter.html" target="_blank" rel="noopener">Search &amp; filter</a>.</p>
+
+            <h2 id="events">Listening for changes</h2>
+            <p>The data table emits <code>dataChanged</code> with a list of updates.</p>
+<pre><code>grid.data.listen('dataChanged', (e) =&gt; {
+    e.updates.forEach(u =&gt; {
+        // u.changeType: 'fieldChange' | 'rowAdded' | 'rowRemoved' | 'global'
+        // u.rowId, u.field, u.prevData, u.data
+        console.log(u);
+    });
+});</code></pre>
+
+            <p>You can also intercept and cancel writes by registering an extension:</p>
+<pre><code>const validateNumeric = {
+    dataBeforeUpdate(e) {
+        if (e.field === 'salary' &amp;&amp; isNaN(parseFloat(e.data))) {
+            e.cancel = true;
+        } else if (e.field === 'salary') {
+            e.data = parseFloat(e.data);
+        }
+    }
+};
+
+new PGrid({ /* … */ extensions: [validateNumeric] });</code></pre>
+            <p>See <a href="./extensions.html">Extensions</a> for the full list of hooks.</p>
+
+            <h2 id="bulk">Bulk updates</h2>
+            <p>For batched mutations, use <code>freeze</code> / <code>unfreeze</code> to suppress per-write events.</p>
+<pre><code>grid.data.freeze();
+for (const row of bigImport) grid.data.addRow(row);
+grid.data.unfreeze();
+grid.view.reRender();</code></pre>
+
+            <div class="docs-pagination">
+                <a href="./configuration.html">
+                    <div class="arrow">← Previous</div>
+                    <div class="ttl">Configuration</div>
+                </a>
+                <a class="next" href="./extensions.html">
+                    <div class="arrow">Next →</div>
+                    <div class="ttl">Extensions</div>
+                </a>
+            </div>
+        </article>
+    </div>
+
+    <script>
+        document.querySelectorAll('.docs-top nav a, .docs-sidebar a').forEach(a => {
+            const href = a.getAttribute('href') || '';
+            const path = href.replace('./', '/').split('#')[0];
+            if (path && location.pathname.endsWith(path)) a.classList.add('active');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Extensions · PGrid</title>
+    <link rel="stylesheet" href="./_docs.css">
+</head>
+<body>
+    <header class="docs-top">
+        <a class="brand" href="./index.html">PGrid <span class="tag">docs</span></a>
+        <nav>
+            <a href="./getting-started.html">Getting Started</a>
+            <a href="./configuration.html">Configuration</a>
+            <a href="./data.html">Data</a>
+            <a href="./extensions.html">Extensions</a>
+            <a href="./api.html">API</a>
+            <a href="../samples/index.html" target="_blank" rel="noopener">Samples ↗</a>
+            <a href="https://github.com/panitw/pgrid" target="_blank" rel="noopener">GitHub ↗</a>
+        </nav>
+    </header>
+
+    <div class="docs-layout">
+        <aside class="docs-sidebar">
+            <h4>Guides</h4>
+            <ul>
+                <li><a href="./getting-started.html">Getting Started</a></li>
+                <li><a href="./configuration.html">Configuration</a></li>
+                <li><a href="./data.html">Working with Data</a></li>
+                <li><a href="./extensions.html">Extensions</a></li>
+            </ul>
+            <h4>Reference</h4>
+            <ul>
+                <li><a href="./api.html">API</a></li>
+                <li><a href="../samples/index.html" target="_blank" rel="noopener">Samples ↗</a></li>
+            </ul>
+            <h4>On this page</h4>
+            <ul>
+                <li><a href="#why">The extension model</a></li>
+                <li><a href="#hooks">Hook reference</a></li>
+                <li><a href="#writing">Writing an extension</a></li>
+                <li><a href="#editors">Custom editors</a></li>
+                <li><a href="#formatters">Cell formatters</a></li>
+                <li><a href="#built-in">Built-in extensions</a></li>
+                <li><a href="#recycling">Cell recycling</a></li>
+            </ul>
+        </aside>
+
+        <article class="docs-article">
+            <h1>Extensions</h1>
+            <p class="lead">Every built-in feature in PGrid — selection, editing, copy/paste, formatting, resize — is itself an extension. Extensions hook into rendering, data updates, and key events to add behavior without forking the core.</p>
+
+            <h2 id="why">The extension model</h2>
+            <p>An extension is a plain object with an optional <code>init(grid, config)</code> method and any number of named hook methods. PGrid calls each hook at the appropriate point in its lifecycle.</p>
+
+<pre><code>const myExt = {
+    init(grid, config) {
+        this._grid = grid;
+    },
+    cellAfterRender(e) {
+        // Called after every cell renders
+    }
+};
+
+new PGrid({ /* … */ extensions: [myExt] });</code></pre>
+
+            <p>Multiple extensions can register the same hook — they all run, in load order. Built-in extensions load first (driven by the feature toggles in your config), then your custom <code>extensions</code>.</p>
+
+            <h2 id="hooks">Hook reference</h2>
+            <table>
+                <thead>
+                    <tr><th>Hook</th><th>When it fires</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>cellRender(e)</code></td><td>Before a cell's text is written. Set <code>e.handled = true</code> to suppress default rendering.</td></tr>
+                    <tr><td><code>cellAfterRender(e)</code></td><td>After a cell's content is in place. Add classes, attach listeners.</td></tr>
+                    <tr><td><code>cellUpdate(e)</code></td><td>Before a cell is updated in place (without full re-render).</td></tr>
+                    <tr><td><code>cellAfterUpdate(e)</code></td><td>After an in-place update.</td></tr>
+                    <tr><td><code>cellEditableCheck(e)</code></td><td>Decide whether a cell is editable. Set <code>e.canEdit</code>.</td></tr>
+                    <tr><td><code>cellAfterRecycled(e)</code></td><td>When a cell DOM node is reassigned to a different (row, col). Reset state here.</td></tr>
+                    <tr><td><code>keyDown(e)</code></td><td>Native <code>KeyboardEvent</code> on the grid, before default handling.</td></tr>
+                    <tr><td><code>gridAfterRender(e)</code></td><td>After the initial grid mount.</td></tr>
+                    <tr><td><code>dataBeforeRender(e)</code></td><td>Before the grid renders rows from data.</td></tr>
+                    <tr><td><code>dataBeforeUpdate(e)</code></td><td>Before a single value writes. Set <code>e.cancel = true</code> to veto, or modify <code>e.data</code> to transform.</td></tr>
+                    <tr><td><code>dataAfterUpdate(e)</code></td><td>After a write has been applied.</td></tr>
+                    <tr><td><code>dataFinishUpdate(e)</code></td><td>After a batch of writes settles. Receives <code>e.updates</code>.</td></tr>
+                </tbody>
+            </table>
+
+            <p>Most cell hooks pass an event object with these fields:</p>
+            <table>
+                <tbody>
+                    <tr><td><code>e.cell</code></td><td>The <code>.pgrid-cell</code> DOM node.</td></tr>
+                    <tr><td><code>e.cellContent</code></td><td>The inner <code>.pgrid-cell-content</code> wrapper where you should write content.</td></tr>
+                    <tr><td><code>e.rowIndex</code> / <code>e.colIndex</code></td><td>Visible coordinates. Header rows are <code>0..headerRowCount-1</code>.</td></tr>
+                    <tr><td><code>e.rowId</code> / <code>e.field</code></td><td>Stable id and field name (undefined for header cells).</td></tr>
+                    <tr><td><code>e.data</code></td><td>The value being rendered.</td></tr>
+                    <tr><td><code>e.handled</code></td><td>Set to <code>true</code> in <code>cellRender</code> to skip default text rendering.</td></tr>
+                </tbody>
+            </table>
+
+            <h2 id="writing">Writing an extension</h2>
+            <p>Three quick examples — each is just an object literal.</p>
+
+            <h3>Zebra striping</h3>
+<pre><code>const zebra = {
+    cellAfterRender(e) {
+        if (e.rowIndex % 2 === 1) e.cell.classList.add('row-zebra');
+    },
+    cellAfterRecycled(e) {
+        e.cell.classList.remove('row-zebra');
+    }
+};</code></pre>
+
+            <h3>Conditional editability</h3>
+<pre><code>const lockClosedRows = {
+    cellEditableCheck(e) {
+        if (e.dataRow &amp;&amp; e.dataRow.status === 'Closed') e.canEdit = false;
+    }
+};</code></pre>
+            <p>Live demo: <a href="../samples/conditional-editable.html" target="_blank" rel="noopener">Conditional editable</a>.</p>
+
+            <h3>Validating writes</h3>
+<pre><code>const positiveNumbersOnly = {
+    dataBeforeUpdate(e) {
+        if (e.field === 'salary') {
+            const n = parseFloat(e.data);
+            if (isNaN(n) || n &lt; 0) e.cancel = true;
+            else e.data = n;
+        }
+    }
+};</code></pre>
+
+            <p>For a fully worked example with hover highlighting and indicator stripes, see the <a href="../samples/custom-extension.html" target="_blank" rel="noopener">Custom extensions</a> demo.</p>
+
+            <h2 id="editors">Custom editors</h2>
+            <p>Set <code>column.editor</code> to a plain object with two methods:</p>
+<pre><code>const dropdownEditor = {
+    clear(e) { e.done(null); },
+    attach(e) {
+        // e.cell      — floating editor container positioned over the cell
+        // e.data      — current value
+        // e.dataRow   — full row object
+        // e.done(v)   — call with new value to commit (or no value to cancel)
+
+        e.cell.innerHTML = '';
+        const select = document.createElement('select');
+        ['Active', 'Remote', 'On Leave'].forEach(opt =&gt; {
+            const o = document.createElement('option');
+            o.value = opt; o.textContent = opt;
+            if (opt === e.data) o.selected = true;
+            select.appendChild(o);
+        });
+        e.cell.appendChild(select);
+        select.focus();
+        select.showPicker?.();
+        select.addEventListener('change', () =&gt; e.done(select.value));
+        select.addEventListener('blur',   () =&gt; e.done(select.value));
+    }
+};
+
+columns: [
+    { id: 0, field: 'status', title: 'Status', editable: true, editor: dropdownEditor }
+]</code></pre>
+
+            <p>Live demo: <a href="../samples/custom-editors.html" target="_blank" rel="noopener">Custom editors</a> (dropdown + date picker + star rating).</p>
+
+            <h2 id="formatters">Cell formatters</h2>
+            <p>Formatters render the cell's display HTML. They run before the default text renderer and mark the cell as handled.</p>
+<pre><code>const moneyFormatter = {
+    render(e) {
+        if (e.rowIndex === 0) {              // skip header row
+            e.cellContent.textContent = e.data || '';
+            return;
+        }
+        e.cellContent.textContent = '$' + (e.data || 0).toLocaleString();
+    }
+};
+
+columns: [
+    { id: 0, field: 'salary', title: 'Salary', formatter: moneyFormatter }
+]</code></pre>
+            <p>Enable formatters with <code>columnFormatter: true</code> in the grid config. Live demo: <a href="../samples/formatters.html" target="_blank" rel="noopener">Cell formatters</a>.</p>
+
+            <h2 id="built-in">Built-in extensions</h2>
+            <p>Toggle these via top-level config keys (see <a href="./configuration.html#features">Configuration</a>):</p>
+            <table>
+                <tbody>
+                    <tr><td><code>SelectionExtension</code></td><td>Click + arrow keys + Tab. Loaded by <code>selection</code>.</td></tr>
+                    <tr><td><code>EditorExtension</code></td><td>Built-in text editor. Loaded by <code>editing</code>.</td></tr>
+                    <tr><td><code>CopyPasteExtension</code></td><td>Range copy/paste. Loaded by <code>copypaste</code>.</td></tr>
+                    <tr><td><code>ViewUpdaterExtension</code></td><td>Re-render on data changes. Loaded by <code>autoUpdate</code>.</td></tr>
+                    <tr><td><code>FormatterExtension</code></td><td>Honors <code>column.formatter</code>. Loaded by <code>columnFormatter</code>.</td></tr>
+                    <tr><td><code>ColumnResizeExtension</code></td><td>Drag handles on header. Loaded by <code>columnResize</code>.</td></tr>
+                    <tr><td><code>TextOverflowExtension</code></td><td>Cascaded overflow modes. Loaded by <code>textOverflow</code>.</td></tr>
+                </tbody>
+            </table>
+            <p>Two extensions are passed in <code>extensions: []</code> rather than via toggles:</p>
+            <table>
+                <tbody>
+                    <tr><td><code>CheckboxColumnExtension</code></td><td>Renders boolean fields as checkboxes. <a href="../samples/checkbox-column.html" target="_blank" rel="noopener">Demo</a></td></tr>
+                </tbody>
+            </table>
+
+            <h2 id="recycling">Cell recycling</h2>
+            <p>PGrid virtualizes by recycling cell DOM nodes — the same <code>&lt;div&gt;</code> may be reused for cell (5, 2) and then later cell (47, 8). If your extension mutates a cell's classes, listeners, or inline styles, reset that state in <code>cellAfterRecycled</code>.</p>
+<pre><code>const myExt = {
+    cellAfterRender(e) {
+        e.cell.classList.add('my-marker');
+    },
+    cellAfterRecycled(e) {
+        e.cell.classList.remove('my-marker');   // important!
+    }
+};</code></pre>
+            <div class="callout warning">
+                <strong>Common bug:</strong> forgetting to clean up in <code>cellAfterRecycled</code> causes stale styling to "leak" onto wrong cells as the user scrolls.
+            </div>
+
+            <div class="docs-pagination">
+                <a href="./data.html">
+                    <div class="arrow">← Previous</div>
+                    <div class="ttl">Working with Data</div>
+                </a>
+                <a class="next" href="./api.html">
+                    <div class="arrow">Next →</div>
+                    <div class="ttl">API Reference</div>
+                </a>
+            </div>
+        </article>
+    </div>
+
+    <script>
+        document.querySelectorAll('.docs-top nav a, .docs-sidebar a').forEach(a => {
+            const href = a.getAttribute('href') || '';
+            const path = href.replace('./', '/').split('#')[0];
+            if (path && location.pathname.endsWith(path)) a.classList.add('active');
+        });
+    </script>
+</body>
+</html>

@@ -56,6 +56,8 @@
   },
   "scripts": {
     "build": "vite build",
+    "build:site": "vite build --mode site && node scripts/postbuild-site.mjs",
+    "preview:site": "vite preview --outDir site --port 4173",
     "dev": "vite",
     "serve": "vite",
     "test": "mocha",
