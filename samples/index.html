@@ -3,13 +3,11 @@
 
 <head>
 	<title>Grid Test</title>
-	<link rel="stylesheet" type="text/css" href="../dist/pgrid.css">
-	<link rel="stylesheet" href="../node_modules/choices.js/assets/styles/css/base.min.css">
-	<link rel="stylesheet" href="../node_modules/choices.js/assets/styles/css/choices.min.css">
+	<link rel="stylesheet" href="/node_modules/choices.js/assets/styles/css/base.min.css">
+	<link rel="stylesheet" href="/node_modules/choices.js/assets/styles/css/choices.min.css">
 
-	<script type="text/javascript" src="../dist/pgrid.js"></script>
-	<script type="text/javascript" src="../node_modules/choices.js/assets/scripts/dist/choices.min.js"></script>
-	<script type="text/javascript" src="../node_modules/numeral/min/numeral.min.js"></script>
+	<script type="text/javascript" src="/node_modules/choices.js/assets/scripts/dist/choices.min.js"></script>
+	<script type="text/javascript" src="/node_modules/numeral/min/numeral.min.js"></script>
 	<style>
 		html,
 		body {
@@ -92,7 +90,7 @@
 
 	<script type="module">
 
-		import { CheckboxColumnExtension } from '../src/extensions/checkbox-column.js';
+		import { PGrid, CheckboxColumnExtension } from '/src/index.js';
 
 		class SearchChoicesEditor {
 
@@ -291,7 +289,7 @@
 				left: 2
 			},
 			columns: [
-				{ id: 0, width: 50, cssClass: "grid-checkbox-col", editable: true, title: 'Submit', field: 'submit' },
+				{ id: 0, width: 80, cssClass: "grid-checkbox-col", editable: true, title: 'Submit', field: 'submit' },
 				{ id: 1, title: 'Status', field: 'status' },
 				{ id: 2, width: 110, editable: true, cssClass: "grid-number-col grid-col-editable", title: 'Estimate Number', field: 'estNumber' },
 				{ id: 3, width: 150, editable: true, cssClass: 'grid-col-editable', title: 'Invoice Type', field: 'invType', editor: new StaticChoicesEditor([{ label: 'STANDARD', value: 'S' }, { label: 'PREPAYMENT', value: 'P' }], 'invType', 'estNumber') },

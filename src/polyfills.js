@@ -1,15 +1,9 @@
-import { PGrid } from './grid/grid';
-
-window.PGrid = PGrid;
-
-// Polyfill - Element.scrollIntoViewIfNeeded
-
 if (!Element.prototype.scrollIntoViewIfNeeded) {
     Element.prototype.scrollIntoViewIfNeeded = function (centerIfNeeded) {
         "use strict";
 
         function makeRange(start, length) {
-            return {"start": start, "length": length, "end": start + length};
+            return { "start": start, "length": length, "end": start + length };
         }
 
         function coverRange(inner, outer) {
@@ -49,7 +43,6 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
             origin;
 
         while (elem instanceof HTMLElement) {
-            // Apply desired scroll amount.
             origin = absolute(elem, makePoint(elem.clientLeft, elem.clientTop));
             elem.scrollLeft = coverRange(
                 makeRange(target.x - origin.x, extent.x),
@@ -60,7 +53,6 @@ if (!Element.prototype.scrollIntoViewIfNeeded) {
                 makeRange(elem.scrollTop, elem.clientHeight)
             );
 
-            // Determine actual scroll amount by reading back scroll properties.
             target = target.translate(-elem.scrollLeft, -elem.scrollTop);
             elem = elem.parentNode;
         }
