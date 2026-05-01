@@ -6,9 +6,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - `npm run dev` (or `npm run serve`) — start the Vite dev server on `http://localhost:8888` and auto-open `samples/index.html`. Edits to `src/`, `styles/`, or any sample HTML hot-reload in the browser; no rebuild step.
 - `npm run build` — Vite library build → `dist/pgrid.js` (UMD, exposes `window.PGrid`) + `dist/pgrid.css`. CSS is generated because `src/index.js` imports `styles/pgrid.less`.
-- `npm test` — Mocha across all of `test/` with `@babel/register`.
-- Run a single test file: `npx mocha --require @babel/register test/data/table.test.js`
+- `npm test` — Mocha across all of `test/` with `@babel/register` and a jsdom setup.
+- Run a single test file: `npx mocha test/data/table.test.js`
 - Filter by name: append `--grep "<pattern>"`.
+
+Test config lives in [.mocharc.js](.mocharc.js); it auto-requires [`@babel/register`](.babelrc) and [test/setup.js](test/setup.js). The setup bootstraps jsdom into Node globals (`window`, `document`, `HTMLElement`, `KeyboardEvent`, etc.), stubs `ResizeObserver`, installs a no-op `scrollIntoViewIfNeeded`, and patches `offsetWidth`/`offsetHeight` to return `2000` so virtualization-gated cell rendering produces inspectable DOM. Tests should NOT depend on layout numbers — only on DOM structure and event flow.
 
 Build pipeline is Vite (config in [vite.config.mjs](vite.config.mjs)). Tests still run through Mocha + `@babel/register` + [.babelrc](.babelrc) — Babel is intentionally retained *only* for the test runner. Do not add `"type": "module"` to package.json; it would break the babel-register pipeline.
 
