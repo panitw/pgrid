@@ -2,13 +2,18 @@
 
 A virtualized, extensible JavaScript data grid with frozen panes, inline editing, copy/paste, column resizing, and a pluggable extension API.
 
+**📖 [Documentation](https://panitw.github.io/pgrid/)** · **🎮 [Live samples](https://panitw.github.io/pgrid/samples/)** · **📦 [npm](https://www.npmjs.com/package/@panitw/pgrid)**
+
 ## Features
 
 - **Virtualized rendering** — renders only visible cells; handles large datasets smoothly
-- **Frozen panes** — freeze any number of leading rows/columns (6-pane layout: top-left/top/left/center/bottom-left/bottom)
-- **Inline editing** with cancellable update hooks
-- **Copy / paste** across cell ranges
-- **Column resizing**, **text overflow**, **checkbox columns**
+- **Frozen panes** — freeze any number of leading rows/columns (6-pane layout: top-left/top/left/center/bottom-left/bottom) — [demo](https://panitw.github.io/pgrid/samples/freeze-panes.html)
+- **Inline editing** with cancellable update hooks — [demo](https://panitw.github.io/pgrid/samples/inline-editing.html)
+- **Copy / paste** across cell ranges, spreadsheet-compatible TSV — [demo](https://panitw.github.io/pgrid/samples/copy-paste.html)
+- **Column resizing**, **text overflow**, **checkbox columns** — [demos](https://panitw.github.io/pgrid/samples/)
+- **Custom editors** — dropdowns, date pickers, anything HTML — [demo](https://panitw.github.io/pgrid/samples/custom-editors.html)
+- **Cell formatters** — pills, currency, progress bars, stars — [demo](https://panitw.github.io/pgrid/samples/formatters.html)
+- **Themes** — toggle dark / compact / spreadsheet looks via a single CSS class — [demo](https://panitw.github.io/pgrid/samples/themes.html)
 - **Extension API** — every built-in feature is itself an extension; add your own without touching core
 - **Sort / filter / search** at the data layer (`DataTable`) without losing original row order
 
@@ -18,9 +23,7 @@ A virtualized, extensible JavaScript data grid with frozen panes, inline editing
 npm install @panitw/pgrid
 ```
 
-## Usage
-
-### As an ES module
+## Quick start
 
 ```js
 import { PGrid } from '@panitw/pgrid';
@@ -52,16 +55,29 @@ const grid = new PGrid({
 grid.render(document.getElementById('gridDiv'));
 ```
 
-### As a UMD global
+Or load the UMD bundle directly:
 
 ```html
-<link rel="stylesheet" href="node_modules/@panitw/pgrid/dist/pgrid.css" />
-<script src="node_modules/@panitw/pgrid/dist/pgrid.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/@panitw/pgrid/dist/pgrid.css">
+<script src="https://unpkg.com/@panitw/pgrid/dist/pgrid.js"></script>
 <script>
   const grid = new PGrid.PGrid({ /* config */ });
   grid.render(document.getElementById('gridDiv'));
 </script>
 ```
+
+## Documentation
+
+Full documentation is published at **https://panitw.github.io/pgrid/** and includes:
+
+- [Getting Started](https://panitw.github.io/pgrid/docs/getting-started.html) — install, your first grid, walkthrough
+- [Configuration](https://panitw.github.io/pgrid/docs/configuration.html) — every config option, with examples
+- [Working with Data](https://panitw.github.io/pgrid/docs/data.html) — formats, CRUD, search, events
+- [Styling](https://panitw.github.io/pgrid/docs/styling.html) — CSS class reference, theming, recipes
+- [Extensions](https://panitw.github.io/pgrid/docs/extensions.html) — hook reference, custom editors, formatters
+- [API](https://panitw.github.io/pgrid/docs/api.html) — compact reference for `PGrid`, `DataTable`, `Model`, `View`
+
+Every feature has a runnable demo — see the **[samples gallery](https://panitw.github.io/pgrid/samples/)**.
 
 ## Built-in extensions
 
@@ -92,7 +108,7 @@ const upperCaseExtension = {
 new PGrid({ extensions: [upperCaseExtension], /* ... */ });
 ```
 
-Cells are recycled during virtualization, so any DOM mutations made in `cellRender` should be reset in `cellAfterRecycled`.
+Cells are recycled during virtualization, so any DOM mutations made in `cellRender` should be reset in `cellAfterRecycled`. See the [Extensions guide](https://panitw.github.io/pgrid/docs/extensions.html) for more.
 
 ## Architecture
 
@@ -106,12 +122,14 @@ These pieces don't talk to each other directly — they're coordinated through `
 
 ```bash
 npm install
-npm run dev      # Vite dev server on http://localhost:8888, opens samples/index.html
-npm test         # Mocha + jsdom
-npm run build    # produces dist/pgrid.js (UMD) + dist/pgrid.css
+npm run dev          # Vite dev server on http://localhost:8888, opens samples/index.html
+npm test             # Mocha + jsdom
+npm run build        # produces dist/pgrid.js (UMD) + dist/pgrid.css for npm publish
+npm run build:site   # builds the docs + samples site into site/ for GitHub Pages
+npm run preview:site # preview the built site locally on http://localhost:4173
 ```
 
-Samples in [`samples/`](samples/) are the integration harness — they import `PGrid` directly from `/src/index.js` with HMR.
+Samples in [`samples/`](samples/) are the integration harness — they import `PGrid` directly from `/src/index.js` with HMR. Documentation pages live in [`docs/`](docs/). Both are bundled together by `npm run build:site` and deployed automatically by [`.github/workflows/deploy-pages.yml`](.github/workflows/deploy-pages.yml) on every push to `master`.
 
 ## License
 
