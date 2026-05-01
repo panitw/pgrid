@@ -16,7 +16,7 @@ export class EditorExtension {
 
 	keyDown (e) {
 		if (!this._editorAttached) {
-			if (!e.ctrlKey) {
+			if (!e.ctrlKey && !e.metaKey && !e.altKey) {
 				let selection = this._grid.state.get('selection');
 				if (selection && selection.length > 0) {
 					let rowIndex = selection[0].r;

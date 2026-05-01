@@ -1,373 +1,111 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
-	<title>Grid Test</title>
-	<link rel="stylesheet" href="/node_modules/choices.js/assets/styles/css/base.min.css">
-	<link rel="stylesheet" href="/node_modules/choices.js/assets/styles/css/choices.min.css">
-
-	<script type="text/javascript" src="/node_modules/choices.js/assets/scripts/dist/choices.min.js"></script>
-	<script type="text/javascript" src="/node_modules/numeral/min/numeral.min.js"></script>
-	<style>
-		html,
-		body {
-			font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-			font-size: 14px;
-			height: 100%;
-			margin: 0;
-			padding: 0;
-			color: #3e515b;
-		}
-
-		.grid-header-row {
-			background-color: #e4e6eb !important;
-			font-weight: bold;
-			text-align: center !important;
-		}
-
-		.grid-edited-row {
-			background-color: #feecc9 !important;
-		}
-
-		.grid-header-col {
-			background-color: lightgray;
-			text-align: center;
-		}
-
-		.grid-number-col {
-			text-align: right;
-		}
-
-		.grid-checkbox-col .pgrid-cell-content {
-			text-align: center;
-			padding-left: 0px !important;
-		}
-
-		.grid-cell-selection {
-			background-color: #cecece !important;
-		}
-
-		.grid-cell-editable.grid-col-editable {
-			font-weight: bold;
-		}
-
-		.grid-cell-editable.grid-col-editable::before,
-		.grid-cell-editable.grid-col-editable::after {
-			content: '';
-			position: absolute;
-			top: 0;
-			right: 0;
-			border-color: transparent;
-			border-style: solid;
-		}
-
-		.grid-cell-editable.grid-col-editable::after {
-			border-width: 4px;
-			border-right-color: red;
-			border-top-color: red;
-		}
-
-		.choices[data-type*=select-one] .choices__inner {
-			padding-bottom: 9.5px;
-		}
-
-		.choices__list--dropdown .choices__item--selectable {
-			padding-right: 0px;
-			word-break: break-word;
-		}
-	</style>
+    <meta charset="utf-8">
+    <title>PGrid · Demos</title>
+    <link rel="stylesheet" href="/samples/_shared.css">
 </head>
-
 <body>
+    <div class="landing">
+        <div class="landing-head">
+            <h1>PGrid Demos</h1>
+            <p>A virtualized, extensible JavaScript data grid. Each demo focuses on one feature so you can see the moving parts in isolation.</p>
+        </div>
 
-	<button id="addRow">Add New Row</button>
-	<button id="clearRow">Clear All Rows</button>
-	<button id="rerender">Re-render</button>
+        <div class="landing-section-title">Getting Started</div>
+        <div class="landing-grid">
+            <a class="landing-card" href="/samples/basic.html">
+                <div class="card-num">01</div>
+                <h3>Basic Grid</h3>
+                <p>Minimum viable setup — columns, header row, and data. No extensions.</p>
+            </a>
+            <a class="landing-card" href="/samples/selection-keyboard.html">
+                <div class="card-num">02</div>
+                <h3>Selection & Keyboard</h3>
+                <p>Click to select. Arrow keys, Tab, programmatic scroll-to-cell.</p>
+            </a>
+            <a class="landing-card" href="/samples/freeze-panes.html">
+                <div class="card-num">03</div>
+                <h3>Freeze Panes</h3>
+                <p>Lock leading columns and top/bottom rows. 6-pane layout.</p>
+            </a>
+        </div>
 
-	<div style="position: absolute; top: 30px; left: 0px; right: 0px; height: 500px;">
-		<div id="gridDiv" style="width: 100%; height: 100%;"></div>
-	</div>
+        <div class="landing-section-title">Editing</div>
+        <div class="landing-grid">
+            <a class="landing-card" href="/samples/inline-editing.html">
+                <div class="card-num">04</div>
+                <h3>Inline Editing</h3>
+                <p>Built-in text editor — double-click, Enter, Tab, ESC, Delete.</p>
+            </a>
+            <a class="landing-card" href="/samples/custom-editors.html">
+                <div class="card-num">05</div>
+                <h3>Custom Editors</h3>
+                <p>Dropdowns, date pickers, star ratings. Any HTML you want.</p>
+            </a>
+            <a class="landing-card" href="/samples/conditional-editable.html">
+                <div class="card-num">06</div>
+                <h3>Conditional Editable</h3>
+                <p>Lock cells dynamically with the <code>cellEditableCheck</code> hook.</p>
+            </a>
+            <a class="landing-card" href="/samples/copy-paste.html">
+                <div class="card-num">07</div>
+                <h3>Copy / Paste</h3>
+                <p>Range copy/paste. Tab-separated for spreadsheet interop.</p>
+            </a>
+        </div>
 
-	<script type="module">
+        <div class="landing-section-title">Display</div>
+        <div class="landing-grid">
+            <a class="landing-card" href="/samples/formatters.html">
+                <div class="card-num">08</div>
+                <h3>Cell Formatters</h3>
+                <p>Pills, currency, progress bars, stars — column-level renderers.</p>
+            </a>
+            <a class="landing-card" href="/samples/checkbox-column.html">
+                <div class="card-num">09</div>
+                <h3>Checkbox Column</h3>
+                <p>Boolean fields rendered as live, two-way checkboxes.</p>
+            </a>
+            <a class="landing-card" href="/samples/text-overflow.html">
+                <div class="card-num">10</div>
+                <h3>Text Overflow</h3>
+                <p>Ellipsis, wrap, or clip — cascaded per cell, column, or row.</p>
+            </a>
+            <a class="landing-card" href="/samples/column-resize.html">
+                <div class="card-num">11</div>
+                <h3>Column Resize</h3>
+                <p>Drag-to-resize headers with min/max bounds.</p>
+            </a>
+        </div>
 
-		import { PGrid, CheckboxColumnExtension } from '/src/index.js';
+        <div class="landing-section-title">Data</div>
+        <div class="landing-grid">
+            <a class="landing-card" href="/samples/search-filter.html">
+                <div class="card-num">12</div>
+                <h3>Search & Filter</h3>
+                <p>Filter visible rows by regex; restrict to specific fields.</p>
+            </a>
+            <a class="landing-card" href="/samples/dynamic-data.html">
+                <div class="card-num">13</div>
+                <h3>Dynamic Data</h3>
+                <p>Add, insert, remove. Auto-update view with bulk freeze/unfreeze.</p>
+            </a>
+        </div>
 
-		class SearchChoicesEditor {
-
-			constructor(url, labelField = 'label', valueField = 'value') {
-				this._url = url;
-				this._labelField = labelField;
-				this._valueField = valueField;
-			}
-
-            clear (e) {
-                e.done(null);
-            }
-
-			attach(e) {
-				//Clear old cell content
-				e.cell.innerHTML = '';
-
-				//Create select element
-				let select = document.createElement('select');
-				e.cell.appendChild(select);
-
-				//Creat Choices component
-				this._choicesObj = new Choices(select, {
-					placeholderValue: 'Start typing to search',
-					itemSelectText: '',
-					shouldSort: false,
-					searchResultLimit: 10,
-					searchFloor: 2,        // or whatever value makes sense for your data / API
-					searchChoices: false,  // see bullet point 2 above
-					duplicateItems: false  // this is ignored, see bullet point 3 above
-				});
-				this._choicesObj.showDropdown();
-
-				//Hack to auto focus
-				let searchBox = e.cell.querySelector('.choices__input.choices__input--cloned');
-				if (searchBox) {
-					searchBox.focus();
-				}
-
-				// Some config and bookkeeping for API calls.
-				const lookupDelay = 100;
-				const lookupCache = {};
-				let lookupTimeout = null;
-
-				// Function to perform the API lookup.
-				let serverLookup = () => {
-					let query = this._choicesObj.input.value;
-					if (query in lookupCache) {
-						populateOptions(lookupCache[query]);
-					} else {
-						let request = new Request(this._url + query);
-						fetch(request)
-							.then((response) => {
-								if (response.status === 200) {
-									response.json().then(function (results) {
-										lookupCache[query] = results;
-										populateOptions(results);
-									});
-								}
-							})
-							.catch(function (error) {
-								console.log(error);
-							});
-					};
-				}
-
-				// Function to actually populate the results from the API lookup.
-				let populateOptions = (options) => {
-					this._choicesObj.setChoices(options, this._valueField, this._labelField, true);
-				};
-
-				// Trigger an API lookup when the user pauses after typing.
-				select.addEventListener('search', function (event) {
-					clearTimeout(lookupTimeout);
-					lookupTimeout = setTimeout(serverLookup, lookupDelay);
-				});
-
-				select.addEventListener('hideDropdown', () => {
-					setTimeout(() => {
-						e.done();
-					}, 100);
-				});
-
-				//Finish selection
-				select.addEventListener('choice', (e2) => {
-					let selectedValue = e2.detail.choice.value;
-					e.done(selectedValue);
-				});
-			}
-		}
-
-		class StaticChoicesEditor {
-
-			constructor (choices, updateField, displayUpdateField) {
-				this._choices = choices;
-				this._updateField = updateField;
-				this._displayUpdateField = displayUpdateField;
-            }
-
-            clear (e) {
-                e.done(null);
-            }
-
-			attach (e) {
-				//Clear old cell content
-				e.cell.innerHTML = '';
-
-				//Create select element
-				let select = document.createElement('select');
-				e.cell.appendChild(select);
-
-				//Pre-select a choice with an existing value
-				this._choices.forEach((item) => {
-					item.selected = (item.value === e.data);
-				});
-
-				//Creat Choices component
-				this._choicesObj = new Choices(select, {
-					itemSelectText: ''
-				});
-				this._choicesObj.setChoices(this._choices, 'value', 'label', true);
-				this._choicesObj.showDropdown();
-				this._choicesObj.unhighlightAll();
-
-				//Hack to auto focus
-				let searchBox = e.cell.querySelector('.choices__input.choices__input--cloned');
-				if (searchBox) {
-					searchBox.focus();
-				}
-
-				select.addEventListener('hideDropdown', () => {
-					setTimeout(() => {
-						e.done();
-					}, 100);
-				});
-
-				//Finish selection
-				select.addEventListener('choice', (e2) => {
-					let selectedValue = e2.detail.choice.value;
-					if (this._updateField && this._displayUpdateField) {
-						let updateValue = {};
-						updateValue[this._updateField] = e2.detail.choice.value;
-						updateValue[this._displayUpdateField] = e2.detail.choice.label;
-						e.done(updateValue, true);
-					} else {
-						e.done(selectedValue);
-					}
-				});
-			}
-		}
-
-		class NewRowHighlighter {
-
-			init (grid, config) {
-				this._grid = grid;
-				this._config = config;
-			}
-
-			cellRender (e) {
-				if (e.rowId) {
-					const isNew = this._grid.data.getRowData(e.rowId)['_new_'];
-					e.cell.classList.toggle('grid-edited-row', isNew);
-					e.cell.classList.toggle('grid-cell-editable', isNew);
-				}
-			}
-		}
-
-		class NumberFormatter {
-			render (e) {
-				e.cellContent.innerHTML = numeral(e.data).format('0,0.00');
-			}
-
-			update (e) {
-				e.cellContent.innerHTML = numeral(e.data).format('0,0.00');
-			}
-		}
-
-		var cellEditableCheck = {
-			cellEditableCheck: (e) => {
-				if (e.rowIndex === 1) {
-					e.canEdit = false;
-				}
-			}
-		}
-
-		var options = {
-			rowHeight: 47,
-			columnWidth: 100,
-			selection: {
-				cssClass: 'grid-cell-selection'
-			},
-			columnFormatter: true,
-			editing: true,
-			autoUpdate: true,
-			freezePane: {
-				left: 2
-			},
-			columns: [
-				{ id: 0, width: 80, cssClass: "grid-checkbox-col", editable: true, title: 'Submit', field: 'submit' },
-				{ id: 1, title: 'Status', field: 'status' },
-				{ id: 2, width: 110, editable: true, cssClass: "grid-number-col grid-col-editable", title: 'Estimate Number', field: 'estNumber' },
-				{ id: 3, width: 150, editable: true, cssClass: 'grid-col-editable', title: 'Invoice Type', field: 'invType', editor: new StaticChoicesEditor([{ label: 'STANDARD', value: 'S' }, { label: 'PREPAYMENT', value: 'P' }], 'invType', 'estNumber') },
-				{ id: 4, width: 200, editable: true, cssClass: 'grid-col-editable', title: 'Activity Budget', field: 'activityBudget', editor: new SearchChoicesEditor('https://restcountries.eu/rest/v2/name/', 'name', 'name') },
-				{ id: 5, width: 200, title: 'Description', field: 'desc' },
-				{ id: 6, width: 200, editable: true, cssClass: 'grid-col-editable', title: 'Detail Description', field: 'detailDesc' },
-				{ id: 7, width: 200, editable: true, cssClass: 'grid-col-editable', title: 'Supplier Name', field: 'supplierName' },
-				{ id: 8, editable: true, cssClass: 'grid-col-editable', title: 'Supplier Site', field: 'supplierSite' },
-				{ id: 9, cssClass: 'grid-number-col', title: 'Balance', field: 'balance', formatter: new NumberFormatter() },
-				{ id: 10, cssClass: 'grid-number-col grid-col-editable', editable: true, title: 'Unit Price', field: 'unitPrice' },
-				{ id: 11, width: 40, cssClass: "grid-checkbox-col grid-col-editable", editable: true, title: 'Use VAT', field: 'useVAT' },
-				{ id: 12, cssClass: 'grid-number-col', title: 'Amt VAT', field: 'amtVAT' },
-				{ id: 13, cssClass: 'grid-number-col', title: 'Total Amount', field: 'amtTotal' },
-				{ id: 14, editable: true, cssClass: 'grid-col-editable', title: 'Supplier Invoice', field: 'supplierInv' },
-				{ id: 15, editable: true, cssClass: 'grid-col-editable', title: 'Invoice Date', field: 'invDate' },
-				{ id: 16, title: 'WHT', field: 'WHT' },
-				{ id: 17, cssClass: "grid-checkbox-col", title: 'Auto Due<br>Date', field: 'autoDueDate' },
-				{ id: 18, title: 'Due Date', field: 'dueDate' },
-				{ id: 19, width: 200, editable: true, cssClass: 'grid-col-editable', title: 'Comment', field: 'comment' },
-				{ id: 20, width: 200, editable: true, cssClass: 'grid-col-editable', title: 'KPI Code', field: 'kpiCode' },
-				{ id: 21, editable: true, cssClass: 'grid-col-editable', title: 'Section', field: 'section' },
-				{ id: 22, width: 100, title: 'PO Number', field: 'poNumber' },
-				{ id: 23, width: 120, title: 'Invoice Num', field: 'invNum' },
-				{ id: 24, width: 100, title: 'Request Date', field: 'reqDate' },
-				{ id: 25, width: 100, title: 'Request Number', field: 'reqNumber' }
-			],
-			headerRows: [
-				{ i: 0, type: 'header', cssClass: 'grid-header-row', editable: false }
-			],
-			dataModel: {
-				fields: ['_new_', 'submit', 'status', 'estNumber', 'invType', 'activityBudget', 'desc', 'detailDesc', 'supplierName',
-					'supplierSite', 'balance', 'unitPrice', 'useVAT', 'amtVAT', 'amtTotal', 'supplierInv', 'invDate',
-					'WHT', 'autoDueDate', 'dueDate', 'comment', 'kpiCode', 'section', 'poNumber', 'invNum', 'reqDate',
-					'reqNumber'],
-				format: 'array',
-				data: [
-				]
-			},
-			extensions: [
-				new CheckboxColumnExtension(),
-				new NewRowHighlighter(),
-				cellEditableCheck
-			]
-        };
-
-        for (var i=0; i<50; i++) {
-            var id = i.toString().padStart(3, '0');
-            options.dataModel.data.push(
-                [false, false, 'APPROVED' + i, 'ES1803010' + id, 'STANDARD', 'Activity/Hall/Promot', 'ค่าผลิตไวนิล โครงบูท พร้อมติดตั้ง', '', 'บจก. ยูพี อิงค์เจ๊ท พร๊อพ', 'HO', 40000, 32500, true, '2,275', '34\,775', 'INV019378', '10-MAR-18', 'หัก ณ ที่จ่าย', true, '15-MAR-18', '', '2.1.13 - Decoration', '123', 'PO180315000', 'INVPE18031910', '10-MAR-18', 'PE1803290009']
-            );
-        }
-
-		var grid = new PGrid(options);
-
-		grid.render(document.getElementById('gridDiv'));
-
-		document.getElementById('addRow').addEventListener('click', function () {
-			grid.data.addRow([true, true, 'DRAFT', '', '', '', '', '', '', '', '', '', false, '', '', '', '', '', false, '', '', '', '', '', '', '']);
-			grid.view.reRender();
-		});
-
-		document.getElementById('clearRow').addEventListener('click', function () {
-			grid.data.removeAllRows();
-			grid.view.reRender();
-		});
-
-		document.getElementById('rerender').addEventListener('click', function () {
-			grid.view.reRender();
-		});
-
-        grid.data.listen('dataChanged', function (e) {
-			console.log(e);
-		});
-
-		window.grid = grid;
-
-	</script>
-
+        <div class="landing-section-title">Extending</div>
+        <div class="landing-grid">
+            <a class="landing-card" href="/samples/custom-extension.html">
+                <div class="card-num">14</div>
+                <h3>Custom Extensions</h3>
+                <p>Zebra striping, row hover, indicator stripes — three small examples.</p>
+            </a>
+            <a class="landing-card" href="/samples/kitchen-sink.html">
+                <div class="card-num">15</div>
+                <h3>Kitchen Sink</h3>
+                <p>Every feature wired together in one grid.</p>
+            </a>
+        </div>
+    </div>
 </body>
-
 </html>

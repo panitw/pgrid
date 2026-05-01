@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Conditional Editable · PGrid</title>
+    <link rel="stylesheet" href="/samples/_shared.css">
+    <style>
+        .lock-row { background-color: #f8fafc; color: #94a3b8; }
+        .lock-row .pgrid-cell-content::before { content: '🔒 '; }
+    </style>
+</head>
+<body>
+    <div class="sample-page">
+        <div class="sample-header">
+            <a class="back" href="/samples/index.html">← All demos</a>
+            <h1>Conditional Editable</h1>
+            <span class="desc">Use the <code>cellEditableCheck</code> hook to lock individual cells dynamically — based on row data, status, or any rule.</span>
+        </div>
+
+        <div class="sample-toolbar">
+            <span class="desc">Rule: rows with status <strong>"On Leave"</strong> are read-only. Salary is locked unless role contains "Manager" or "Lead".</span>
+        </div>
+
+        <div class="sample-grid-wrap">
+            <div class="sample-grid"><div id="gridDiv"></div></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { PGrid } from '/src/index.js';
+        import { generateEmployees, EMPLOYEE_FIELDS } from '/samples/_data.js';
+
+        // The conditional editability extension.
+        const conditionalEditable = {
+            cellEditableCheck(e) {
+                if (!e.dataRow) return;
+                if (e.dataRow.status === 'On Leave') {
+                    e.canEdit = false;
+                    return;
+                }
+                if (e.field === 'salary') {
+                    const role = e.dataRow.role || '';
+                    e.canEdit = /Manager|Lead/.test(role);
+                }
+            }
+        };
+
+        // Apply a row class for "On Leave" rows so users can see why edits are blocked.
+        const lockRowClass = {
+            cellAfterRender(e) {
+                const rowId = e.rowId;
+                if (!rowId) return;
+                const row = grid.data.getRowData(rowId);
+                e.cell.classList.toggle('lock-row', row && row.status === 'On Leave');
+            }
+        };
+
+        const grid = new PGrid({
+            rowHeight: 32,
+            columnWidth: 130,
+            selection: { cssClass: 'grid-cell-selection' },
+            editing: true,
+            autoUpdate: true,
+            columns: [
+                { id: 0, field: 'id',         title: 'ID',         width: 100 },
+                { id: 1, field: 'name',       title: 'Name',       width: 180, editable: true, cssClass: 'grid-col-editable' },
+                { id: 2, field: 'department', title: 'Department', width: 140, editable: true, cssClass: 'grid-col-editable' },
+                { id: 3, field: 'role',       title: 'Role',       width: 180, editable: true, cssClass: 'grid-col-editable' },
+                { id: 4, field: 'status',     title: 'Status',     width: 110, editable: true, cssClass: 'grid-col-editable' },
+                { id: 5, field: 'salary',     title: 'Salary',     width: 120, editable: true, cssClass: 'grid-col-editable grid-number-col' },
+                { id: 6, field: 'notes',      title: 'Notes',      width: 240, editable: true, cssClass: 'grid-col-editable' }
+            ],
+            headerRows: [{ i: 0, cssClass: 'grid-header-row' }],
+            dataModel: { fields: EMPLOYEE_FIELDS, format: 'rows', data: generateEmployees(80) },
+            extensions: [conditionalEditable, lockRowClass]
+        });
+
+        grid.render(document.getElementById('gridDiv'));
+        window.grid = grid;
+    </script>
+</body>
+</html>

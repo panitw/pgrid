@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Custom Extension · PGrid</title>
+    <link rel="stylesheet" href="/samples/_shared.css">
+    <style>
+        .row-zebra-odd { background-color: #fafbfc; }
+
+        .row-hover-highlight { background-color: #eff6ff !important; }
+
+        .salary-flag-high { box-shadow: inset 3px 0 0 #16a34a; }
+        .salary-flag-low  { box-shadow: inset 3px 0 0 #ef4444; }
+
+        .badge-new {
+            background: #fef9c3;
+            color: #854d0e;
+            font-size: 10px;
+            font-weight: 600;
+            padding: 1px 6px;
+            border-radius: 999px;
+            margin-left: 6px;
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body>
+    <div class="sample-page">
+        <div class="sample-header">
+            <a class="back" href="/samples/index.html">← All demos</a>
+            <h1>Writing a Custom Extension</h1>
+            <span class="desc">Three small extensions: row hover highlight, zebra striping, and a salary indicator stripe. Each is just an object with hook methods.</span>
+        </div>
+
+        <div class="sample-grid-wrap">
+            <div class="sample-grid"><div id="gridDiv"></div></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { PGrid } from '/src/index.js';
+        import { generateEmployees, EMPLOYEE_FIELDS } from '/samples/_data.js';
+
+        // 1. Zebra striping — alternate row backgrounds.
+        const zebraExtension = {
+            cellAfterRender(e) {
+                if (e.rowIndex % 2 === 1) e.cell.classList.add('row-zebra-odd');
+            },
+            cellAfterRecycled(e) {
+                e.cell.classList.remove('row-zebra-odd');
+            }
+        };
+
+        // 2. Row hover — light up every cell of the row under the cursor.
+        const hoverExtension = {
+            init(grid) {
+                this._grid = grid;
+                this._currentRow = -1;
+                this._mouseOver = (e) => {
+                    const cell = e.target.closest('.pgrid-cell');
+                    if (!cell) return;
+                    const r = parseInt(cell.dataset.rowIndex);
+                    if (r !== this._currentRow) {
+                        this._highlight(this._currentRow, false);
+                        this._highlight(r, true);
+                        this._currentRow = r;
+                    }
+                };
+            },
+            gridAfterRender(e) {
+                const root = this._grid.view.getElement();
+                root.addEventListener('mouseover', this._mouseOver);
+            },
+            cellAfterRender(e) {
+                if (e.rowIndex === this._currentRow) e.cell.classList.add('row-hover-highlight');
+            },
+            cellAfterRecycled(e) {
+                e.cell.classList.remove('row-hover-highlight');
+            },
+            _highlight(rowIdx, on) {
+                if (rowIdx < 0) return;
+                const root = this._grid.view.getElement();
+                root.querySelectorAll(`.pgrid-cell[data-row-index="${rowIdx}"]`)
+                    .forEach(c => c.classList.toggle('row-hover-highlight', on));
+            }
+        };
+
+        // 3. Salary flag — left stripe based on value.
+        const salaryFlag = {
+            cellAfterRender(e) {
+                e.cell.classList.remove('salary-flag-high', 'salary-flag-low');
+                if (e.colIndex !== 5) return;
+                const v = +e.data || 0;
+                if (v >= 180000) e.cell.classList.add('salary-flag-high');
+                else if (v < 70000) e.cell.classList.add('salary-flag-low');
+            },
+            cellAfterRecycled(e) {
+                e.cell.classList.remove('salary-flag-high', 'salary-flag-low');
+            }
+        };
+
+        const grid = new PGrid({
+            rowHeight: 34,
+            columnWidth: 130,
+            selection: { cssClass: 'grid-cell-selection' },
+            columns: [
+                { id: 0, field: 'id',         title: 'ID',         width: 100 },
+                { id: 1, field: 'name',       title: 'Name',       width: 180 },
+                { id: 2, field: 'department', title: 'Department', width: 140 },
+                { id: 3, field: 'role',       title: 'Role',       width: 180 },
+                { id: 4, field: 'location',   title: 'Location',   width: 140 },
+                { id: 5, field: 'salary',     title: 'Salary',     width: 130, cssClass: 'grid-number-col',
+                    formatter: { render: e => { e.cellContent.textContent = (e.rowIndex === 0) ? (e.data || '') : '$' + (e.data || 0).toLocaleString(); } } },
+                { id: 6, field: 'status',     title: 'Status',     width: 110 }
+            ],
+            headerRows: [{ i: 0, cssClass: 'grid-header-row' }],
+            columnFormatter: true,
+            dataModel: { fields: EMPLOYEE_FIELDS, format: 'rows', data: generateEmployees(120) },
+            extensions: [zebraExtension, hoverExtension, salaryFlag]
+        });
+
+        grid.render(document.getElementById('gridDiv'));
+        window.grid = grid;
+    </script>
+</body>
+</html>

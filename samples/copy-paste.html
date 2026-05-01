@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Copy / Paste · PGrid</title>
+    <link rel="stylesheet" href="/samples/_shared.css">
+</head>
+<body>
+    <div class="sample-page">
+        <div class="sample-header">
+            <a class="back" href="/samples/index.html">← All demos</a>
+            <h1>Copy / Paste</h1>
+            <span class="desc">Select a cell, press <strong>Ctrl/Cmd+C</strong>, then click another cell and press <strong>Ctrl/Cmd+V</strong>. Tab-separated values from spreadsheets paste across rows and columns.</span>
+        </div>
+
+        <div class="sample-grid-wrap">
+            <div class="sample-grid"><div id="gridDiv"></div></div>
+        </div>
+
+        <div class="sample-status" id="status">Try copying from this grid into a spreadsheet — or paste TSV from outside.</div>
+    </div>
+
+    <script type="module">
+        import { PGrid } from '/src/index.js';
+        import { generateEmployees, EMPLOYEE_FIELDS } from '/samples/_data.js';
+
+        const grid = new PGrid({
+            rowHeight: 32,
+            columnWidth: 130,
+            selection: { cssClass: 'grid-cell-selection' },
+            editing: true,
+            copypaste: true,
+            autoUpdate: true,
+            columns: [
+                { id: 0, field: 'id',         title: 'ID',         width: 100 },
+                { id: 1, field: 'name',       title: 'Name',       width: 180, editable: true, cssClass: 'grid-col-editable' },
+                { id: 2, field: 'email',      title: 'Email',      width: 240, editable: true, cssClass: 'grid-col-editable' },
+                { id: 3, field: 'department', title: 'Department', width: 140, editable: true, cssClass: 'grid-col-editable' },
+                { id: 4, field: 'role',       title: 'Role',       width: 180, editable: true, cssClass: 'grid-col-editable' },
+                { id: 5, field: 'location',   title: 'Location',   width: 140, editable: true, cssClass: 'grid-col-editable' },
+                { id: 6, field: 'salary',     title: 'Salary',     width: 110, editable: true, cssClass: 'grid-col-editable grid-number-col' }
+            ],
+            headerRows: [{ i: 0, cssClass: 'grid-header-row' }],
+            dataModel: { fields: EMPLOYEE_FIELDS, format: 'rows', data: generateEmployees(60) }
+        });
+
+        grid.render(document.getElementById('gridDiv'));
+        window.grid = grid;
+
+        const status = document.getElementById('status');
+        grid.listen('cellPasted', (e) => {
+            status.textContent = `Pasted into ${e.destField} (row ${e.destSelection.r}): ${JSON.stringify(e.data).slice(0, 100)}`;
+        });
+    </script>
+</body>
+</html>

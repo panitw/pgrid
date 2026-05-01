@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Freeze Panes · PGrid</title>
+    <link rel="stylesheet" href="/samples/_shared.css">
+</head>
+<body>
+    <div class="sample-page">
+        <div class="sample-header">
+            <a class="back" href="/samples/index.html">← All demos</a>
+            <h1>Freeze Panes</h1>
+            <span class="desc">6-pane layout — freeze leading columns, top rows, and trailing rows. Scroll horizontally and vertically to see them stay in place.</span>
+        </div>
+
+        <div class="sample-toolbar">
+            <label>Left:</label>
+            <select id="left">
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="2" selected>2</option>
+                <option value="3">3</option>
+            </select>
+            <label>Top:</label>
+            <select id="top">
+                <option value="0" selected>0 (header only)</option>
+                <option value="1">1 extra</option>
+                <option value="2">2 extra</option>
+            </select>
+            <label>Bottom:</label>
+            <select id="bottom">
+                <option value="0">0</option>
+                <option value="1" selected>1 (totals)</option>
+            </select>
+        </div>
+
+        <div class="sample-grid-wrap">
+            <div class="sample-grid"><div id="gridDiv"></div></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { PGrid } from '/src/index.js';
+        import { generateEmployees, EMPLOYEE_FIELDS } from '/samples/_data.js';
+
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+        function buildData() {
+            const employees = generateEmployees(80);
+            const rows = employees.map(emp => {
+                const row = { id: emp.id, name: emp.name, department: emp.department };
+                let total = 0;
+                months.forEach(m => {
+                    const v = 4000 + Math.floor(Math.random() * 8000);
+                    row[m.toLowerCase()] = v;
+                    total += v;
+                });
+                row.total = total;
+                return row;
+            });
+            // Trailing totals row
+            const totals = { id: 'TOTAL', name: '— Totals —', department: '' };
+            let grand = 0;
+            months.forEach(m => {
+                const sum = rows.reduce((s, r) => s + r[m.toLowerCase()], 0);
+                totals[m.toLowerCase()] = sum;
+                grand += sum;
+            });
+            totals.total = grand;
+            rows.push(totals);
+            return rows;
+        }
+
+        const data = buildData();
+        const fields = ['id', 'name', 'department', ...months.map(m => m.toLowerCase()), 'total'];
+
+        let grid;
+        function build(left, top, bottom) {
+            const wrap = document.getElementById('gridDiv');
+            wrap.innerHTML = '';
+
+            const cols = [
+                { id: 0, field: 'id',         title: 'ID',         width: 100 },
+                { id: 1, field: 'name',       title: 'Name',       width: 180 },
+                { id: 2, field: 'department', title: 'Department', width: 140 }
+            ];
+            months.forEach((m, i) => {
+                cols.push({ id: 3 + i, field: m.toLowerCase(), title: m, width: 90, cssClass: 'grid-number-col' });
+            });
+            cols.push({ id: 3 + months.length, field: 'total', title: 'Total', width: 110,
+                cssClass: 'grid-number-col', formatter: { render: e => { e.cellContent.textContent = (e.rowIndex === 0) ? (e.data || '') : (e.data || 0).toLocaleString(); } } });
+
+            // Mark a couple of rows as "highlight" to show top-freeze of data rows
+            const rows = [];
+            if (top >= 1) rows.push({ i: 0, cssClass: 'grid-edited-row' });
+            if (top >= 2) rows.push({ i: 1, cssClass: 'grid-edited-row' });
+
+            grid = new PGrid({
+                rowHeight: 32,
+                columnWidth: 100,
+                columnFormatter: true,
+                freezePane: { left, top, bottom },
+                columns: cols,
+                rows,
+                headerRows: [{ i: 0, cssClass: 'grid-header-row' }],
+                dataModel: { fields, format: 'rows', data }
+            });
+            grid.render(wrap);
+            window.grid = grid;
+        }
+
+        const refresh = () => build(
+            +document.getElementById('left').value,
+            +document.getElementById('top').value,
+            +document.getElementById('bottom').value
+        );
+        refresh();
+        ['left', 'top', 'bottom'].forEach(id => document.getElementById(id).addEventListener('change', refresh));
+    </script>
+</body>
+</html>

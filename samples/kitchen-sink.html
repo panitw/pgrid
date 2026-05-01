@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Kitchen Sink · PGrid</title>
+    <link rel="stylesheet" href="/samples/_shared.css">
+    <style>
+        .pill {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        .pill-green  { background: #dcfce7; color: #15803d; }
+        .pill-amber  { background: #fef3c7; color: #b45309; }
+        .pill-blue   { background: #dbeafe; color: #1d4ed8; }
+        .pill-gray   { background: #f1f5f9; color: #475569; }
+
+        .row-zebra-odd { background-color: #fafbfc; }
+
+        .pgrid-cell .custom-select {
+            width: 100%;
+            height: 100%;
+            border: 2px solid var(--accent);
+            border-radius: 4px;
+            font: inherit;
+            padding: 0 8px;
+            background: white;
+            outline: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="sample-page">
+        <div class="sample-header">
+            <a class="back" href="/samples/index.html">← All demos</a>
+            <h1>Kitchen Sink</h1>
+            <span class="desc">Every feature together — selection, editing, copy/paste, formatters, freeze, resize, search, custom editors, checkbox column, custom extensions.</span>
+        </div>
+
+        <div class="sample-toolbar">
+            <button class="primary" id="addRow">+ Add row</button>
+            <button id="removeRow">Remove selected</button>
+            <span class="divider"></span>
+            <input type="search" id="q" placeholder="Search…">
+            <button id="clear">Clear</button>
+            <span class="divider"></span>
+            <span class="desc" id="count"></span>
+        </div>
+
+        <div class="sample-grid-wrap">
+            <div class="sample-grid"><div id="gridDiv"></div></div>
+        </div>
+
+        <div class="sample-status" id="status">Ready.</div>
+    </div>
+
+    <script type="module">
+        import { PGrid, CheckboxColumnExtension } from '/src/index.js';
+        import { generateEmployees, EMPLOYEE_FIELDS, EMPLOYEE_OPTIONS } from '/samples/_data.js';
+
+        const currency = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
+
+        // ----- Custom editor -----
+        class SelectEditor {
+            constructor(options) { this._options = options; }
+            clear(e) { e.done(null); }
+            attach(e) {
+                e.cell.innerHTML = '';
+                const select = document.createElement('select');
+                select.className = 'custom-select';
+                this._options.forEach(opt => {
+                    const o = document.createElement('option');
+                    o.value = opt; o.textContent = opt;
+                    if (opt === e.data) o.selected = true;
+                    select.appendChild(o);
+                });
+                e.cell.appendChild(select);
+                select.focus();
+                const finish = () => e.done(select.value);
+                select.addEventListener('change', finish);
+                select.addEventListener('blur', finish);
+            }
+        }
+
+        // ----- Formatters -----
+        const statusFormatter = {
+            render(e) {
+                if (e.rowIndex === 0) { e.cellContent.textContent = e.data || ''; return; }
+                const v = e.data || '';
+                const cls = v === 'Active' ? 'pill-green'
+                          : v === 'Remote' ? 'pill-blue'
+                          : v === 'On Leave' ? 'pill-amber' : 'pill-gray';
+                e.cellContent.innerHTML = `<span class="pill ${cls}">${v}</span>`;
+            }
+        };
+        const moneyFormatter = {
+            render(e) {
+                if (e.rowIndex === 0) { e.cellContent.textContent = e.data || ''; return; }
+                e.cellContent.textContent = currency.format(+e.data || 0);
+            }
+        };
+
+        // ----- Custom extensions -----
+        const zebra = {
+            cellAfterRender(e) { if (e.rowIndex % 2 === 1) e.cell.classList.add('row-zebra-odd'); },
+            cellAfterRecycled(e) { e.cell.classList.remove('row-zebra-odd'); }
+        };
+
+        const conditionalEditable = {
+            cellEditableCheck(e) {
+                if (e.dataRow && e.dataRow.status === 'On Leave') e.canEdit = false;
+            }
+        };
+
+        // ----- Build the grid -----
+        const total = 300;
+        const grid = new PGrid({
+            rowHeight: 36,
+            columnWidth: 130,
+            selection: { cssClass: 'grid-cell-selection' },
+            editing: true,
+            copypaste: true,
+            autoUpdate: true,
+            columnFormatter: true,
+            columnResize: { minWidth: 60, maxWidth: 400 },
+            textOverflow: 'ellipsis',
+            freezePane: { left: 2 },
+            columns: [
+                { id: 0, field: 'remote',     title: '⌂',          width: 50, editable: true, cssClass: 'grid-checkbox-col' },
+                { id: 1, field: 'id',         title: 'ID',         width: 100 },
+                { id: 2, field: 'name',       title: 'Name',       width: 180, editable: true, cssClass: 'grid-col-editable' },
+                { id: 3, field: 'email',      title: 'Email',      width: 240, editable: true, cssClass: 'grid-col-editable' },
+                { id: 4, field: 'department', title: 'Department', width: 150, editable: true, cssClass: 'grid-col-editable',
+                    editor: new SelectEditor(EMPLOYEE_OPTIONS.departments) },
+                { id: 5, field: 'role',       title: 'Role',       width: 180, editable: true, cssClass: 'grid-col-editable' },
+                { id: 6, field: 'location',   title: 'Location',   width: 150, editable: true, cssClass: 'grid-col-editable',
+                    editor: new SelectEditor(EMPLOYEE_OPTIONS.locations) },
+                { id: 7, field: 'status',     title: 'Status',     width: 130, editable: true, cssClass: 'grid-col-editable',
+                    editor: new SelectEditor(EMPLOYEE_OPTIONS.statuses), formatter: statusFormatter },
+                { id: 8, field: 'salary',     title: 'Salary',     width: 130, editable: true, cssClass: 'grid-col-editable grid-number-col',
+                    formatter: moneyFormatter },
+                { id: 9, field: 'hired',      title: 'Hired',      width: 120 },
+                { id: 10, field: 'notes',     title: 'Notes',      width: 280, editable: true, cssClass: 'grid-col-editable' }
+            ],
+            headerRows: [{ i: 0, cssClass: 'grid-header-row' }],
+            dataModel: { fields: EMPLOYEE_FIELDS, format: 'rows', data: generateEmployees(total) },
+            extensions: [
+                new CheckboxColumnExtension(),
+                zebra,
+                conditionalEditable
+            ]
+        });
+
+        grid.render(document.getElementById('gridDiv'));
+        window.grid = grid;
+
+        // ----- Toolbar wiring -----
+        const status = document.getElementById('status');
+        const count = document.getElementById('count');
+        const refresh = () => { count.textContent = `${grid.data.getRowCount()} rows`; };
+        refresh();
+        grid.data.listen('dataChanged', (e) => {
+            const u = e.updates && e.updates[0];
+            if (u && u.field) status.textContent = `Updated ${u.field}: ${JSON.stringify(u.prevData)} → ${JSON.stringify(u.data)}`;
+            refresh();
+        });
+        grid.listen('cellPasted', (e) => {
+            status.textContent = `Pasted into ${e.destField}`;
+        });
+        grid.listen('columnResized', (e) => {
+            status.textContent = `${e.field} resized to ${e.width}px`;
+        });
+
+        let nextId = 9000;
+        document.getElementById('addRow').addEventListener('click', () => {
+            const r = generateEmployees(1)[0];
+            r.id = `NEW-${nextId++}`;
+            grid.data.insertRow(0, r);
+            grid.view.reRender();
+        });
+        document.getElementById('removeRow').addEventListener('click', () => {
+            const sel = grid.state.get('selection');
+            if (!sel || !sel.length) return;
+            const rowId = grid.model.getRowId(sel[0].r);
+            if (rowId) { grid.data.removeRow(rowId); grid.view.reRender(); }
+        });
+
+        const q = document.getElementById('q');
+        q.addEventListener('input', () => {
+            if (q.value.trim()) grid.data.search(q.value.trim());
+            else grid.data.clearSearch();
+            grid.view.reRender();
+            refresh();
+        });
+        document.getElementById('clear').addEventListener('click', () => {
+            q.value = '';
+            grid.data.clearSearch();
+            grid.view.reRender();
+            refresh();
+        });
+    </script>
+</body>
+</html>

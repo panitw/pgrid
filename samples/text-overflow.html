@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Text Overflow · PGrid</title>
+    <link rel="stylesheet" href="/samples/_shared.css">
+</head>
+<body>
+    <div class="sample-page">
+        <div class="sample-header">
+            <a class="back" href="/samples/index.html">← All demos</a>
+            <h1>Text Overflow</h1>
+            <span class="desc">Three modes — <code>clip</code>, <code>ellipsis</code>, <code>wrap</code>. Set per cell, column, row, or as the grid default. Resolution cascades cell → column → row → default.</span>
+        </div>
+
+        <div class="sample-toolbar">
+            <label>Default mode (last column):</label>
+            <select id="mode">
+                <option value="ellipsis">ellipsis</option>
+                <option value="clip">clip</option>
+                <option value="wrap">wrap</option>
+            </select>
+            <span class="divider"></span>
+            <span class="desc">First three columns are forced. Last column uses the grid default.</span>
+        </div>
+
+        <div class="sample-grid-wrap">
+            <div class="sample-grid"><div id="gridDiv"></div></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { PGrid } from '/src/index.js';
+
+        // The same long string in every column, so differences in handling are obvious.
+        const longText = 'Distinguished engineer with deep experience across distributed systems and developer tooling.';
+
+        const data = [];
+        for (let i = 0; i < 30; i++) {
+            data.push({
+                id: `EMP-${1000 + i}`,
+                clipText: longText,
+                ellipsisText: longText,
+                wrapText: longText,
+                defaultText: longText
+            });
+        }
+
+        let grid;
+        function build(mode) {
+            const wrap = document.getElementById('gridDiv');
+            wrap.innerHTML = '';
+            grid = new PGrid({
+                rowHeight: 60,
+                columnWidth: 200,
+                textOverflow: mode,
+                columns: [
+                    { id: 0, field: 'id',           title: 'ID',                 width: 100 },
+                    { id: 1, field: 'clipText',     title: 'clip',               width: 220, textOverflow: 'clip' },
+                    { id: 2, field: 'ellipsisText', title: 'ellipsis',           width: 220, textOverflow: 'ellipsis' },
+                    { id: 3, field: 'wrapText',     title: 'wrap',               width: 220, textOverflow: 'wrap' },
+                    { id: 4, field: 'defaultText',  title: `default (${mode})`,  width: 220 }
+                ],
+                headerRows: [{ i: 0, cssClass: 'grid-header-row' }],
+                dataModel: { fields: ['id', 'clipText', 'ellipsisText', 'wrapText', 'defaultText'], format: 'rows', data }
+            });
+            grid.render(wrap);
+            window.grid = grid;
+        }
+
+        build('ellipsis');
+        document.getElementById('mode').addEventListener('change', (e) => build(e.target.value));
+    </script>
+</body>
+</html>

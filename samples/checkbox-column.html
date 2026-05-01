@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Checkbox Column · PGrid</title>
+    <link rel="stylesheet" href="/samples/_shared.css">
+</head>
+<body>
+    <div class="sample-page">
+        <div class="sample-header">
+            <a class="back" href="/samples/index.html">← All demos</a>
+            <h1>Checkbox Column</h1>
+            <span class="desc">Boolean fields render as live checkboxes via <code>CheckboxColumnExtension</code>. Editable when the column is editable.</span>
+        </div>
+
+        <div class="sample-toolbar">
+            <button id="selectAll">Select all visible</button>
+            <button id="clearAll">Clear all</button>
+            <span class="divider"></span>
+            <span class="desc" id="count">0 selected</span>
+        </div>
+
+        <div class="sample-grid-wrap">
+            <div class="sample-grid"><div id="gridDiv"></div></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { PGrid, CheckboxColumnExtension } from '/src/index.js';
+        import { generateEmployees, EMPLOYEE_FIELDS } from '/samples/_data.js';
+
+        const data = generateEmployees(80).map(r => ({ ...r, selected: false, remote: !!r.remote }));
+
+        const grid = new PGrid({
+            rowHeight: 32,
+            columnWidth: 130,
+            selection: { cssClass: 'grid-cell-selection' },
+            editing: true,
+            autoUpdate: true,
+            columns: [
+                { id: 0, field: 'selected', title: '✓', width: 40, editable: true, cssClass: 'grid-checkbox-col' },
+                { id: 1, field: 'id',         title: 'ID',         width: 100 },
+                { id: 2, field: 'name',       title: 'Name',       width: 180 },
+                { id: 3, field: 'department', title: 'Department', width: 140 },
+                { id: 4, field: 'role',       title: 'Role',       width: 180 },
+                { id: 5, field: 'location',   title: 'Location',   width: 140 },
+                { id: 6, field: 'remote',     title: 'Remote',     width: 80, editable: true, cssClass: 'grid-checkbox-col' },
+                { id: 7, field: 'status',     title: 'Status',     width: 110 }
+            ],
+            headerRows: [{ i: 0, cssClass: 'grid-header-row' }],
+            dataModel: { fields: [...EMPLOYEE_FIELDS, 'selected'], format: 'rows', data },
+            extensions: [new CheckboxColumnExtension()]
+        });
+
+        grid.render(document.getElementById('gridDiv'));
+        window.grid = grid;
+
+        const countEl = document.getElementById('count');
+        const refreshCount = () => {
+            const n = grid.data.getAllData().filter(r => r.selected).length;
+            countEl.textContent = `${n} selected`;
+        };
+        grid.data.listen('dataChanged', refreshCount);
+
+        document.getElementById('selectAll').addEventListener('click', () => {
+            grid.data.getAllData().forEach((r, i) => grid.data.setData(grid.data.getOriginalRowId(i), 'selected', true));
+            grid.view.reRender();
+            refreshCount();
+        });
+        document.getElementById('clearAll').addEventListener('click', () => {
+            grid.data.getAllData().forEach((r, i) => grid.data.setData(grid.data.getOriginalRowId(i), 'selected', false));
+            grid.view.reRender();
+            refreshCount();
+        });
+    </script>
+</body>
+</html>

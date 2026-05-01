@@ -25,7 +25,7 @@ export class CheckboxColumnExtension {
     }
 
     cellUpdate (e) {
-        if (typeof e.data === 'boolen') {
+        if (typeof e.data === 'boolean') {
             if (e.cellContent.firstChild) {
                 e.cellContent.firstChild.checked = e.data;
             }

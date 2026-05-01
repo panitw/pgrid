@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Cell Formatters · PGrid</title>
+    <link rel="stylesheet" href="/samples/_shared.css">
+    <style>
+        .pill {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        .pill-green  { background: #dcfce7; color: #15803d; }
+        .pill-amber  { background: #fef3c7; color: #b45309; }
+        .pill-blue   { background: #dbeafe; color: #1d4ed8; }
+        .pill-gray   { background: #f1f5f9; color: #475569; }
+
+        .bar-wrap {
+            position: relative;
+            height: 10px;
+            background: #f1f5f9;
+            border-radius: 999px;
+            overflow: hidden;
+            margin-top: 6px;
+        }
+        .bar-fill {
+            position: absolute;
+            top: 0; bottom: 0; left: 0;
+            background: linear-gradient(90deg, #38bdf8, #6366f1);
+            border-radius: 999px;
+        }
+
+        .salary-cell { font-variant-numeric: tabular-nums; }
+        .salary-low  { color: #94a3b8; }
+        .salary-high { color: #16a34a; font-weight: 600; }
+
+        .stars { color: #fbbf24; letter-spacing: 1px; font-size: 13px; }
+        .stars-dim { color: #e5e7eb; }
+    </style>
+</head>
+<body>
+    <div class="sample-page">
+        <div class="sample-header">
+            <a class="back" href="/samples/index.html">← All demos</a>
+            <h1>Cell Formatters</h1>
+            <span class="desc">Per-column <code>formatter</code> hooks transform cell content. Pills, bars, stars, currency — anything that's HTML.</span>
+        </div>
+
+        <div class="sample-grid-wrap">
+            <div class="sample-grid"><div id="gridDiv"></div></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { PGrid } from '/src/index.js';
+        import { generateEmployees, EMPLOYEE_FIELDS } from '/samples/_data.js';
+
+        const currency = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
+
+        // Body-only formatter helper: render the column title as plain text on header rows,
+        // so formatters that produce pills/bars/etc. don't break the header.
+        const bodyOnly = (fn) => (e) => {
+            if (e.rowIndex === 0) {
+                e.cellContent.textContent = e.data || '';
+                return;
+            }
+            fn(e);
+        };
+
+        const statusFormatter = {
+            render: bodyOnly((e) => {
+                const v = e.data || '';
+                const cls = v === 'Active' ? 'pill-green'
+                          : v === 'Remote' ? 'pill-blue'
+                          : v === 'On Leave' ? 'pill-amber'
+                          : 'pill-gray';
+                e.cellContent.innerHTML = `<span class="pill ${cls}">${v}</span>`;
+            })
+        };
+
+        const departmentFormatter = {
+            render: bodyOnly((e) => {
+                e.cellContent.innerHTML = `<span class="pill pill-gray">${e.data || ''}</span>`;
+            })
+        };
+
+        const salaryFormatter = {
+            render: bodyOnly((e) => {
+                const v = +e.data || 0;
+                const cls = v >= 150000 ? 'salary-high' : v < 80000 ? 'salary-low' : '';
+                e.cellContent.innerHTML = `<span class="salary-cell ${cls}">${currency.format(v)}</span>`;
+            })
+        };
+
+        const performanceFormatter = {
+            render: bodyOnly((e) => {
+                const v = Math.round(e.data || 0);
+                const stars = '★'.repeat(v) + '<span class="stars-dim">' + '★'.repeat(5 - v) + '</span>';
+                const pct = (v / 5) * 100;
+                e.cellContent.innerHTML = `
+                    <div>
+                        <span class="stars">${stars}</span>
+                        <div class="bar-wrap"><div class="bar-fill" style="width:${pct}%"></div></div>
+                    </div>`;
+            })
+        };
+
+        const grid = new PGrid({
+            rowHeight: 56,
+            columnWidth: 140,
+            columnFormatter: true,
+            columns: [
+                { id: 0, field: 'id',          title: 'ID',          width: 100 },
+                { id: 1, field: 'name',        title: 'Name',        width: 180 },
+                { id: 2, field: 'department',  title: 'Department',  width: 150, formatter: departmentFormatter },
+                { id: 3, field: 'role',        title: 'Role',        width: 180 },
+                { id: 4, field: 'status',      title: 'Status',      width: 120, formatter: statusFormatter },
+                { id: 5, field: 'salary',      title: 'Salary',      width: 130, cssClass: 'grid-number-col', formatter: salaryFormatter },
+                { id: 6, field: 'performance', title: 'Performance', width: 200, formatter: performanceFormatter }
+            ],
+            headerRows: [{ i: 0, cssClass: 'grid-header-row' }],
+            dataModel: { fields: EMPLOYEE_FIELDS, format: 'rows', data: generateEmployees(80) }
+        });
+
+        grid.render(document.getElementById('gridDiv'));
+        window.grid = grid;
+    </script>
+</body>
+</html>

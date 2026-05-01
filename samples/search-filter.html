@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Search & Filter · PGrid</title>
+    <link rel="stylesheet" href="/samples/_shared.css">
+</head>
+<body>
+    <div class="sample-page">
+        <div class="sample-header">
+            <a class="back" href="/samples/index.html">← All demos</a>
+            <h1>Search & Filter</h1>
+            <span class="desc"><code>data.search()</code> filters the visible row projection without losing original order. Patterns are case-insensitive regex; multiple patterns OR-match.</span>
+        </div>
+
+        <div class="sample-toolbar">
+            <input type="search" id="q" placeholder="Search any field…">
+            <button id="clear">Clear</button>
+            <span class="divider"></span>
+            <label>Scope:</label>
+            <select id="scope">
+                <option value="">All fields</option>
+                <option value="name">Name only</option>
+                <option value="email">Email only</option>
+                <option value="department,role">Dept + Role</option>
+            </select>
+            <span class="divider"></span>
+            <span class="desc" id="count"></span>
+        </div>
+
+        <div class="sample-grid-wrap">
+            <div class="sample-grid"><div id="gridDiv"></div></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { PGrid } from '/src/index.js';
+        import { generateEmployees, EMPLOYEE_FIELDS } from '/samples/_data.js';
+
+        const total = 500;
+        const grid = new PGrid({
+            rowHeight: 32,
+            columnWidth: 130,
+            selection: { cssClass: 'grid-cell-selection' },
+            autoUpdate: true,
+            columns: [
+                { id: 0, field: 'id',         title: 'ID',         width: 100 },
+                { id: 1, field: 'name',       title: 'Name',       width: 180 },
+                { id: 2, field: 'email',      title: 'Email',      width: 240 },
+                { id: 3, field: 'department', title: 'Department', width: 140 },
+                { id: 4, field: 'role',       title: 'Role',       width: 180 },
+                { id: 5, field: 'location',   title: 'Location',   width: 140 },
+                { id: 6, field: 'status',     title: 'Status',     width: 110 }
+            ],
+            headerRows: [{ i: 0, cssClass: 'grid-header-row' }],
+            dataModel: { fields: EMPLOYEE_FIELDS, format: 'rows', data: generateEmployees(total) }
+        });
+
+        grid.render(document.getElementById('gridDiv'));
+        window.grid = grid;
+
+        const q = document.getElementById('q');
+        const scopeSel = document.getElementById('scope');
+        const count = document.getElementById('count');
+
+        function refreshCount() {
+            count.textContent = `${grid.data.getRowCount()} of ${total} rows`;
+        }
+        refreshCount();
+
+        function apply() {
+            const term = q.value.trim();
+            const scope = scopeSel.value ? scopeSel.value.split(',') : null;
+            if (!term) {
+                grid.data.clearSearch();
+            } else {
+                grid.data.search(term, scope);
+            }
+            grid.view.reRender();
+            refreshCount();
+        }
+
+        q.addEventListener('input', apply);
+        scopeSel.addEventListener('change', apply);
+        document.getElementById('clear').addEventListener('click', () => {
+            q.value = '';
+            apply();
+        });
+    </script>
+</body>
+</html>

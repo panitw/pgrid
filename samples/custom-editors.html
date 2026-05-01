@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Custom Editors · PGrid</title>
+    <link rel="stylesheet" href="/samples/_shared.css">
+    <style>
+        /* The editor host (created by EditorExtension) is a floating <div>
+           appended to <body>. Make it look like a focused cell. */
+        .custom-editor-host {
+            background: #fff;
+            box-shadow: inset 0 0 0 2px var(--accent), 0 4px 12px rgba(15, 23, 42, 0.08);
+            border-radius: 4px;
+            display: flex;
+            align-items: stretch;
+            overflow: hidden;
+        }
+
+        .custom-editor-host > * {
+            flex: 1 1 auto;
+            min-width: 0;
+            font: inherit;
+            border: none;
+            outline: none;
+            background: transparent;
+            padding: 0 10px;
+        }
+
+        .custom-editor-host select.custom-select {
+            appearance: none;
+            -webkit-appearance: none;
+            background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path d='M2 4l4 4 4-4' stroke='%2371717a' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>") right 10px center / 12px no-repeat;
+            padding-right: 28px;
+        }
+
+        .custom-editor-host input.custom-date {
+            padding-right: 6px;
+        }
+
+        .custom-editor-host .custom-stars {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            padding: 0;
+        }
+
+        .custom-editor-host .custom-stars button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            color: #fbbf24;
+            padding: 0 2px;
+            line-height: 1;
+        }
+
+        .custom-editor-host .custom-stars button.dim {
+            color: #e5e7eb;
+        }
+    </style>
+</head>
+<body>
+    <div class="sample-page">
+        <div class="sample-header">
+            <a class="back" href="/samples/index.html">← All demos</a>
+            <h1>Custom Editors</h1>
+            <span class="desc">Provide your own editor with <code>column.editor = { attach(e), clear(e) }</code>.</span>
+        </div>
+
+        <div class="sample-grid-wrap">
+            <div class="sample-grid"><div id="gridDiv"></div></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { PGrid } from '/src/index.js';
+        import { generateEmployees, EMPLOYEE_FIELDS, EMPLOYEE_OPTIONS } from '/samples/_data.js';
+
+        // Dropdown editor for a fixed list of options.
+        class SelectEditor {
+            constructor(options) { this._options = options; }
+            clear(e) { e.done(null); }
+            attach(e) {
+                e.cell.innerHTML = '';
+                e.cell.classList.add('custom-editor-host');
+                const select = document.createElement('select');
+                select.className = 'custom-select';
+                this._options.forEach(opt => {
+                    const o = document.createElement('option');
+                    o.value = opt;
+                    o.textContent = opt;
+                    if (opt === e.data) o.selected = true;
+                    select.appendChild(o);
+                });
+                e.cell.appendChild(select);
+                select.focus();
+                if (select.showPicker) {
+                    try { select.showPicker(); } catch (err) { /* gesture not allowed in some browsers */ }
+                }
+                const finish = () => e.done(select.value);
+                select.addEventListener('change', finish);
+                select.addEventListener('blur', finish);
+                select.addEventListener('keydown', (ev) => {
+                    if (ev.key === 'Enter') finish();
+                    if (ev.key === 'Escape') e.done();
+                });
+            }
+        }
+
+        // Native date editor.
+        class DateEditor {
+            clear(e) { e.done(''); }
+            attach(e) {
+                e.cell.innerHTML = '';
+                e.cell.classList.add('custom-editor-host');
+                const input = document.createElement('input');
+                input.type = 'date';
+                input.className = 'custom-date';
+                input.value = e.data || '';
+                e.cell.appendChild(input);
+                input.focus();
+                if (input.showPicker) {
+                    try { input.showPicker(); } catch (err) { /* gesture not allowed in some browsers */ }
+                }
+                const finish = () => e.done(input.value);
+                input.addEventListener('blur', finish);
+                input.addEventListener('keydown', (ev) => {
+                    if (ev.key === 'Enter') finish();
+                    if (ev.key === 'Escape') e.done();
+                });
+            }
+        }
+
+        // Star-rating editor (1–5).
+        class StarsEditor {
+            clear(e) { e.done(0); }
+            attach(e) {
+                e.cell.innerHTML = '';
+                e.cell.classList.add('custom-editor-host');
+                const wrap = document.createElement('div');
+                wrap.className = 'custom-stars';
+                let value = Math.round(e.data) || 0;
+                for (let i = 1; i <= 5; i++) {
+                    const btn = document.createElement('button');
+                    btn.textContent = '★';
+                    btn.className = i <= value ? '' : 'dim';
+                    btn.addEventListener('click', () => e.done(i));
+                    wrap.appendChild(btn);
+                }
+                e.cell.appendChild(wrap);
+                wrap.tabIndex = 0;
+                wrap.focus();
+                wrap.addEventListener('blur', () => setTimeout(() => e.done(value), 100));
+                wrap.addEventListener('keydown', (ev) => {
+                    if (ev.key === 'Escape') e.done();
+                });
+            }
+        }
+
+        // Render the integer rating as ★ glyphs in the cell.
+        const starsFormatter = {
+            render(e) {
+                if (e.rowIndex === 0) { e.cellContent.textContent = e.data || ''; return; }
+                const v = Math.round(e.data) || 0;
+                e.cellContent.innerHTML = '<span style="color:#fbbf24">' + '★'.repeat(v) +
+                    '</span><span style="color:#e5e7eb">' + '★'.repeat(5 - v) + '</span>';
+            }
+        };
+
+        const grid = new PGrid({
+            rowHeight: 36,
+            columnWidth: 140,
+            selection: { cssClass: 'grid-cell-selection' },
+            editing: true,
+            columnFormatter: true,
+            autoUpdate: true,
+            columns: [
+                { id: 0, field: 'id',         title: 'ID',         width: 100 },
+                { id: 1, field: 'name',       title: 'Name',       width: 180 },
+                { id: 2, field: 'department', title: 'Department', width: 150, editable: true, cssClass: 'grid-col-editable',
+                    editor: new SelectEditor(EMPLOYEE_OPTIONS.departments) },
+                { id: 3, field: 'location',   title: 'Location',   width: 160, editable: true, cssClass: 'grid-col-editable',
+                    editor: new SelectEditor(EMPLOYEE_OPTIONS.locations) },
+                { id: 4, field: 'status',     title: 'Status',     width: 130, editable: true, cssClass: 'grid-col-editable',
+                    editor: new SelectEditor(EMPLOYEE_OPTIONS.statuses) },
+                { id: 5, field: 'hired',      title: 'Hired',      width: 140, editable: true, cssClass: 'grid-col-editable',
+                    editor: new DateEditor() },
+                { id: 6, field: 'performance', title: 'Performance', width: 160, editable: true, cssClass: 'grid-col-editable',
+                    editor: new StarsEditor(), formatter: starsFormatter }
+            ],
+            headerRows: [{ i: 0, cssClass: 'grid-header-row' }],
+            dataModel: { fields: EMPLOYEE_FIELDS, format: 'rows', data: generateEmployees(80) }
+        });
+
+        grid.render(document.getElementById('gridDiv'));
+        window.grid = grid;
+    </script>
+</body>
+</html>

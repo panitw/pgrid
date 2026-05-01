@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Basic Grid · PGrid</title>
+    <link rel="stylesheet" href="/samples/_shared.css">
+</head>
+<body>
+    <div class="sample-page">
+        <div class="sample-header">
+            <a class="back" href="/samples/index.html">← All demos</a>
+            <h1>Basic Grid</h1>
+            <span class="desc">Minimal setup — columns, data, and a header row. No extensions.</span>
+        </div>
+
+        <div class="sample-grid-wrap">
+            <div class="sample-grid"><div id="gridDiv"></div></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { PGrid } from '/src/index.js';
+        import { generateEmployees, EMPLOYEE_FIELDS } from '/samples/_data.js';
+
+        const grid = new PGrid({
+            rowHeight: 32,
+            columnWidth: 130,
+            columns: [
+                { id: 0, field: 'id',         title: 'ID',         width: 100 },
+                { id: 1, field: 'name',       title: 'Name',       width: 180 },
+                { id: 2, field: 'email',      title: 'Email',      width: 240 },
+                { id: 3, field: 'department', title: 'Department', width: 140 },
+                { id: 4, field: 'role',       title: 'Role',       width: 180 },
+                { id: 5, field: 'location',   title: 'Location',   width: 140 },
+                { id: 6, field: 'status',     title: 'Status',     width: 110 },
+                { id: 7, field: 'hired',      title: 'Hired',      width: 110 }
+            ],
+            headerRows: [
+                { i: 0, cssClass: 'grid-header-row' }
+            ],
+            dataModel: {
+                fields: EMPLOYEE_FIELDS,
+                format: 'rows',
+                data: generateEmployees(100)
+            }
+        });
+
+        grid.render(document.getElementById('gridDiv'));
+        window.grid = grid;
+    </script>
+</body>
+</html>

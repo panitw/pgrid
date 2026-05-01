@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Dynamic Data · PGrid</title>
+    <link rel="stylesheet" href="/samples/_shared.css">
+</head>
+<body>
+    <div class="sample-page">
+        <div class="sample-header">
+            <a class="back" href="/samples/index.html">← All demos</a>
+            <h1>Dynamic Data</h1>
+            <span class="desc">Add, insert, remove rows. With <code>autoUpdate: true</code> the view re-renders automatically on data changes.</span>
+        </div>
+
+        <div class="sample-toolbar">
+            <button class="primary" id="addBottom">+ Add row (bottom)</button>
+            <button id="addTop">+ Insert at top</button>
+            <button id="removeSel">Remove selected</button>
+            <button id="bulk">Bulk add 100</button>
+            <button id="clear">Clear all</button>
+            <span class="divider"></span>
+            <span class="desc" id="count">0 rows</span>
+        </div>
+
+        <div class="sample-grid-wrap">
+            <div class="sample-grid"><div id="gridDiv"></div></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { PGrid } from '/src/index.js';
+        import { generateEmployees, EMPLOYEE_FIELDS } from '/samples/_data.js';
+
+        const grid = new PGrid({
+            rowHeight: 32,
+            columnWidth: 130,
+            selection: { cssClass: 'grid-cell-selection' },
+            editing: true,
+            autoUpdate: true,
+            columns: [
+                { id: 0, field: 'id',         title: 'ID',         width: 100 },
+                { id: 1, field: 'name',       title: 'Name',       width: 180, editable: true, cssClass: 'grid-col-editable' },
+                { id: 2, field: 'email',      title: 'Email',      width: 240, editable: true, cssClass: 'grid-col-editable' },
+                { id: 3, field: 'department', title: 'Department', width: 140, editable: true, cssClass: 'grid-col-editable' },
+                { id: 4, field: 'role',       title: 'Role',       width: 180, editable: true, cssClass: 'grid-col-editable' },
+                { id: 5, field: 'status',     title: 'Status',     width: 110 }
+            ],
+            headerRows: [{ i: 0, cssClass: 'grid-header-row' }],
+            dataModel: { fields: EMPLOYEE_FIELDS, format: 'rows', data: generateEmployees(20) }
+        });
+
+        grid.render(document.getElementById('gridDiv'));
+        window.grid = grid;
+
+        const countEl = document.getElementById('count');
+        const refresh = () => countEl.textContent = `${grid.data.getRowCount()} rows`;
+        refresh();
+        grid.data.listen('dataChanged', refresh);
+
+        let nextId = 9000;
+        function makeRow() {
+            return generateEmployees(1).map(r => ({ ...r, id: `NEW-${nextId++}` }))[0];
+        }
+
+        document.getElementById('addBottom').addEventListener('click', () => {
+            grid.data.addRow(makeRow());
+            grid.view.reRender();
+        });
+
+        document.getElementById('addTop').addEventListener('click', () => {
+            grid.data.insertRow(0, makeRow());
+            grid.view.reRender();
+        });
+
+        document.getElementById('removeSel').addEventListener('click', () => {
+            const sel = grid.state.get('selection');
+            if (!sel || !sel.length) return;
+            const rowId = grid.model.getRowId(sel[0].r);
+            if (rowId) {
+                grid.data.removeRow(rowId);
+                grid.view.reRender();
+            }
+        });
+
+        document.getElementById('bulk').addEventListener('click', () => {
+            grid.data.freeze();
+            for (let i = 0; i < 100; i++) grid.data.addRow(makeRow());
+            grid.data.unfreeze();
+            grid.view.reRender();
+            refresh();
+        });
+
+        document.getElementById('clear').addEventListener('click', () => {
+            grid.data.removeAllRows();
+            grid.view.reRender();
+            refresh();
+        });
+    </script>
+</body>
+</html>
