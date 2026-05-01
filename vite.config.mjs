@@ -51,8 +51,8 @@ export default defineConfig(({ command, mode }) => {
                 lib: {
                     entry: resolve(__dirname, 'src/index.js'),
                     name: 'PGrid',
-                    fileName: () => 'pgrid.js',
-                    formats: ['umd']
+                    formats: ['umd', 'es'],
+                    fileName: (format) => format === 'es' ? 'pgrid.mjs' : 'pgrid.js'
                 },
                 rollupOptions: {
                     output: {

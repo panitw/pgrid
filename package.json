@@ -3,20 +3,18 @@
   "version": "2.3.0",
   "description": "A virtualized, extensible JavaScript data grid with frozen panes, inline editing, copy/paste, column resizing, and a pluggable extension API.",
   "main": "dist/pgrid.js",
-  "module": "src/index.js",
+  "module": "dist/pgrid.mjs",
   "style": "dist/pgrid.css",
   "exports": {
     ".": {
-      "import": "./src/index.js",
+      "import": "./dist/pgrid.mjs",
       "require": "./dist/pgrid.js"
     },
     "./styles": "./dist/pgrid.css",
     "./package.json": "./package.json"
   },
   "files": [
-    "dist",
-    "src",
-    "styles"
+    "dist"
   ],
   "repository": {
     "type": "git",
