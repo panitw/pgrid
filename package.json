@@ -1,9 +1,18 @@
 {
-  "name": "pgrid",
+  "name": "@panitw/pgrid",
   "version": "2.2.0",
+  "description": "A virtualized, extensible JavaScript data grid with frozen panes, inline editing, copy/paste, column resizing, and a pluggable extension API.",
   "main": "dist/pgrid.js",
   "module": "src/index.js",
   "style": "dist/pgrid.css",
+  "exports": {
+    ".": {
+      "import": "./src/index.js",
+      "require": "./dist/pgrid.js"
+    },
+    "./styles": "./dist/pgrid.css",
+    "./package.json": "./package.json"
+  },
   "files": [
     "dist",
     "src",
@@ -13,14 +22,29 @@
     "type": "git",
     "url": "https://github.com/panitw/pgrid.git"
   },
-  "keywords": [],
+  "keywords": [
+    "grid",
+    "datagrid",
+    "data-grid",
+    "table",
+    "virtualized",
+    "virtual-scroll",
+    "spreadsheet",
+    "frozen-panes",
+    "editable",
+    "extensible"
+  ],
   "author": "Panit Wechasil",
   "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
   "devDependencies": {
     "@babel/core": "^7.24.0",
     "@babel/preset-env": "^7.24.0",
     "@babel/register": "^7.23.7",
     "chai": "^4.4.1",
+    "choices.js": "^3.0.4",
     "jsdom": "^24.1.3",
     "leche": "^2.3.0",
     "less": "^4.2.0",
@@ -34,10 +58,10 @@
     "build": "vite build",
     "dev": "vite",
     "serve": "vite",
-    "test": "mocha"
+    "test": "mocha",
+    "prepublishOnly": "npm test && npm run build"
   },
   "dependencies": {
-    "choices.js": "^3.0.4",
     "resize-observer-polyfill": "^1.5.0"
   }
 }
