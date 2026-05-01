@@ -13,7 +13,7 @@ describe('EventDispatcher', () => {
     describe('hasListener', () => {
 
         it('should report false for an event with no listeners', () => {
-            equal(!!dispatcher.hasListener('foo'), false);
+            equal(dispatcher.hasListener('foo'), false);
         });
 
         it('should report true once a listener is registered', () => {
@@ -21,11 +21,17 @@ describe('EventDispatcher', () => {
             equal(dispatcher.hasListener('foo'), true);
         });
 
+        it('should return a strict boolean false for an unknown event (not undefined)', () => {
+            // Regression: a `&&` short-circuit used to leak `undefined` here,
+            // forcing callers to coerce. The contract is a boolean.
+            equal(dispatcher.hasListener('never-touched'), false);
+        });
+
         it('should report false after the last listener is removed', () => {
             const handler = () => {};
             dispatcher.listen('foo', handler);
             dispatcher.unlisten('foo', handler);
-            equal(!!dispatcher.hasListener('foo'), false);
+            equal(dispatcher.hasListener('foo'), false);
         });
     });
 
@@ -75,12 +81,12 @@ describe('EventDispatcher', () => {
 
         it('should be a no-op when removing an unregistered handler', () => {
             dispatcher.unlisten('foo', () => {});
-            equal(!!dispatcher.hasListener('foo'), false);
+            equal(dispatcher.hasListener('foo'), false);
         });
 
         it('should be a no-op when removing from an unknown event', () => {
             dispatcher.unlisten('never-registered', () => {});
-            equal(!!dispatcher.hasListener('never-registered'), false);
+            equal(dispatcher.hasListener('never-registered'), false);
         });
     });
 });

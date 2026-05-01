@@ -40,7 +40,7 @@ export class Extension {
 	}
 
 	hasExtension (extPoint) {
-		return (this._extensions[extPoint] && this._extensions[extPoint].length > 0)
+		return !!(this._extensions[extPoint] && this._extensions[extPoint].length > 0)
 	}
 
 	getExtension (name) {

@@ -65,7 +65,7 @@ describe('Extension', () => {
     describe('hasExtension', () => {
 
         it('should return false for a hookpoint with no registered extensions', () => {
-            equal(!!registry.hasExtension('cellRender'), false);
+            equal(registry.hasExtension('cellRender'), false);
         });
 
         it('should return true once at least one extension implements the hook', () => {
@@ -74,7 +74,12 @@ describe('Extension', () => {
         });
 
         it('should return false for an unknown hookpoint name', () => {
-            equal(!!registry.hasExtension('notARealHook'), false);
+            equal(registry.hasExtension('notARealHook'), false);
+        });
+
+        it('should return a strict boolean false for known hooks with no extensions (not undefined)', () => {
+            // Regression: a `&&` short-circuit used to leak `undefined` here.
+            equal(registry.hasExtension('keyDown'), false);
         });
     });
 

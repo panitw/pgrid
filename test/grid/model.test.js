@@ -37,16 +37,25 @@ describe('Model', () => {
         });
 
         it('should index columns by their `i` field when provided', () => {
-            // Note: source assumes a dense layout when computing total width, so
-            // `i` must cover indexes [0, n-1] without gaps. This test pins the
-            // intended remap behavior: `i` becomes the column index, not the
-            // declaration order.
             const { model } = buildModel({
                 columns: [{ i: 2, field: 'x' }, { i: 0, field: 'y' }, { i: 1, field: 'z' }]
             });
             equal(model.getColumnModel(0).field, 'y');
             equal(model.getColumnModel(1).field, 'z');
             equal(model.getColumnModel(2).field, 'x');
+        });
+
+        it('should construct without crashing when `i` leaves gaps in the column layout', () => {
+            // Regression: _calcTotalWidth used to dereference undefined slots.
+            const { model } = buildModel({
+                columnWidth: 100,
+                columns: [{ i: 0, field: 'x' }, { i: 5, field: 'y', width: 50 }]
+            });
+            equal(model.getColumnModel(0).field, 'x');
+            equal(model.getColumnModel(5).field, 'y');
+            equal(model.getColumnModel(2), undefined);
+            // Empty slots contribute nothing; only the two declared columns count.
+            equal(model.getTotalWidth(), 100 + 50);
         });
     });
 

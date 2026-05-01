@@ -378,6 +378,9 @@ export class Model extends EventDispatcher {
 	_calcTotalWidth () {
 		this._totalWidth = 0;
 		for (let i=0; i<this._columnModel.length; i++) {
+			if (!this._columnModel[i]) {
+				continue;
+			}
 			if (this._columnModel[i].width !== undefined) {
 				this._totalWidth += this._columnModel[i].width;
 			} else {

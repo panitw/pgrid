@@ -21,7 +21,7 @@ export class EventDispatcher {
 	}
 
 	hasListener(eventName) {
-		return this._handlers[eventName] && this._handlers[eventName].length > 0;
+		return !!(this._handlers[eventName] && this._handlers[eventName].length > 0);
 	}
 
 	dispatch(eventName, eventArg) {
