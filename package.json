@@ -1,6 +1,6 @@
 {
   "name": "@panitw/pgrid",
-  "version": "2.3.0",
+  "version": "2.3.1",
   "description": "A virtualized, extensible JavaScript data grid with frozen panes, inline editing, copy/paste, column resizing, and a pluggable extension API.",
   "main": "dist/pgrid.js",
   "module": "dist/pgrid.mjs",
