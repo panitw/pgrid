@@ -1,5 +1,6 @@
 import { EventDispatcher } from './event';
 import ResizeObserver from 'resize-observer-polyfill';
+import { getCellRect, isCellVisible, getPaneRanges, layoutPaneCells } from './virtualization';
 
 export class View extends EventDispatcher {
 
@@ -354,140 +355,49 @@ export class View extends EventDispatcher {
     }
 
     _getCellRect (rowIndex, colIndex) {
-		let topRunner = 0;
-        let leftRunner = 0;
-        let cellWidth = 0;
-        let cellHeight = 0;
-        for (let i=0; i<rowIndex; i++) {
-            cellHeight = this._model.getRowHeight(i)
-            topRunner += cellHeight;
-        }
-        for (let i=0; i<colIndex; i++) {
-            cellWidth = this._model.getColumnWidth(i);
-            leftRunner += cellWidth;
-        }
-        return {x: leftRunner, y: topRunner, width: cellWidth, height: cellHeight};
+        return getCellRect(this._model, rowIndex, colIndex);
     }
 
 	_renderCells () {
-		let topFreeze = this._model.getTopFreezeRows();
-		let leftFreeze = this._model.getLeftFreezeRows();
-		let bottomFreeze = this._model.getBottomFreezeRows();
-		let rowCount = this._model.getRowCount();
-		let columnCount = this._model.getColumnCount();
-		let topRunner = 0;
-		let leftRunner = 0;
-		let colWidth = [];
-        let paneScrollLeft = 0;
-        let paneScrollTop = 0;
-        let paneWidth = 0;
-        let paneHeight = 0;
-        let paneScrollLeft2 = 0;
-        let paneScrollTop2 = 0;
-        let paneWidth2 = 0;
-        let paneHeight2 = 0;
+        const ranges = getPaneRanges({
+            rowCount: this._model.getRowCount(),
+            columnCount: this._model.getColumnCount(),
+            topFreeze: this._model.getTopFreezeRows(),
+            leftFreeze: this._model.getLeftFreezeRows(),
+            bottomFreeze: this._model.getBottomFreezeRows()
+        });
 
-		//Render top rows
-        paneScrollLeft = this._topLeftPane.scrollLeft;
-        paneScrollTop = this._topLeftPane.scrollTop;
-        paneWidth = this._topLeftPane.offsetWidth;
-        paneHeight = this._topLeftPane.offsetHeight;
-        paneScrollLeft2 = this._topPane.scrollLeft;
-        paneScrollTop2 = this._topPane.scrollTop;
-        paneWidth2 = this._topPane.offsetWidth;
-        paneHeight2 = this._topPane.offsetHeight;
-        topRunner = 0;
-		for (let j=0; j<topFreeze; j++) {
-			let rowHeight = this._model.getRowHeight(j);
-			//Render top left cells
-            leftRunner = 0;
-			for (let i=0; i<leftFreeze; i++) {
-				colWidth[i] = this._model.getColumnWidth(i);
-                this._renderCell(j, i, this._topLeftInner, paneWidth, paneHeight, paneScrollLeft, paneScrollTop, leftRunner, topRunner, colWidth[i], rowHeight);
-				leftRunner += colWidth[i];
+        const panes = {
+            topLeft:    { host: this._topLeftPane,    inner: this._topLeftInner,    setWidth: false, setHeight: false },
+            top:        { host: this._topPane,        inner: this._topInner,        setWidth: true,  setHeight: true  },
+            left:       { host: this._leftPane,       inner: this._leftInner,       setWidth: false, setHeight: true  },
+            center:     { host: this._centerPane,     inner: this._centerInner,     setWidth: true,  setHeight: true  },
+            bottomLeft: { host: this._bottomLeftPane, inner: this._bottomLeftInner, setWidth: false, setHeight: false },
+            bottom:     { host: this._bottomPane,     inner: this._bottomInner,     setWidth: true,  setHeight: true  }
+        };
+
+        for (const name of Object.keys(panes)) {
+            const { host, inner, setWidth, setHeight } = panes[name];
+            const viewport = {
+                scrollLeft: host.scrollLeft,
+                scrollTop:  host.scrollTop,
+                width:      host.offsetWidth,
+                height:     host.offsetHeight
+            };
+            const { cells, totalWidth, totalHeight } = layoutPaneCells(this._model, ranges[name], viewport);
+            for (const cell of cells) {
+                this._renderCell(cell, inner);
             }
-
-			//Render top cells
-			leftRunner = 0;
-			for (let i=leftFreeze; i<columnCount; i++) {
-				colWidth[i] = this._model.getColumnWidth(i);
-				this._renderCell(j, i, this._topInner, paneWidth2, paneHeight2, paneScrollLeft2, paneScrollTop2, leftRunner, topRunner, colWidth[i], rowHeight);
-				leftRunner += colWidth[i];
-			}
-			topRunner += rowHeight;
+            if (setWidth)  inner.style.width  = totalWidth  + 'px';
+            if (setHeight) inner.style.height = totalHeight + 'px';
         }
-        this._topInner.style.width = leftRunner + 'px';
-        this._topInner.style.height = topRunner + 'px';
-
-		//Render middle rows
-        paneScrollLeft = this._leftPane.scrollLeft;
-        paneScrollTop = this._leftPane.scrollTop;
-        paneWidth = this._leftPane.offsetWidth;
-        paneHeight = this._leftPane.offsetHeight;
-        paneScrollLeft2 = this._centerPane.scrollLeft;
-        paneScrollTop2 = this._centerPane.scrollTop;
-        paneWidth2 = this._centerPane.offsetWidth;
-        paneHeight2 = this._centerPane.offsetHeight;
-        topRunner = 0;
-		for (let j=topFreeze; j<(rowCount-bottomFreeze); j++) {
-			let rowHeight = this._model.getRowHeight(j);
-			//Render left cells
-			leftRunner = 0;
-			for (let i=0; i<leftFreeze; i++) {
-				this._renderCell(j, i, this._leftInner, paneWidth, paneHeight, paneScrollLeft, paneScrollTop, leftRunner, topRunner, colWidth[i], rowHeight);
-				leftRunner += colWidth[i];
-			}
-			//Render center cells
-			leftRunner = 0;
-			for (let i=leftFreeze; i<columnCount; i++) {
-				this._renderCell(j, i, this._centerInner, paneWidth2, paneHeight2, paneScrollLeft2, paneScrollTop2, leftRunner, topRunner, colWidth[i], rowHeight);
-				leftRunner += colWidth[i];
-			}
-			topRunner += rowHeight;
-		}
-        this._leftInner.style.height = topRunner + 'px';
-        this._centerInner.style.width = leftRunner + 'px';
-        this._centerInner.style.height = topRunner + 'px';
-
-		//Render bottom rows
-        paneScrollLeft = this._bottomLeftPane.scrollLeft;
-        paneScrollTop = this._bottomLeftPane.scrollTop;
-        paneWidth = this._bottomLeftPane.offsetWidth;
-        paneHeight = this._bottomLeftPane.offsetHeight;
-        paneScrollLeft2 = this._bottomPane.scrollLeft;
-        paneScrollTop2 = this._bottomPane.scrollTop;
-        paneWidth2 = this._bottomPane.offsetWidth;
-        paneHeight2 = this._bottomPane.offsetHeight;
-        topRunner = 0;
-		for (let j=(rowCount-bottomFreeze); j<rowCount; j++) {
-			let rowHeight = this._model.getRowHeight(j);
-			//Render left cells
-			leftRunner = 0;
-			for (let i=0; i<leftFreeze; i++) {
-				this._renderCell(j, i, this._bottomLeftInner, paneWidth, paneHeight, paneScrollLeft, paneScrollTop, leftRunner, topRunner, colWidth[i], rowHeight);
-				leftRunner += colWidth[i];
-			}
-			//Render center cells
-			leftRunner = 0;
-			for (let i=leftFreeze; i<columnCount; i++) {
-				this._renderCell(j, i, this._bottomInner, paneWidth2, paneHeight2, paneScrollLeft2, paneScrollTop2, leftRunner, topRunner, colWidth[i], rowHeight);
-				leftRunner += colWidth[i];
-			}
-			topRunner += rowHeight;
-		}
-        this._bottomInner.style.width = leftRunner + 'px';
-        this._bottomInner.style.height = topRunner + 'px';
     }
 
     _isCellVisible (paneWidth, paneHeight, paneScrollLeft, paneScrollTop, cellX, cellY, cellWidth, cellHeight) {
-        if (cellX + cellWidth < paneScrollLeft ||
-            cellY + cellHeight < paneScrollTop ||
-            cellX > paneScrollLeft + paneWidth ||
-            cellY > paneScrollTop + paneHeight) {
-            return false;
-        } else {
-            return true;
-        }
+        return isCellVisible(
+            { scrollLeft: paneScrollLeft, scrollTop: paneScrollTop, width: paneWidth, height: paneHeight },
+            { x: cellX, y: cellY, width: cellWidth, height: cellHeight }
+        );
     }
 
     _createCell (rowIndex, colIndex, x, y, width, height) {
@@ -538,11 +448,12 @@ export class View extends EventDispatcher {
         this._extensions.executeExtension('cellAfterRecycled', { cell });
     }
 
-	_renderCell (rowIndex, colIndex, pane, paneWidth, paneHeight, paneScrollLeft, paneScrollTop, x, y, width, height) {
+	_renderCell (cellInfo, pane) {
+        const { rowIndex, colIndex, x, y, width, height, visible } = cellInfo;
         let key = rowIndex + ',' + colIndex;
 
         //If the cell is outside of the viewport, then recycle the cell if it has already been created
-        if (!this._isCellVisible(paneWidth, paneHeight, paneScrollLeft, paneScrollTop, x, y, width, height)) {
+        if (!visible) {
             let cell = this._cellReference[key];
             if (cell) {
                 this._recycleCell(cell);
