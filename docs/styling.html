@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Styling · PGrid</title>
+    <link rel="stylesheet" href="./_docs.css">
+</head>
+<body>
+    <header class="docs-top">
+        <a class="brand" href="./index.html">PGrid <span class="tag">docs</span></a>
+        <nav>
+            <a href="./getting-started.html">Getting Started</a>
+            <a href="./configuration.html">Configuration</a>
+            <a href="./data.html">Data</a>
+            <a href="./styling.html">Styling</a>
+            <a href="./extensions.html">Extensions</a>
+            <a href="./api.html">API</a>
+            <a href="../samples/index.html" target="_blank" rel="noopener">Samples ↗</a>
+            <a href="https://github.com/panitw/pgrid" target="_blank" rel="noopener">GitHub ↗</a>
+        </nav>
+    </header>
+
+    <div class="docs-layout">
+        <aside class="docs-sidebar">
+            <h4>Guides</h4>
+            <ul>
+                <li><a href="./getting-started.html">Getting Started</a></li>
+                <li><a href="./configuration.html">Configuration</a></li>
+                <li><a href="./data.html">Working with Data</a></li>
+                <li><a href="./styling.html">Styling</a></li>
+                <li><a href="./extensions.html">Extensions</a></li>
+            </ul>
+            <h4>Reference</h4>
+            <ul>
+                <li><a href="./api.html">API</a></li>
+                <li><a href="../samples/index.html" target="_blank" rel="noopener">Samples ↗</a></li>
+            </ul>
+            <h4>On this page</h4>
+            <ul>
+                <li><a href="#approach">Three places to style</a></li>
+                <li><a href="#class-hooks">CSS class reference</a></li>
+                <li><a href="#per-element">Per-column / row / cell</a></li>
+                <li><a href="#themes">Theming</a></li>
+                <li><a href="#recipes">Recipes</a></li>
+                <li><a href="#editor-styling">Editor styling</a></li>
+                <li><a href="#scrollbars">Scrollbars</a></li>
+            </ul>
+        </aside>
+
+        <article class="docs-article">
+            <h1>Styling</h1>
+            <p class="lead">PGrid ships a thin, opinionated default stylesheet and exposes every structural element through a stable class. You style the grid by overriding those classes, attaching your own classes via config, or both.</p>
+
+            <h2 id="approach">Three places to style</h2>
+            <ol>
+                <li><strong>Per cell, via config.</strong> Use <code>cssClass</code> on a column, row, or cell. Most styling lives here — it's data-driven and stays close to the grid declaration.</li>
+                <li><strong>Globally, by overriding pgrid classes.</strong> The grid emits a stable set of <code>.pgrid-*</code> classes; override them in your own stylesheet to retheme.</li>
+                <li><strong>Programmatically, via extensions.</strong> Use the <code>cellAfterRender</code> hook to add classes based on data (status-based row colors, hover effects, etc). See <a href="./extensions.html">Extensions</a>.</li>
+            </ol>
+
+            <div class="callout">
+                <strong>Don't fight the layout.</strong> The 6-pane layout, scrollbars, and absolute positioning are load-bearing — overriding the structural CSS (positions, widths, scrollbar dimensions) will break virtualization. Stick to colors, borders, fonts, padding, and your own additive classes.
+            </div>
+
+            <h2 id="class-hooks">CSS class reference</h2>
+            <p>Every class PGrid emits, and what it's for.</p>
+
+            <h3>Container &amp; panes</h3>
+            <table>
+                <tbody>
+                    <tr><td><code>.pgrid</code></td><td>The root element you mounted into.</td></tr>
+                    <tr><td><code>.pgrid-content-pane</code></td><td>Wrapper holding all six panes.</td></tr>
+                    <tr><td><code>.pgrid-top-left-pane</code> / <code>-top-pane</code> / <code>-left-pane</code> / <code>-center-pane</code> / <code>-bottom-left-pane</code> / <code>-bottom-pane</code></td><td>The six freeze panes. Each contains a matching <code>-inner</code> wrapper.</td></tr>
+                </tbody>
+            </table>
+
+            <h3>Cells</h3>
+            <table>
+                <tbody>
+                    <tr><td><code>.pgrid-cell</code></td><td>Every cell — header and body. Absolutely positioned within its pane.</td></tr>
+                    <tr><td><code>.pgrid-cell-content</code></td><td>Inner wrapper that holds the cell text. Centered vertically. Style padding/text-align here.</td></tr>
+                    <tr><td><code>.pgrid-cell-selection</code></td><td>Default selection class. Override or replace via <code>selection.cssClass</code>.</td></tr>
+                    <tr><td><code>.pgrid-row-header</code></td><td>Added to every cell whose row is in the header range.</td></tr>
+                    <tr><td><code>.pgrid-text-overflow-host</code> + <code>.pgrid-text-ellipsis</code> / <code>-clip</code> / <code>-wrap</code></td><td>Set by <code>TextOverflowExtension</code>. Don't override unless you know what you're doing.</td></tr>
+                </tbody>
+            </table>
+
+            <h3>Editor &amp; scrollbar</h3>
+            <table>
+                <tbody>
+                    <tr><td><code>.pgrid-cell-text-editor</code></td><td>The default inline text input.</td></tr>
+                    <tr><td><code>.pgrid-col-resize-handle</code></td><td>The drag handle injected by <code>ColumnResizeExtension</code>.</td></tr>
+                    <tr><td><code>.pgrid-hscroll</code> / <code>-vscroll</code> / <code>-hscroll-thumb</code> / <code>-vscroll-thumb</code></td><td>Custom scrollbar tracks and thumbs.</td></tr>
+                </tbody>
+            </table>
+
+            <h3>Cell <code>data-*</code> attributes</h3>
+            <p>Useful for selectors that target specific positions:</p>
+            <table>
+                <tbody>
+                    <tr><td><code>data-row-index</code></td><td>Visible row index (header rows are <code>0..headerRowCount-1</code>).</td></tr>
+                    <tr><td><code>data-col-index</code></td><td>Column index.</td></tr>
+                </tbody>
+            </table>
+<pre><code>/* Style every cell in column 3 without using cssClass */
+.pgrid-cell[data-col-index="3"] { background: #fef3c7; }</code></pre>
+
+            <h2 id="per-element">Per-column / row / cell styling</h2>
+            <p>The recommended way to style — declarative and data-driven. PGrid concatenates these classes in priority order: <strong>cell > row > column</strong>. All matching classes are applied; later ones win on conflicting properties.</p>
+
+<pre><code>const grid = new PGrid({
+    columns: [
+        { id: 0, field: 'id',     title: 'ID',     cssClass: 'col-id' },
+        { id: 1, field: 'salary', title: 'Salary', cssClass: 'col-money' }
+    ],
+    rows: [
+        { i: 5, cssClass: 'row-summary', height: 40 }
+    ],
+    cells: [
+        { r: 5, c: 1, cssClass: 'cell-grand-total' }
+    ],
+    /* … */
+});</code></pre>
+
+<pre><code>.col-money {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    color: #15803d;
+}
+
+.row-summary {
+    font-weight: 600;
+    background-color: #f1f5f9;
+    border-top: 2px solid #cbd5e0;
+}
+
+.cell-grand-total {
+    background-color: #fef3c7;
+}</code></pre>
+
+            <h2 id="themes">Theming</h2>
+            <p>Two practical patterns:</p>
+
+            <h3>Scope a theme to a wrapper class</h3>
+            <p>Wrap your grid in a container with a theme class, then scope your overrides under it. This lets you switch themes by toggling a single class — and host multiple themed grids on the same page.</p>
+<pre><code>&lt;div class="theme-dark"&gt;
+    &lt;div id="grid" style="height: 400px;"&gt;&lt;/div&gt;
+&lt;/div&gt;</code></pre>
+<pre><code>.theme-dark .pgrid-cell {
+    background: #0f172a;
+    color: #e2e8f0;
+    border-bottom: 1px solid #1e293b;
+    border-right:  1px solid #1e293b;
+}
+
+.theme-dark .grid-header-row {
+    background-color: #1e293b !important;
+    color: #f1f5f9 !important;
+}
+
+.theme-dark .grid-cell-selection {
+    background-color: rgba(56, 189, 248, 0.2) !important;
+    box-shadow: inset 0 0 0 2px #38bdf8 !important;
+}</code></pre>
+            <p>Live demo: <a href="../samples/themes.html" target="_blank" rel="noopener">Themes</a> (default / compact / spreadsheet / dark switcher).</p>
+
+            <h3>Override the LESS source</h3>
+            <p>If you import the LESS sources directly (recommended only when you're already using LESS), the variables in <code>styles/themes/default.less</code> are overridable: <code>@grid-cell-border</code>, <code>@grid-cell-bg</code>, <code>@grid-row-header-bg</code>, <code>@grid-cell-selection-bg</code>, <code>@grid-cell-selection-border</code>, <code>@grid-outer-border</code>, <code>@grid-column-header-bg</code>.</p>
+
+            <h2 id="recipes">Recipes</h2>
+
+            <h3>Zebra striping</h3>
+            <p>Add a class on odd rows during render. Don't forget to remove it in <code>cellAfterRecycled</code> — cells are reused as you scroll.</p>
+<pre><code>const zebra = {
+    cellAfterRender(e) {
+        if (e.rowIndex % 2 === 1) e.cell.classList.add('row-zebra');
+    },
+    cellAfterRecycled(e) {
+        e.cell.classList.remove('row-zebra');
+    }
+};
+
+new PGrid({ /* … */ extensions: [zebra] });</code></pre>
+<pre><code>.row-zebra { background-color: #fafbfc; }</code></pre>
+
+            <h3>Status-driven row color</h3>
+<pre><code>const statusRowColor = {
+    cellAfterRender(e) {
+        if (!e.dataRow) return;
+        e.cell.classList.toggle('row-overdue', e.dataRow.status === 'Overdue');
+        e.cell.classList.toggle('row-paid',    e.dataRow.status === 'Paid');
+    },
+    cellAfterRecycled(e) {
+        e.cell.classList.remove('row-overdue', 'row-paid');
+    }
+};</code></pre>
+<pre><code>.row-overdue { background-color: #fef2f2; }
+.row-paid    { background-color: #f0fdf4; }</code></pre>
+
+            <h3>Row hover</h3>
+            <p>Light up every cell of the row under the cursor.</p>
+<pre><code>const rowHover = {
+    init(grid) { this._grid = grid; this._row = -1; },
+    gridAfterRender() {
+        this._grid.view.getElement().addEventListener('mouseover', (e) => {
+            const cell = e.target.closest('.pgrid-cell');
+            if (!cell) return;
+            const r = parseInt(cell.dataset.rowIndex);
+            if (r === this._row) return;
+            this._highlight(this._row, false);
+            this._highlight(r, true);
+            this._row = r;
+        });
+    },
+    _highlight(r, on) {
+        if (r &lt; 0) return;
+        this._grid.view.getElement()
+            .querySelectorAll(`.pgrid-cell[data-row-index="${r}"]`)
+            .forEach(c =&gt; c.classList.toggle('row-hover', on));
+    }
+};</code></pre>
+<pre><code>.row-hover { background-color: #eff6ff !important; }</code></pre>
+
+            <h3>Custom selection</h3>
+            <p>Pass your own class to the selection extension and style it however you like.</p>
+<pre><code>new PGrid({
+    selection: { cssClass: 'cell-selected' },
+    /* … */
+});</code></pre>
+<pre><code>.cell-selected {
+    background-color: #e0f2fe !important;
+    box-shadow: inset 0 0 0 2px #0284c7;
+}</code></pre>
+
+            <h3>Compact mode</h3>
+            <p>Tighter rows, smaller font, lighter borders. Combine config (<code>rowHeight</code>) with CSS.</p>
+<pre><code>new PGrid({ rowHeight: 24, /* … */ });</code></pre>
+<pre><code>.theme-compact .pgrid-cell {
+    font-size: 12px;
+    border-right: none;
+    border-bottom: 1px solid #ececef;
+}</code></pre>
+
+            <h2 id="editor-styling">Editor styling</h2>
+            <p>The default text editor uses <code>.pgrid-cell-text-editor</code>. Custom editors render into a floating container that's appended to <code>document.body</code> — give it a wrapper class to scope your styles. See the <a href="../samples/custom-editors.html" target="_blank" rel="noopener">Custom editors</a> sample.</p>
+<pre><code>// Inside your editor's attach(e):
+e.cell.classList.add('my-editor-host');
+e.cell.appendChild(myInput);</code></pre>
+<pre><code>.my-editor-host {
+    background: #fff;
+    box-shadow: inset 0 0 0 2px #0ea5e9, 0 4px 12px rgba(0,0,0,0.08);
+    border-radius: 4px;
+    display: flex;
+    align-items: stretch;
+}</code></pre>
+
+            <h2 id="scrollbars">Scrollbars</h2>
+            <p>PGrid renders its own scrollbar tracks/thumbs in <code>.pgrid-hscroll</code> / <code>.pgrid-vscroll</code> with corresponding <code>-thumb</code> children. Default thumbs use the browser scrollbar styling, so the easiest path is targeting <code>::-webkit-scrollbar</code> on those elements.</p>
+<pre><code>.pgrid-hscroll::-webkit-scrollbar,
+.pgrid-vscroll::-webkit-scrollbar { width: 10px; height: 10px; }
+
+.pgrid-hscroll::-webkit-scrollbar-thumb,
+.pgrid-vscroll::-webkit-scrollbar-thumb {
+    background: #cbd5e0;
+    border-radius: 5px;
+}</code></pre>
+
+            <div class="docs-pagination">
+                <a href="./data.html">
+                    <div class="arrow">← Previous</div>
+                    <div class="ttl">Working with Data</div>
+                </a>
+                <a class="next" href="./extensions.html">
+                    <div class="arrow">Next →</div>
+                    <div class="ttl">Extensions</div>
+                </a>
+            </div>
+        </article>
+    </div>
+
+    <script>
+        document.querySelectorAll('.docs-top nav a, .docs-sidebar a').forEach(a => {
+            const href = a.getAttribute('href') || '';
+            const path = href.replace('./', '/').split('#')[0];
+            if (path && location.pathname.endsWith(path)) a.classList.add('active');
+        });
+    </script>
+</body>
+</html>

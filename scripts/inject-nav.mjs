@@ -16,6 +16,7 @@ function navHtml(samplesActive) {
                 <a href="../docs/getting-started.html">Getting Started</a>
                 <a href="../docs/configuration.html">Configuration</a>
                 <a href="../docs/data.html">Data</a>
+                <a href="../docs/styling.html">Styling</a>
                 <a href="../docs/extensions.html">Extensions</a>
                 <a href="../docs/api.html">API</a>
                 <a href="./index.html"${samplesAttr}>Samples</a>

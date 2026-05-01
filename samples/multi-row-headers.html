@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Multi-row Headers · PGrid</title>
+    <link rel="stylesheet" href="./_shared.css">
+    <style>
+        /* Header group row — taller, slightly muted, with section dividers
+           created by per-cell border classes (no real cell merging needed). */
+        .group-header-row {
+            background-color: #1f2937 !important;
+            color: #f9fafb !important;
+            font-weight: 600 !important;
+            font-size: 12px !important;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            text-align: center;
+            border-bottom: 1px solid #111827 !important;
+        }
+        .group-header-row .pgrid-cell-content {
+            text-align: center;
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+        }
+
+        /* Group dividers — apply to the FIRST cell of each group via cellsInfo. */
+        .group-start {
+            border-left: 1px solid #4b5563 !important;
+        }
+
+        /* Group color tint applied to subordinate body columns. */
+        .col-group-personal .pgrid-cell-content,
+        .col-group-personal { /* applied via cssClass on column */ }
+        .col-group-personal { background-color: #ffffff; }
+        .col-group-work     { background-color: #f8fafc; }
+        .col-group-comp     { background-color: #fff7ed; }
+
+        /* Visual seam between groups in body rows. */
+        .col-seam            { border-left: 1px solid #d4d4d8 !important; }
+    </style>
+</head>
+<body>
+    <div class="sample-page">
+        <header class="docs-top">
+            <a class="brand" href="../docs/index.html">PGrid <span class="tag">docs</span></a>
+            <nav>
+                <a href="../docs/getting-started.html">Getting Started</a>
+                <a href="../docs/configuration.html">Configuration</a>
+                <a href="../docs/data.html">Data</a>
+                <a href="../docs/styling.html">Styling</a>
+                <a href="../docs/extensions.html">Extensions</a>
+                <a href="../docs/api.html">API</a>
+                <a href="./index.html" class="active">Samples</a>
+                <a href="https://github.com/panitw/pgrid" target="_blank" rel="noopener">GitHub ↗</a>
+            </nav>
+        </header>
+
+        <div class="sample-header">
+            <a class="back" href="./index.html">← All demos</a>
+            <h1>Multi-row Headers</h1>
+            <span class="desc">Two-row header with grouped column titles. Built with <code>headerRowCount: 2</code> and per-cell <code>headerCells</code> for the group labels.</span>
+        </div>
+
+        <div class="sample-grid-wrap">
+            <div class="sample-grid"><div id="gridDiv"></div></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { PGrid } from "../src/index.js";
+        import { generateEmployees, EMPLOYEE_FIELDS } from "./_data.js";
+
+        // Repeat a group label across the cells of that group; pgrid renders
+        // each cell with the same text so the row reads as one merged label.
+        const headerCells = [
+            // Personal group (cols 0-2)
+            { r: 0, c: 0, cssClass: 'group-start',       headerTitle: 'Personal' },
+            { r: 0, c: 1,                                 headerTitle: 'Personal' },
+            { r: 0, c: 2,                                 headerTitle: 'Personal' },
+            // Work group (cols 3-5)
+            { r: 0, c: 3, cssClass: 'group-start col-seam', headerTitle: 'Work' },
+            { r: 0, c: 4,                                 headerTitle: 'Work' },
+            { r: 0, c: 5,                                 headerTitle: 'Work' },
+            // Compensation group (cols 6-7)
+            { r: 0, c: 6, cssClass: 'group-start col-seam', headerTitle: 'Compensation' },
+            { r: 0, c: 7,                                 headerTitle: 'Compensation' }
+        ];
+
+        // Override header cell text via a tiny extension that reads
+        // headerTitle off the per-cell model.
+        const headerTitleExt = {
+            cellRender(e) {
+                if (e.rowIndex !== 0) return;
+                const cm = grid.model.getCellModel(e.rowIndex, e.colIndex);
+                if (cm && cm.headerTitle !== undefined) {
+                    e.cellContent.textContent = cm.headerTitle;
+                    e.handled = true;
+                }
+            }
+        };
+
+        const grid = new PGrid({
+            rowHeight: 32,
+            columnWidth: 130,
+            headerRowCount: 2,
+            selection: { cssClass: 'grid-cell-selection' },
+            columns: [
+                { id: 0, field: 'id',         title: 'ID',         width: 100, cssClass: 'col-group-personal' },
+                { id: 1, field: 'name',       title: 'Name',       width: 180, cssClass: 'col-group-personal' },
+                { id: 2, field: 'email',      title: 'Email',      width: 240, cssClass: 'col-group-personal' },
+                { id: 3, field: 'department', title: 'Department', width: 140, cssClass: 'col-group-work col-seam' },
+                { id: 4, field: 'role',       title: 'Role',       width: 180, cssClass: 'col-group-work' },
+                { id: 5, field: 'location',   title: 'Location',   width: 140, cssClass: 'col-group-work' },
+                { id: 6, field: 'salary',     title: 'Salary',     width: 130, cssClass: 'col-group-comp col-seam grid-number-col' },
+                { id: 7, field: 'hired',      title: 'Hired',      width: 130, cssClass: 'col-group-comp' }
+            ],
+            headerRows: [
+                { i: 0, cssClass: 'group-header-row', height: 28 },     // group label row
+                { i: 1, cssClass: 'grid-header-row' }                    // column titles row
+            ],
+            headerCells,
+            dataModel: { fields: EMPLOYEE_FIELDS, format: 'rows', data: generateEmployees(80) },
+            extensions: [headerTitleExt]
+        });
+
+        grid.render(document.getElementById('gridDiv'));
+        window.grid = grid;
+    </script>
+</body>
+</html>
