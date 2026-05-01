@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>PGrid - Column Resize</title>
+	<style>
+		html,
+		body {
+			font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+			font-size: 13px;
+			height: 100%;
+			margin: 0;
+			padding: 0;
+			color: #3e515b;
+		}
+
+		.toolbar {
+			padding: 8px 12px;
+			border-bottom: 1px solid #ddd;
+			background: #fafafa;
+			display: flex;
+			gap: 12px;
+			align-items: center;
+			height: 38px;
+			box-sizing: border-box;
+		}
+
+		.toolbar button {
+			padding: 4px 10px;
+			cursor: pointer;
+		}
+
+		.toolbar #log {
+			margin-left: auto;
+			color: #666;
+			font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+			font-size: 12px;
+		}
+
+		.grid-host {
+			position: absolute;
+			top: 47px;
+			left: 0;
+			right: 0;
+			bottom: 0;
+		}
+
+		.header-row {
+			background-color: #e4e6eb !important;
+			font-weight: bold;
+			text-align: center !important;
+		}
+
+		.header-col {
+			background-color: lightgray;
+			text-align: center;
+		}
+
+		.number-col {
+			text-align: right;
+		}
+
+		.cell-selection {
+			background-color: #cecece !important;
+		}
+	</style>
+</head>
+
+<body>
+
+	<div class="toolbar">
+		<strong>Column Resize</strong>
+		<span>Drag the right edge of any header cell to resize.</span>
+		<button id="reset">Reset Widths</button>
+		<span id="log"></span>
+	</div>
+
+	<div class="grid-host">
+		<div id="gridDiv" style="width: 100%; height: 100%;"></div>
+	</div>
+
+	<script type="module">
+
+		import { PGrid } from '/src/index.js';
+
+		const initialWidths = {
+			id: 70,
+			name: 160,
+			email: 220,
+			role: 120,
+			department: 160,
+			location: 140,
+			startDate: 110,
+			salary: 110,
+			notes: 260
+		};
+
+		const columns = [
+			{ id: 0,  field: 'id',         title: 'ID',          cssClass: 'header-col number-col', width: initialWidths.id },
+			{ id: 1,  field: 'name',       title: 'Name',        width: initialWidths.name },
+			{ id: 2,  field: 'email',      title: 'Email',       width: initialWidths.email },
+			{ id: 3,  field: 'role',       title: 'Role',        width: initialWidths.role },
+			{ id: 4,  field: 'department', title: 'Department',  width: initialWidths.department },
+			{ id: 5,  field: 'location',   title: 'Location',    width: initialWidths.location },
+			{ id: 6,  field: 'startDate',  title: 'Start Date',  width: initialWidths.startDate, resizable: false },
+			{ id: 7,  field: 'salary',     title: 'Salary',      cssClass: 'number-col', width: initialWidths.salary },
+			{ id: 8,  field: 'notes',      title: 'Notes',       width: initialWidths.notes }
+		];
+
+		const firstNames = ['Ada', 'Linus', 'Grace', 'Alan', 'Margaret', 'Donald', 'Edsger', 'Barbara', 'John', 'Ken'];
+		const lastNames  = ['Lovelace', 'Torvalds', 'Hopper', 'Turing', 'Hamilton', 'Knuth', 'Dijkstra', 'Liskov', 'McCarthy', 'Thompson'];
+		const roles      = ['Engineer', 'Manager', 'Designer', 'Analyst', 'Architect'];
+		const depts      = ['Platform', 'Data', 'Frontend', 'Infrastructure', 'Research'];
+		const locations  = ['Bangkok', 'Singapore', 'Tokyo', 'Berlin', 'Remote'];
+
+		const data = [];
+		for (let i = 0; i < 80; i++) {
+			const fn = firstNames[i % firstNames.length];
+			const ln = lastNames[(i * 3) % lastNames.length];
+			data.push([
+				1000 + i,
+				fn + ' ' + ln,
+				(fn + '.' + ln).toLowerCase() + '@example.com',
+				roles[i % roles.length],
+				depts[i % depts.length],
+				locations[i % locations.length],
+				'2024-' + String(((i % 12) + 1)).padStart(2, '0') + '-15',
+				40000 + (i * 537) % 60000,
+				'Drag the right edge of any header to resize. The "Start Date" column is locked.'
+			]);
+		}
+
+		const options = {
+			rowHeight: 28,
+			columnWidth: 120,
+			selection: { cssClass: 'cell-selection' },
+			editing: true,
+			autoUpdate: true,
+			columnResize: {
+				minWidth: 40,
+				maxWidth: 600
+			},
+			freezePane: { left: 2 },
+			columns,
+			headerRows: [
+				{ i: 0, cssClass: 'header-row' }
+			],
+			dataModel: {
+				fields: ['id', 'name', 'email', 'role', 'department', 'location', 'startDate', 'salary', 'notes'],
+				format: 'array',
+				data
+			}
+		};
+
+		const grid = new PGrid(options);
+		grid.render(document.getElementById('gridDiv'));
+
+		const logEl = document.getElementById('log');
+		grid.listen('columnResized', (e) => {
+			logEl.textContent = 'Resized "' + e.field + '" → ' + e.width + 'px';
+		});
+
+		document.getElementById('reset').addEventListener('click', () => {
+			columns.forEach((col) => {
+				const m = grid.model.getColumnModel(col.id);
+				if (m) m.width = initialWidths[col.field];
+			});
+			grid.view.reRender();
+			logEl.textContent = 'Widths reset.';
+		});
+
+		window.grid = grid;
+
+	</script>
+
+</body>
+
+</html>

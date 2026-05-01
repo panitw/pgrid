@@ -11,6 +11,7 @@ import { EditorExtension } from '../extensions/editor';
 import { CopyPasteExtension } from '../extensions/copypaste';
 import { ViewUpdaterExtension } from '../extensions/view-updater';
 import { FormatterExtension } from '../extensions/formatter';
+import { ColumnResizeExtension } from '../extensions/column-resize';
 
 export class PGrid extends EventDispatcher {
 
@@ -51,6 +52,9 @@ export class PGrid extends EventDispatcher {
 		}
 		if (this._config.columnFormatter) {
 			this._extensions.loadExtension(new FormatterExtension(), 'DEFAULT_EXT_FORMATTER');
+		}
+		if (this._config.columnResize) {
+			this._extensions.loadExtension(new ColumnResizeExtension(), 'DEFAULT_EXT_COLUMN_RESIZE');
 		}
 
 		//Load initial external extensions

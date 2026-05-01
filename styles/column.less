@@ -1,8 +1,18 @@
 @import "theme.less";
 
 .column() {
-	
+
 	.pgrid-column-header {
 		background-color: @grid-column-header-bg
+	}
+
+	.pgrid-col-resize-handle {
+		background-color: transparent;
+		transition: background-color 120ms ease;
+
+		&:hover,
+		&.pgrid-col-resize-active {
+			background-color: @grid-cell-selection-bg;
+		}
 	}
 }
