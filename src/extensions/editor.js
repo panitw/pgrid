@@ -14,6 +14,16 @@ export class EditorExtension {
 		this._detachEditor();
 	}
 
+	//How many columns the cell at (rowIndex, colIndex) occupies — 1 on a model
+	//without column span support.
+	_columnSpan (rowIndex, colIndex) {
+		const model = this._grid.model;
+		if (typeof model.getColumnSpan !== 'function') {
+			return 1;
+		}
+		return model.getColumnSpan(rowIndex, colIndex);
+	}
+
 	keyDown (e) {
 		if (!this._editorAttached) {
 			if (!e.ctrlKey && !e.metaKey && !e.altKey) {
@@ -104,7 +114,10 @@ export class EditorExtension {
             let data = this._grid.model.getDataAt(actualRow, actualCol);
 
 			//Check if there's any custom editor
-			let customEditor = this._grid.model.getCascadedCellProp(actualCell.dataset.rowIndex, actualCell.dataset.colIndex, 'editor');
+			//actualRow/actualCol, not the raw dataset strings: a spanned cell's
+			//dataset carries its anchor coordinates and every model accessor
+			//below resolves numerically.
+			let customEditor = this._grid.model.getCascadedCellProp(actualRow, actualCol, 'editor');
 			if (customEditor && customEditor.attach) {
                 let dataRow = this._grid.model.getRowDataAt(actualRow, actualCol);
                 let eventArg = {
@@ -230,7 +243,10 @@ export class EditorExtension {
 		if (goNext) {
 			const selectionExtension = this._grid.extension.getExtension('DEFAULT_EXT_SELECTION');
 			if (selectionExtension) {
-				selectionExtension.selectCell(this._editingCol + 1, this._editingRow);
+				//Tab advances past the whole cell: one column normally, the
+				//whole span when the edited cell was a spanned one, so Tab
+				//never lands on a covered column that renders nothing.
+				selectionExtension.selectCell(this._editingCol + this._columnSpan(this._editingRow, this._editingCol), this._editingRow);
 			}
 		}
 

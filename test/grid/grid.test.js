@@ -1,4 +1,4 @@
-import { equal, notEqual } from 'assert';
+import { equal, notEqual, deepEqual } from 'assert';
 import sinon from 'sinon';
 import { PGrid } from '../../src/grid/grid';
 
@@ -70,6 +70,137 @@ describe('PGrid (composition)', () => {
         it('should load the formatter extension when config.columnFormatter is true', () => {
             const grid = new PGrid(baseConfig({ columnFormatter: true }));
             notEqual(grid.extension.getExtension('DEFAULT_EXT_FORMATTER'), undefined);
+        });
+
+        it('should load the column-resize extension when config.columnResize is set', () => {
+            const grid = new PGrid(baseConfig({ columnResize: {} }));
+            notEqual(grid.extension.getExtension('DEFAULT_EXT_COLUMN_RESIZE'), undefined);
+        });
+
+        it('should load the text-overflow extension when config.textOverflow is set', () => {
+            const grid = new PGrid(baseConfig({ textOverflow: 'ellipsis' }));
+            notEqual(grid.extension.getExtension('DEFAULT_EXT_TEXT_OVERFLOW'), undefined);
+        });
+
+        it('should load the foldable-rows extension when config.foldableRows is set', () => {
+            const grid = new PGrid(baseConfig({ foldableRows: { groupBy: 'a' } }));
+            notEqual(grid.extension.getExtension('DEFAULT_EXT_FOLDABLE_ROWS'), undefined);
+        });
+
+        it('should not load the foldable-rows extension by default', () => {
+            const grid = new PGrid(baseConfig());
+            equal(grid.extension.getExtension('DEFAULT_EXT_FOLDABLE_ROWS'), undefined);
+            equal(grid.extension.getExtension('DEFAULT_EXT_COLUMN_RESIZE'), undefined);
+            equal(grid.extension.getExtension('DEFAULT_EXT_TEXT_OVERFLOW'), undefined);
+        });
+
+        it('should still init every built-in when all seven toggles are on together', () => {
+            const grid = new PGrid(baseConfig({
+                selection: {},
+                editing: true,
+                copypaste: true,
+                autoUpdate: true,
+                columnFormatter: true,
+                columnResize: {},
+                textOverflow: 'ellipsis'
+            }));
+            const host = document.createElement('div');
+            document.body.appendChild(host);
+            grid.render(host);
+            const names = [
+                'DEFAULT_EXT_SELECTION', 'DEFAULT_EXT_EDITOR', 'DEFAULT_EXT_COPYPASTE',
+                'DEFAULT_EXT_VIEW_UPDATER', 'DEFAULT_EXT_FORMATTER',
+                'DEFAULT_EXT_COLUMN_RESIZE', 'DEFAULT_EXT_TEXT_OVERFLOW'
+            ];
+            for (const name of names) {
+                notEqual(grid.extension.getExtension(name), undefined, `missing ${name}`);
+            }
+            // The row set is untouched: no projection is installed by any built-in.
+            equal(grid.model.getRowProjection(), null);
+            equal(grid.model.getRowCount(), 1 + 1);
+            document.body.removeChild(host);
+        });
+    });
+
+    describe('configure pre-pass', () => {
+
+        it('should call configure before the Model is constructed', () => {
+            let modelExisted = null;
+            const grid = new PGrid(baseConfig({
+                extensions: [{
+                    configure() { modelExisted = false; },
+                    init(g) { modelExisted = (modelExisted === false) && !!g.model; }
+                }]
+            }));
+            equal(modelExisted, true);
+            notEqual(grid.model, undefined);
+        });
+
+        it('should let configure mutate the config the Model then reads', () => {
+            const grid = new PGrid(baseConfig({
+                extensions: [{
+                    configure(config) {
+                        config.columns = [{ field: 'z', title: 'Z', width: 42 }].concat(config.columns);
+                    }
+                }]
+            }));
+            equal(grid.model.getColumnCount(), 3);
+            equal(grid.model.getColumnField(0), 'z');
+            equal(grid.model.getColumnWidth(0), 42);
+            equal(grid.model.getColumnIndex('a'), 1);
+        });
+
+        it('should receive the merged config (defaults applied) in configure', () => {
+            let received;
+            new PGrid(baseConfig({
+                extensions: [{ configure(config) { received = config; } }]
+            }));
+            equal(received.headerRowCount, 1);
+            equal(received.rowHeight, 32);
+        });
+
+        it('should run built-in configure hooks before user extension ones', () => {
+            // The gutter injection depends on this order: a user extension that
+            // renumbers columns must see the layout the built-ins produced.
+            let columnsSeen = null;
+            new PGrid(baseConfig({
+                foldableRows: { groupBy: 'a' },
+                extensions: [{
+                    configure(config) { columnsSeen = config.columns.slice(); }
+                }]
+            }));
+            notEqual(columnsSeen, null);
+            equal(columnsSeen.length, 3);
+            equal(columnsSeen[0].cssClass, 'pgrid-group-gutter');
+            equal(columnsSeen[1].field, 'a');
+            equal(columnsSeen[2].field, 'b');
+        });
+
+        it('should not require configure — extensions without it still load', () => {
+            const grid = new PGrid(baseConfig({
+                extensions: [{ cellRender() {} }]
+            }));
+            equal(grid.extension.hasExtension('cellRender'), true);
+            equal(grid.extension.hasExtension('configure'), false);
+        });
+
+        it('should keep configure construction-only, not a registry hookpoint', () => {
+            // PGrid calls configure directly during construction. Registering it
+            // would silently record it for extensions loaded later at runtime
+            // via loadExtension, where it could never be run.
+            const grid = new PGrid(baseConfig({
+                extensions: [{ configure() {} }]
+            }));
+            equal(grid.extension.hasExtension('configure'), false);
+            deepEqual(grid.extension.queryExtension('configure'), []);
+        });
+
+        it('should not run configure for an extension loaded after construction', () => {
+            const grid = new PGrid(baseConfig());
+            let ran = false;
+            grid.extension.loadExtension({ configure() { ran = true; } });
+            equal(ran, false);
+            equal(grid.model.getColumnCount(), 2);
         });
     });
 

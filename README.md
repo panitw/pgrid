@@ -14,6 +14,7 @@ A virtualized, extensible JavaScript data grid with frozen panes, inline editing
 - **Custom editors** — dropdowns, date pickers, anything HTML — [demo](https://panitw.github.io/pgrid/samples/custom-editors.html)
 - **Cell formatters** — pills, currency, progress bars, stars — [demo](https://panitw.github.io/pgrid/samples/formatters.html)
 - **Themes** — toggle dark / compact / spreadsheet looks via a single CSS class — [demo](https://panitw.github.io/pgrid/samples/themes.html)
+- **Row grouping** — fold records under group rows by one or more fields; collapsed rows leave the DOM entirely, so virtualization keeps working — [demo](https://panitw.github.io/pgrid/samples/row-grouping.html)
 - **Extension API** — every built-in feature is itself an extension; add your own without touching core
 - **Sort / filter / search** at the data layer (`DataTable`) without losing original row order
 
@@ -88,9 +89,15 @@ import {
   PGrid,
   CheckboxColumnExtension,
   ColumnResizeExtension,
-  TextOverflowExtension
+  TextOverflowExtension,
+  FoldableRowsExtension
 } from '@panitw/pgrid';
 ```
+
+Most are loaded for you by a config toggle — `columnResize`, `textOverflow`,
+`foldableRows` — and are reachable afterwards via
+`grid.extension.getExtension('DEFAULT_EXT_FOLDABLE_ROWS')` and friends.
+`CheckboxColumnExtension` is passed in `extensions: []` instead.
 
 ## Writing an extension
 

@@ -6,7 +6,8 @@
     <link rel="stylesheet" href="./_shared.css">
     <style>
         /* Header group row — taller, slightly muted, with section dividers
-           created by per-cell border classes (no real cell merging needed). */
+           created by per-cell border classes. The cells themselves are really
+           merged: each group label is one cell with a colspan. */
         .group-header-row {
             background-color: #1f2937 !important;
             color: #f9fafb !important;
@@ -58,7 +59,7 @@
         <div class="sample-header">
             <a class="back" href="./index.html">← All demos</a>
             <h1>Multi-row Headers</h1>
-            <span class="desc">Two-row header with grouped column titles. Built with <code>headerRowCount: 2</code> and per-cell <code>headerCells</code> for the group labels.</span>
+            <span class="desc">Two-row header with grouped column titles. Built with <code>headerRowCount: 2</code> and <code>headerCells</code> carrying <code>colspan</code>, so each group label is one merged cell across its columns.</span>
         </div>
 
         <div class="sample-grid-wrap">
@@ -70,24 +71,18 @@
         import { PGrid } from "../src/index.js";
         import { generateEmployees, EMPLOYEE_FIELDS } from "./_data.js";
 
-        // Repeat a group label across the cells of that group; pgrid renders
-        // each cell with the same text so the row reads as one merged label.
+        // One entry per group: `colspan` merges the group's columns into a
+        // single header cell, so the label gets the whole group's width and the
+        // covered columns render no cell of their own.
         const headerCells = [
-            // Personal group (cols 0-2)
-            { r: 0, c: 0, cssClass: 'group-start',       headerTitle: 'Personal' },
-            { r: 0, c: 1,                                 headerTitle: 'Personal' },
-            { r: 0, c: 2,                                 headerTitle: 'Personal' },
-            // Work group (cols 3-5)
-            { r: 0, c: 3, cssClass: 'group-start col-seam', headerTitle: 'Work' },
-            { r: 0, c: 4,                                 headerTitle: 'Work' },
-            { r: 0, c: 5,                                 headerTitle: 'Work' },
-            // Compensation group (cols 6-7)
-            { r: 0, c: 6, cssClass: 'group-start col-seam', headerTitle: 'Compensation' },
-            { r: 0, c: 7,                                 headerTitle: 'Compensation' }
+            { r: 0, c: 0, colspan: 3, cssClass: 'group-start',           headerTitle: 'Personal' },
+            { r: 0, c: 3, colspan: 3, cssClass: 'group-start col-seam',  headerTitle: 'Work' },
+            { r: 0, c: 6, colspan: 2, cssClass: 'group-start col-seam',  headerTitle: 'Compensation' }
         ];
 
-        // Override header cell text via a tiny extension that reads
-        // headerTitle off the per-cell model.
+        // The grid renders a header cell as its COLUMN title, so the group row
+        // still needs somewhere to get its own label from: this reads it off
+        // the per-cell model. The merging itself is colspan's job.
         const headerTitleExt = {
             cellRender(e) {
                 if (e.rowIndex !== 0) return;

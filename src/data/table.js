@@ -187,6 +187,15 @@ export class DataTable extends EventDispatcher {
             }
         }
 
+        //Re-apply transformation if it's already there. This MUST happen before
+        //the change event is dispatched: listeners read the row set through
+        //_transformedRid, and dispatching first hands them the pre-insert view.
+        if (this._searchQuery) {
+            this.search(this._searchQuery, this._searchFields);
+        } else {
+            this._transformedRid = this._rid.slice();
+        }
+
         //Dispatch change event
         if (inserted) {
             if (this._freezeCount === 0) {
@@ -199,13 +208,6 @@ export class DataTable extends EventDispatcher {
                 };
                 this.dispatch(CHANGE_EVENT_NAME, eventArg);
             }
-        }
-
-        //Re-apply transformation if it's already there
-        if (this._searchQuery) {
-            this.search(this._searchQuery, this._searchFields);
-        } else {
-            this._transformedRid = this._rid.slice();
         }
     }
 

@@ -87,7 +87,9 @@ export class View extends EventDispatcher {
 		this._centerInner.innerHTML = '';
 		this._bottomLeftInner.innerHTML = '';
         this._bottomInner.innerHTML = '';
-        this._cellReference = [];
+        //Keyed by "row,col" — an object, matching the constructor. This was an
+        //array literal, which worked only because arrays tolerate string keys.
+        this._cellReference = {};
 
         this._model.calcTotalSize();
 		this._resturecture();
@@ -142,7 +144,12 @@ export class View extends EventDispatcher {
 	}
 
 	getCell (rowIndex, colIndex, createNewCell) {
-        let cell = this._element.querySelector('[data-row-index="'+rowIndex+'"][data-col-index="'+colIndex+'"]');
+        //A column covered by a span has no node of its own — the spanning cell
+        //owns the coordinate. Resolving here is what keeps scrollToCell,
+        //updateCell, selection, the editor and paste working over a span
+        //without any of them having to know spans exist.
+        colIndex = this._spanAnchor(rowIndex, colIndex);
+        let cell = this._queryCell(rowIndex, colIndex);
         if (cell) {
             return cell;
         } else
@@ -171,13 +178,24 @@ export class View extends EventDispatcher {
                 this.setScrollY((cellRect.y + cellRect.height) - gridRect.height);
             }
             this._renderCells();
-            return this._element.querySelector('[data-row-index="'+rowIndex+'"][data-col-index="'+colIndex+'"]');
+            return this._queryCell(rowIndex, colIndex);
         }
 	}
 
+    //Raw lookup by the coordinates a cell actually renders under. The caller is
+    //responsible for having resolved a span anchor first.
+    _queryCell (rowIndex, colIndex) {
+        return this._element.querySelector('[data-row-index="'+rowIndex+'"][data-col-index="'+colIndex+'"]');
+    }
+
 	updateCell (rowIndex, colIndex) {
+        //Everything below addresses the cell by (rowIndex, colIndex), so resolve
+        //a covered coordinate to its anchor once, here — and then look the node
+        //up directly rather than through getCell, which would resolve again.
+        colIndex = this._spanAnchor(rowIndex, colIndex);
+
         //Ignore updating cell that's outside of the viewport
-		let cell = this.getCell(rowIndex, colIndex, false);
+		let cell = this._queryCell(rowIndex, colIndex);
 		if (cell) {
 			//Create cell content wrapper if not any
 			let cellContent = cell.firstChild;
@@ -358,6 +376,13 @@ export class View extends EventDispatcher {
         return getCellRect(this._model, rowIndex, colIndex);
     }
 
+    _spanAnchor (rowIndex, colIndex) {
+        if (typeof this._model.getSpanAnchor !== 'function') {
+            return colIndex;
+        }
+        return this._model.getSpanAnchor(rowIndex, colIndex);
+    }
+
 	_renderCells () {
         const ranges = getPaneRanges({
             rowCount: this._model.getRowCount(),
@@ -400,7 +425,7 @@ export class View extends EventDispatcher {
         );
     }
 
-    _createCell (rowIndex, colIndex, x, y, width, height) {
+    _createCell (rowIndex, colIndex, x, y, width, height, colspan) {
         let cell = null;
         let key = rowIndex + ',' + colIndex;
         if (this._recycledCells.length > 0) {
@@ -421,7 +446,16 @@ export class View extends EventDispatcher {
         cell.dataset.rowIndex = rowIndex;
         cell.dataset.colIndex = colIndex;
         cell.dataset.key = key;
+        //Cells are pooled, so a span has to be cleared as deliberately as it is
+        //set — a recycled node must not claim a span it no longer has.
+        if (colspan > 1) {
+            cell.dataset.colspan = colspan;
+        } else {
+            delete cell.dataset.colspan;
+        }
 
+        //Only the anchor is keyed. Covered coordinates are deliberately absent:
+        //they have no entry in the layout either, and getCell resolves them.
         this._cellReference[key] = cell;
         return cell;
     }
@@ -449,7 +483,7 @@ export class View extends EventDispatcher {
     }
 
 	_renderCell (cellInfo, pane) {
-        const { rowIndex, colIndex, x, y, width, height, visible } = cellInfo;
+        const { rowIndex, colIndex, x, y, width, height, visible, colspan } = cellInfo;
         let key = rowIndex + ',' + colIndex;
 
         //If the cell is outside of the viewport, then recycle the cell if it has already been created
@@ -474,7 +508,7 @@ export class View extends EventDispatcher {
 		this._extensions.executeExtension('dataBeforeRender', arg);
 		data = arg.data;
 
-		let cell = this._createCell(rowIndex, colIndex, x, y, width, height);
+		let cell = this._createCell(rowIndex, colIndex, x, y, width, height, colspan);
 		let cellClasses = this._model.getCellClasses(rowIndex, colIndex);
 		cell.className = 'pgrid-cell ' + cellClasses.join(' ');
 

@@ -2,3 +2,5 @@ node_modules
 dist
 deploy
 site
+_bmad*
+.claude

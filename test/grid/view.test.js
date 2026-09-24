@@ -232,6 +232,80 @@ describe('View (jsdom render)', () => {
         });
     });
 
+    describe('column span', () => {
+
+        // `cells[].r` is a DATA row index; with headerRowCount 1, data row 0 is
+        // view row 1.
+        const spanConfig = (over = {}) => baseConfig(Object.assign({
+            cells: [{ r: 0, c: 1, colspan: 2 }]
+        }, over));
+
+        it('should render one node for the span and none for the covered columns', () => {
+            const { host, cleanup } = renderInto(spanConfig());
+            equal(host.querySelectorAll('[data-row-index="1"]').length, 2);
+            notEqual(host.querySelector('[data-row-index="1"][data-col-index="1"]'), null);
+            equal(host.querySelector('[data-row-index="1"][data-col-index="2"]'), null);
+            cleanup();
+        });
+
+        it('should give the spanning cell the summed width of the columns it covers', () => {
+            const { host, cleanup } = renderInto(spanConfig());
+            const cell = host.querySelector('[data-row-index="1"][data-col-index="1"]');
+            equal(cell.style.width, '160px'); // 2 columns at columnWidth 80
+            equal(cell.dataset.colspan, '2');
+            cleanup();
+        });
+
+        it('should leave every other row one cell per column', () => {
+            const { host, cleanup } = renderInto(spanConfig());
+            equal(host.querySelectorAll('[data-row-index="2"]').length, 3);
+            equal(host.querySelectorAll('[data-row-index="0"]').length, 3);
+            cleanup();
+        });
+
+        it('should resolve a covered coordinate to the spanning cell in getCell', () => {
+            const { grid, cleanup } = renderInto(spanConfig());
+            const anchor = grid.view.getCell(1, 1);
+            notEqual(anchor, null);
+            equal(grid.view.getCell(1, 2), anchor);
+            equal(grid.view.getCell(1, 2, false), anchor);
+            cleanup();
+        });
+
+        it('should repaint the spanning cell when a covered coordinate is updated', () => {
+            const { grid, host, cleanup } = renderInto(spanConfig());
+            grid.data.setDataAt(0, 'b', 'updated-b');
+            grid.view.updateCell(1, 2);
+            const cell = host.querySelector('[data-row-index="1"][data-col-index="1"]');
+            equal(cell.firstChild.innerHTML, 'updated-b');
+            cleanup();
+        });
+
+        it('should not throw when scrolling to a covered coordinate', () => {
+            const { grid, cleanup } = renderInto(spanConfig());
+            grid.view.scrollToCell(1, 2, false);
+            cleanup();
+        });
+
+        it('should render a merged header cell from headerCells', () => {
+            const { host, cleanup } = renderInto(baseConfig({
+                headerCells: [{ r: 0, c: 0, colspan: 2 }]
+            }));
+            equal(host.querySelectorAll('[data-row-index="0"]').length, 2);
+            equal(host.querySelector('[data-row-index="0"][data-col-index="1"]'), null);
+            equal(host.querySelector('[data-row-index="0"][data-col-index="0"]').style.width, '160px');
+            cleanup();
+        });
+
+        it('should render exactly as before when no colspan is declared', () => {
+            const { host, cleanup } = renderInto();
+            const cells = host.querySelectorAll('.pgrid-cell');
+            equal(cells.length, 9); // 3 rows x 3 columns
+            cells.forEach((cell) => equal(cell.dataset.colspan, undefined));
+            cleanup();
+        });
+    });
+
     describe('keyDown extension dispatch', () => {
 
         it('should forward keydown events on the host to the keyDown extension hook', () => {

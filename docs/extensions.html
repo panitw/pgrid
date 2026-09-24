@@ -74,6 +74,7 @@ new PGrid({ /* … */ extensions: [myExt] });</code></pre>
                     <tr><th>Hook</th><th>When it fires</th></tr>
                 </thead>
                 <tbody>
+                    <tr><td><code>configure(config)</code></td><td><strong>Construction only.</strong> Runs once inside <code>new PGrid(config)</code>, before the DataTable, Model and View exist, so an extension can inject or rewrite configuration the Model reads in its constructor &mdash; adding a column, for instance. Built-in extensions' <code>configure</code> runs before your own. It is <em>not</em> a runtime hookpoint: an extension added later through <code>grid.extension.loadExtension()</code> never has its <code>configure</code> called, because the grid is already built.</td></tr>
                     <tr><td><code>cellRender(e)</code></td><td>Before a cell's text is written. Set <code>e.handled = true</code> to suppress default rendering.</td></tr>
                     <tr><td><code>cellAfterRender(e)</code></td><td>After a cell's content is in place. Add classes, attach listeners.</td></tr>
                     <tr><td><code>cellUpdate(e)</code></td><td>Before a cell is updated in place (without full re-render).</td></tr>
@@ -195,6 +196,7 @@ columns: [
                     <tr><td><code>FormatterExtension</code></td><td>Honors <code>column.formatter</code>. Loaded by <code>columnFormatter</code>.</td></tr>
                     <tr><td><code>ColumnResizeExtension</code></td><td>Drag handles on header. Loaded by <code>columnResize</code>.</td></tr>
                     <tr><td><code>TextOverflowExtension</code></td><td>Cascaded overflow modes. Loaded by <code>textOverflow</code>.</td></tr>
+                    <tr><td><code>FoldableRowsExtension</code></td><td>Groups records under foldable group rows. Loaded by <code>foldableRows</code>. Uses <code>configure</code> to inject its chevron gutter column, and installs a row projection on the Model so collapsed records leave the row set entirely. Folding with <kbd>Space</kbd> additionally requires <code>selection</code>, because <code>keyDown</code> returns early when nothing is selected &mdash; chevron clicks work either way. See <a href="./configuration.html#row-grouping">Configuration &rarr; Row grouping</a>. <a href="../samples/row-grouping.html" target="_blank" rel="noopener">Demo</a></td></tr>
                 </tbody>
             </table>
             <p>Two extensions are passed in <code>extensions: []</code> rather than via toggles:</p>

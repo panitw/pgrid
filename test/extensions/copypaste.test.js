@@ -135,4 +135,64 @@ describe('CopyPasteExtension', () => {
             equal(payload.srcField, null);
         });
     });
+
+    describe('column span', () => {
+
+        // Columns 1-3 are merged behind an anchor at column 1.
+        const spanGrid = () => {
+            const g = buildGrid();
+            g.model.getSpanAnchor = (r, c) => (c >= 1 && c <= 3) ? 1 : c;
+            g.model.getColumnSpan = (r, c) => (c === 1) ? 3 : 1;
+            return g;
+        };
+
+        beforeEach(() => {
+            grid = spanGrid();
+            ext = new CopyPasteExtension();
+            ext.init(grid, {});
+        });
+
+        it('should copy a span as its value plus one empty field per covered column', () => {
+            grid.state.set('selection', [{ r: 1, c: 1, w: 4, h: 1 }]);
+            equal(ext._copy(), 'r1c1\t\t\tr1c4');
+        });
+
+        it('should keep the clipboard rectangular across rows', () => {
+            grid.state.set('selection', [{ r: 0, c: 1, w: 4, h: 2 }]);
+            const rows = ext._copy().split('\n');
+            equal(rows.length, 2);
+            rows.forEach((row) => equal(row.split('\t').length, 4));
+        });
+
+        it('should discard the blanks belonging to covered columns on paste', () => {
+            grid.state.set('selection', [{ r: 1, c: 1, w: 4, h: 1 }]);
+            ext._paste('anchor\t\t\tfour');
+            const written = grid.model.setDataAt.getCalls().map(call => call.args);
+            deepEqual(written, [[1, 1, 'anchor'], [1, 4, 'four']]);
+        });
+
+        it('should not discard real values pasted from an unmerged source', () => {
+            // A spreadsheet that knows nothing about the merge sends a value in
+            // every column; dropping the covered ones would lose data silently.
+            grid.state.set('selection', [{ r: 1, c: 1, w: 4, h: 1 }]);
+            ext._paste('one\ttwo\tthree\tfour');
+            const written = grid.model.setDataAt.getCalls().map(call => call.args);
+            deepEqual(written, [[1, 1, 'one'], [1, 2, 'two'], [1, 3, 'three'], [1, 4, 'four']]);
+        });
+
+        it('should round trip a spanned range losslessly', () => {
+            grid.state.set('selection', [{ r: 1, c: 1, w: 4, h: 1 }]);
+            ext._paste(ext._copy());
+            const written = grid.model.setDataAt.getCalls().map(call => call.args);
+            deepEqual(written, [[1, 1, 'r1c1'], [1, 4, 'r1c4']]);
+        });
+
+        it('should leave a grid whose model has no span support untouched', () => {
+            const plain = buildGrid();
+            const plainExt = new CopyPasteExtension();
+            plainExt.init(plain, {});
+            plain.state.set('selection', [{ r: 1, c: 0, w: 3, h: 1 }]);
+            equal(plainExt._copy(), 'r1c0\tr1c1\tr1c2');
+        });
+    });
 });

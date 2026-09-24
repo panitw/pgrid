@@ -130,7 +130,10 @@ grid.render(document.getElementById('grid'));</code></pre>
                     <tr><td><code>isHeaderRow(rowIndex)</code></td><td>True if the row is part of the header.</td></tr>
                     <tr><td><code>getRowModel(rowIndex)</code></td><td>Per-row config.</td></tr>
                     <tr><td><code>getColumnModel(colIndex)</code></td><td>Per-column config.</td></tr>
-                    <tr><td><code>getCellModel(r, c)</code></td><td>Per-cell config (or undefined).</td></tr>
+                    <tr><td><code>getCellModel(r, c)</code></td><td>Per-cell config (or undefined). A coordinate covered by a column span resolves to the spanning cell's config.</td></tr>
+                    <tr><td><code>getColumnSpan(r, c)</code></td><td>How many columns the cell at <code>(r, c)</code> occupies. Always at least 1, clamped to the column count and to the end of the cell's own pane. See <a href="./configuration.html#colspan">Column span</a>.</td></tr>
+                    <tr><td><code>getSpanAnchor(r, c)</code></td><td>The column that actually owns <code>(r, c)</code> &mdash; the anchor when the coordinate is covered by a span, otherwise <code>c</code> itself.</td></tr>
+                    <tr><td colspan="2"><strong>Covered coordinates.</strong> Every row-aware accessor below resolves a coordinate covered by a <a href="./configuration.html#colspan">column span</a> to the spanning cell's anchor before answering: <code>getCellModel</code>, <code>getCascadedCellProp</code>, <code>getCellClasses</code>, <code>canEdit</code>, <code>getDataAt</code>, <code>setDataAt</code> and <code>getColumnSpan</code> itself. So <code>getDataAt(r, 2)</code> inside a span anchored at column 1 returns column 1's value, and <code>setDataAt(r, 2, v)</code> writes column 1's field. The column-only accessors &mdash; <code>getColumnModel</code>, <code>getColumnWidth</code>, <code>getColumnField</code>, <code>getColumnIndex</code> &mdash; have no row to resolve against and still answer for the literal column you asked about; use <code>getColumnField(model.getSpanAnchor(r, c))</code> when you mean the field the cell at <code>(r, c)</code> actually shows.</td></tr>
                     <tr><td><code>getCascadedCellProp(r, c, prop)</code></td><td>Resolve a property from cell → row → column.</td></tr>
                     <tr><td><code>getDataAt(rowIndex, colIndex)</code></td><td>Cell value (returns column title for headers).</td></tr>
                     <tr><td><code>getRowDataAt(rowIndex)</code></td><td>The row object backing a visible index.</td></tr>
@@ -138,8 +141,21 @@ grid.render(document.getElementById('grid'));</code></pre>
                     <tr><td><code>getRowIndex(rowId)</code> / <code>getRowId(rowIndex)</code></td><td>Coordinate conversion (header-row aware).</td></tr>
                     <tr><td><code>getColumnIndex(field)</code> / <code>getColumnField(colIndex)</code></td><td>Field ↔ index conversion.</td></tr>
                     <tr><td><code>canEdit(rowIndex, colIndex)</code></td><td>Resolve edit permission, including <code>cellEditableCheck</code> hooks.</td></tr>
+                    <tr><td><code>getRowMeta(rowIndex)</code></td><td>What is row N? Returns <code>{kind: 'header'}</code>, <code>{kind: 'data', dataRowIndex}</code>, or whatever entry an installed row projection resolved to &mdash; e.g. <code>{kind: 'group', path, label, level, count, collapsed}</code> from <code>FoldableRowsExtension</code>.</td></tr>
+                    <tr><td><code>setRowProjection(projection)</code></td><td>Install a row projection, or clear it with <code>null</code>. See below.</td></tr>
+                    <tr><td><code>getRowProjection()</code></td><td>The installed projection, or <code>null</code>.</td></tr>
                 </tbody>
             </table>
+
+            <h3>Row projections</h3>
+            <p>By default the Model maps visible row <code>n</code> straight onto data row <code>n - headerRowCount</code>. A <em>row projection</em> replaces that mapping, letting an extension present a row order that is not the DataTable's own &mdash; reordered rows, synthetic rows the data layer knows nothing about, or rows that are simply absent from the view. This is the seam <code>FoldableRowsExtension</code> is built on; the DataTable stays flat either way.</p>
+<pre><code>grid.model.setRowProjection({
+    getRowCount () { /* number of visible non-header rows */ },
+    resolve (i)   { /* {kind: 'data', dataRowIndex} | {kind: 'group', ...} */ },
+    getRowHeight (i) { /* optional; return undefined to fall through to config */ },
+    findDataRow (dataRowIndex) { /* reverse lookup, or -1 when not visible */ }
+});</code></pre>
+            <p>An entry from <code>resolve</code> may carry a <code>rowModel</code>, which <code>getRowModel</code> hands back for that row &mdash; that is how a synthetic row gets a <code>cssClass</code> onto every one of its cells. It may also carry a <code>cellModel</code> keyed by column index (<code>{ 1: { colspan: 3 } }</code>), which <code>getCellModel</code> hands back per column &mdash; that is how a synthetic row declares a <a href="./configuration.html#colspan">column span</a>. A projection whose entries carry <code>cellModel</code> must be applied with <code>grid.view.reRender()</code>, not <code>calcTotalSize()</code> alone: a covered column emits no layout entry, so an incremental render has nothing to recycle a node that used to live at a now-covered coordinate and it would be left in the DOM under the widened cell showing stale data. With nothing installed, every accessor behaves exactly as it always has. Call <code>grid.model.calcTotalSize()</code> after installing or changing one.</p>
 
             <h2 id="view">View — <code>grid.view</code></h2>
             <p>The DOM layer.</p>
@@ -149,7 +165,7 @@ grid.render(document.getElementById('grid'));</code></pre>
                     <tr><td><code>reRender()</code></td><td>Full re-render. Use after bulk data changes.</td></tr>
                     <tr><td><code>updateCell(rowIndex, colIndex)</code></td><td>In-place update of one cell.</td></tr>
                     <tr><td><code>getElement()</code></td><td>The mounted DOM element.</td></tr>
-                    <tr><td><code>getCell(rowIndex, colIndex)</code></td><td>The <code>.pgrid-cell</code> node, if currently mounted.</td></tr>
+                    <tr><td><code>getCell(rowIndex, colIndex)</code></td><td>The <code>.pgrid-cell</code> node, if currently mounted. A coordinate covered by a <a href="./configuration.html#colspan">column span</a> has no node of its own and returns the <em>spanning</em> cell's node (which carries the anchor's <code>data-row-index</code> / <code>data-col-index</code> and a <code>data-colspan</code>), so <code>getCell(r, 2)</code> inside a span anchored at column 1 is the same node as <code>getCell(r, 1)</code>.</td></tr>
                     <tr><td><code>scrollToCell(rowIndex, colIndex, alignTop)</code></td><td>Scroll to a cell.</td></tr>
                     <tr><td><code>setScrollX(x)</code> / <code>setScrollY(y)</code></td><td>Programmatic scroll.</td></tr>
                 </tbody>
@@ -182,6 +198,7 @@ grid.render(document.getElementById('grid'));</code></pre>
                     <tr><td><code>'DEFAULT_EXT_FORMATTER'</code></td><td>FormatterExtension.</td></tr>
                     <tr><td><code>'DEFAULT_EXT_COLUMN_RESIZE'</code></td><td>ColumnResizeExtension.</td></tr>
                     <tr><td><code>'DEFAULT_EXT_TEXT_OVERFLOW'</code></td><td>TextOverflowExtension.</td></tr>
+                    <tr><td><code>'DEFAULT_EXT_FOLDABLE_ROWS'</code></td><td>FoldableRowsExtension (when <code>foldableRows</code> is set). Exposes <code>expand</code>, <code>collapse</code>, <code>toggle</code>, <code>expandAll</code>, <code>collapseAll</code>, <code>isCollapsed</code>, <code>getGroups</code>, <code>setGroupBy</code>, <code>getState</code> and <code>setState</code>.</td></tr>
                 </tbody>
             </table>
 
