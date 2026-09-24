@@ -15,6 +15,7 @@ A virtualized, extensible JavaScript data grid with frozen panes, inline editing
 - **Cell formatters** — pills, currency, progress bars, stars — [demo](https://panitw.github.io/pgrid/samples/formatters.html)
 - **Themes** — toggle dark / compact / spreadsheet looks via a single CSS class — [demo](https://panitw.github.io/pgrid/samples/themes.html)
 - **Row grouping** — fold records under group rows by one or more fields; collapsed rows leave the DOM entirely, so virtualization keeps working — [demo](https://panitw.github.io/pgrid/samples/row-grouping.html)
+- **Column span** — declare `colspan` on any cell or header cell to merge it across columns — [demo](https://panitw.github.io/pgrid/samples/multi-row-headers.html)
 - **Extension API** — every built-in feature is itself an extension; add your own without touching core
 - **Sort / filter / search** at the data layer (`DataTable`) without losing original row order
 
@@ -23,6 +24,24 @@ A virtualized, extensible JavaScript data grid with frozen panes, inline editing
 ```bash
 npm install @panitw/pgrid
 ```
+
+## Upgrading to 3.0
+
+Two long-standing bugs were fixed. Both change runtime behaviour, so this is a major release even though no API was removed.
+
+**`config.rows[].i` is now a data row index everywhere.** It always meant a data row index — the docs said so, and `cssClass` and `editable` resolved it that way — but `getRowHeight` resolved it against the *view* row index, so a per-row height landed `headerRowCount` rows above where it belonged. Header row heights come from `headerRows[].height`.
+
+```js
+// headerRowCount: 1, rowHeight: 30
+rows: [{ i: 0, height: 90 }]
+
+// 2.x — the header row became 90px tall
+// 3.0 — the first data row becomes 90px tall, as documented
+```
+
+If you compensated for the old behaviour by offsetting your `i` values, remove the offset. If you were sizing a header row this way, move it to `headerRows[].height`. Configs that set only `cssClass` or `editable` are unaffected.
+
+**`DataTable.insertRow` now updates the visible row set before dispatching `dataChanged`.** It dispatched first, so every listener saw the row set as it was *before* the insert. Listeners that worked around this by deferring their own refresh can drop the workaround.
 
 ## Quick start
 
