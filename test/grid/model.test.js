@@ -469,4 +469,180 @@ describe('Model', () => {
             equal(model.getTotalHeight(), 30 + 50 + 30);
         });
     });
+
+    describe('column span', () => {
+
+        // `cells[].r` is a DATA row index; headerRowCount is 1, so data row 0
+        // is view row 1.
+        const DATA_ROW = 1;
+
+        it('should report a span of 1 everywhere when nothing declares colspan', () => {
+            const { model } = buildModel();
+            for (let c = 0; c < 3; c++) {
+                equal(model.getColumnSpan(DATA_ROW, c), 1, `col ${c}`);
+                equal(model.getSpanAnchor(DATA_ROW, c), c, `col ${c}`);
+            }
+        });
+
+        it('should report the declared colspan on a data cell', () => {
+            const { model } = buildModel({ cells: [{ r: 0, c: 0, colspan: 2 }] });
+            equal(model.getColumnSpan(DATA_ROW, 0), 2);
+            equal(model.getColumnSpan(DATA_ROW, 2), 1);
+        });
+
+        it('should apply the span only to the row that declared it', () => {
+            const { model } = buildModel({ cells: [{ r: 0, c: 0, colspan: 2 }] });
+            equal(model.getColumnSpan(DATA_ROW + 1, 0), 1);
+        });
+
+        it('should report the declared colspan on a header cell', () => {
+            const { model } = buildModel({ headerCells: [{ r: 0, c: 1, colspan: 2 }] });
+            equal(model.getColumnSpan(0, 1), 2);
+            equal(model.getSpanAnchor(0, 2), 1);
+        });
+
+        it('should treat degenerate colspan values as no span', () => {
+            for (const bad of [0, 1, -2, 'abc', null, undefined, NaN, Infinity, {}]) {
+                const { model } = buildModel({ cells: [{ r: 0, c: 0, colspan: bad }] });
+                equal(model.getColumnSpan(DATA_ROW, 0), 1, `colspan ${String(bad)}`);
+                equal(model.getSpanAnchor(DATA_ROW, 1), 1, `colspan ${String(bad)}`);
+            }
+        });
+
+        it('should floor a fractional colspan', () => {
+            const { model } = buildModel({ cells: [{ r: 0, c: 0, colspan: 2.7 }] });
+            equal(model.getColumnSpan(DATA_ROW, 0), 2);
+        });
+
+        it('should clamp a span that overruns the last column', () => {
+            const { model } = buildModel({ cells: [{ r: 0, c: 1, colspan: 9 }] });
+            equal(model.getColumnSpan(DATA_ROW, 1), 2); // cols 1-2 of 3
+        });
+
+        it('should clamp a span at the left-freeze boundary', () => {
+            const { model } = buildModel({
+                freezePane: { left: 2 },
+                cells: [{ r: 0, c: 1, colspan: 4 }]
+            });
+            equal(model.getColumnSpan(DATA_ROW, 1), 1);
+            equal(model.getSpanAnchor(DATA_ROW, 2), 2);
+        });
+
+        it('should let a span run to the end of the scrolling band', () => {
+            const { model } = buildModel({
+                freezePane: { left: 1 },
+                cells: [{ r: 0, c: 1, colspan: 5 }]
+            });
+            equal(model.getColumnSpan(DATA_ROW, 1), 2);
+        });
+
+        it('should resolve a covered coordinate to its anchor', () => {
+            const { model } = buildModel({ cells: [{ r: 0, c: 0, colspan: 3 }] });
+            equal(model.getSpanAnchor(DATA_ROW, 0), 0);
+            equal(model.getSpanAnchor(DATA_ROW, 1), 0);
+            equal(model.getSpanAnchor(DATA_ROW, 2), 0);
+        });
+
+        it('should resolve to the outermost anchor when two spans overlap', () => {
+            const { model } = buildModel({
+                columns: [
+                    { field: 'a', title: 'A' }, { field: 'b', title: 'B' },
+                    { field: 'c', title: 'C' }, { field: 'd', title: 'D' }
+                ],
+                cells: [{ r: 0, c: 0, colspan: 3 }, { r: 0, c: 1, colspan: 2 }]
+            });
+            // Col 0 wins the walk; the span declared at col 1 is itself covered.
+            equal(model.getSpanAnchor(DATA_ROW, 1), 0);
+            equal(model.getSpanAnchor(DATA_ROW, 2), 0);
+            equal(model.getSpanAnchor(DATA_ROW, 3), 3);
+        });
+
+        it('should report the owning cell\'s span for a covered coordinate', () => {
+            const { model } = buildModel({ cells: [{ r: 0, c: 0, colspan: 3 }] });
+            equal(model.getColumnSpan(DATA_ROW, 1), 3);
+            equal(model.getColumnSpan(DATA_ROW, 2), 3);
+        });
+
+        it('should report no span for a span declared inside another span', () => {
+            const { model } = buildModel({
+                columns: [
+                    { field: 'a', title: 'A' }, { field: 'b', title: 'B' },
+                    { field: 'c', title: 'C' }, { field: 'd', title: 'D' }
+                ],
+                cells: [{ r: 0, c: 0, colspan: 2 }, { r: 0, c: 1, colspan: 3 }]
+            });
+            // Column 1 renders nothing, so it occupies nothing: it answers for
+            // the cell at column 0 that actually covers it.
+            equal(model.getColumnSpan(DATA_ROW, 1), 2);
+            equal(model.getSpanAnchor(DATA_ROW, 1), 0);
+            equal(model.getColumnSpan(DATA_ROW, 2), 1);
+        });
+
+        it('should coerce a string column index', () => {
+            const { model } = buildModel({ cells: [{ r: 0, c: 1, colspan: 2 }] });
+            // '1' + 2 would concatenate to '12' without coercion.
+            equal(model.getColumnSpan(DATA_ROW, '1'), 2);
+            equal(model.getSpanAnchor(DATA_ROW, '2'), 1);
+        });
+
+        it('should pick up a colspan set on the config after construction', () => {
+            const { model, config } = buildModel({ cells: [{ r: 0, c: 0 }] });
+            equal(model.getColumnSpan(DATA_ROW, 0), 1);
+            config.cells[0].colspan = 2;
+            model.calcTotalSize();
+            equal(model.getColumnSpan(DATA_ROW, 0), 2);
+            equal(model.getSpanAnchor(DATA_ROW, 1), 0);
+        });
+
+        it('should hand a covered coordinate the anchor cell model', () => {
+            const { model } = buildModel({ cells: [{ r: 0, c: 0, colspan: 2, cssClass: 'merged' }] });
+            equal(model.getCellModel(DATA_ROW, 1).cssClass, 'merged');
+            equal(model.getCascadedCellProp(DATA_ROW, 1, 'cssClass'), 'merged');
+        });
+
+        it('should hand a covered coordinate the anchor classes', () => {
+            const { model } = buildModel({ cells: [{ r: 0, c: 0, colspan: 2, cssClass: 'merged' }] });
+            deepEqual(model.getCellClasses(DATA_ROW, 1), model.getCellClasses(DATA_ROW, 0));
+        });
+
+        it('should read the anchor column field for a covered coordinate', () => {
+            const { model } = buildModel({ cells: [{ r: 0, c: 0, colspan: 2 }] });
+            equal(model.getDataAt(DATA_ROW, 1), model.getDataAt(DATA_ROW, 0));
+        });
+
+        it('should write the anchor column field for a covered coordinate', () => {
+            const { model, data } = buildModel({ cells: [{ r: 0, c: 0, colspan: 2 }] });
+            model.setDataAt(DATA_ROW, 1, 'written');
+            equal(data.getDataAt(0, 'a'), 'written');
+            equal(data.getDataAt(0, 'b'), 2);
+        });
+
+        it('should resolve editability against the anchor', () => {
+            const { model } = buildModel({
+                columns: [
+                    { field: 'a', title: 'A', editable: true },
+                    { field: 'b', title: 'B' },
+                    { field: 'c', title: 'C' }
+                ],
+                cells: [{ r: 0, c: 0, colspan: 2 }]
+            });
+            equal(model.canEdit(DATA_ROW, 0), true);
+            // Column b is not editable on its own, but it is covered by the
+            // editable anchor and has no cell of its own.
+            equal(model.canEdit(DATA_ROW, 1), true);
+            equal(model.canEdit(DATA_ROW, 2), false);
+        });
+
+        it('should let a row projection declare a span through cellModel', () => {
+            const { model } = buildModel();
+            model.setRowProjection({
+                getRowCount: () => 1,
+                resolve: () => ({ kind: 'group', cellModel: { 0: { colspan: 3 } } }),
+                findDataRow: () => -1
+            });
+            equal(model.getColumnSpan(DATA_ROW, 0), 3);
+            equal(model.getSpanAnchor(DATA_ROW, 2), 0);
+            model.setRowProjection(null);
+        });
+    });
 });

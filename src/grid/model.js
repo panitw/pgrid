@@ -5,6 +5,29 @@ import { EventDispatcher } from './event';
 const HEADER_META = Object.freeze({ kind: 'header' });
 const NONE_META = Object.freeze({ kind: 'none' });
 
+//A declared `colspan` becomes a column count. Anything that is not a whole
+//number above 1 — 0, 1, a negative, a string, null — means "no span", never a
+//throw: colspan is opt-in and a bad value must degrade to today's behavior.
+function normalizeColspan (raw) {
+	if (typeof raw !== 'number' || !isFinite(raw)) {
+		return 1;
+	}
+	const span = Math.floor(raw);
+	return (span > 1) ? span : 1;
+}
+
+function declaresSpan (list) {
+	if (!Array.isArray(list)) {
+		return false;
+	}
+	for (let i = 0; i < list.length; i++) {
+		if (list[i] && normalizeColspan(list[i].colspan) > 1) {
+			return true;
+		}
+	}
+	return false;
+}
+
 export class Model extends EventDispatcher {
 
 	constructor (config, data, extension) {
@@ -64,9 +87,11 @@ export class Model extends EventDispatcher {
 	}
 
 	canEdit (rowIndex, colIndex) {
+		//Anchor once, here; the declared model at the anchor IS the cell model.
+		colIndex = this.getSpanAnchor(rowIndex, colIndex);
 		let rowModel = this.getRowModel(rowIndex);
 		let colModel = this.getColumnModel(colIndex);
-		let cellModel = this.getCellModel(rowIndex, colIndex);
+		let cellModel = this._getDeclaredCellModel(rowIndex, colIndex);
 		let result = false;
 
 		if ((rowModel && rowModel.editable) ||
@@ -272,22 +297,131 @@ export class Model extends EventDispatcher {
 		return this._columnModel[colIndex];
 	}
 
-	getCellModel (rowIndex, colIndex) {
+	//The cell model exactly as declared at (rowIndex, colIndex) — no span
+	//resolution. getColumnSpan reads this one; reading the public accessor
+	//would recurse.
+	_getDeclaredCellModel (rowIndex, colIndex) {
 		const source = this._toSource(rowIndex);
 		if (source.kind === 'header') {
 			if (this._headerCellModel[colIndex]) {
 				return this._headerCellModel[colIndex][rowIndex];
 			}
-		} else
+			return undefined;
+		}
 		if (source.kind === 'data') {
 			if (this._cellModel[colIndex]) {
 				return this._cellModel[colIndex][source.dataRowIndex];
 			}
+			return undefined;
 		}
+		//A projection-owned virtual row may carry its own cell models, keyed by
+		//column index — the same seam `rowModel` opens for the row as a whole.
+		//This is how a group row declares the span on its label cell.
+		if (source.cellModel) {
+			return source.cellModel[colIndex];
+		}
+		return undefined;
+	}
+
+	//A covered coordinate has no cell of its own: the spanning cell owns its
+	//model, its field, its classes and its editability.
+	getCellModel (rowIndex, colIndex) {
+		return this._getDeclaredCellModel(rowIndex, this.getSpanAnchor(rowIndex, colIndex));
+	}
+
+	//Cheap gate for the (overwhelmingly common) no-colspan case, so the span
+	//lookups cost one boolean test per cell rather than a walk.
+	_mayHaveSpans (rowIndex) {
+		if (this._hasDeclaredSpans) {
+			return true;
+		}
+		if (!this._rowProjection) {
+			return false;
+		}
+		const source = this._toSource(rowIndex);
+		return !!(source && source.cellModel);
+	}
+
+	//Column-wise the grid splits into exactly two bands: the frozen block
+	//[0, leftFreeze) and the scrolling block [leftFreeze, columnCount). Each is
+	//rendered into its own pane, so a span can never cross the line between
+	//them — it is clamped to end at the boundary instead.
+	_getColumnBand (colIndex) {
+		const columnCount = this.getColumnCount();
+		const leftFreeze = Math.min(this.getLeftFreezeRows(), columnCount);
+		if (leftFreeze > 0 && colIndex < leftFreeze) {
+			return { start: 0, end: leftFreeze };
+		}
+		return { start: leftFreeze > 0 ? leftFreeze : 0, end: columnCount };
+	}
+
+	//Coordinates arrive from the DOM as strings often enough (`dataset.colIndex`)
+	//that every span lookup coerces before doing arithmetic — '1' + 3 is '13'.
+	//Returns null for anything that is not a column index at all.
+	_toColumnIndex (colIndex) {
+		if (typeof colIndex === 'number') {
+			return isFinite(colIndex) ? Math.floor(colIndex) : null;
+		}
+		const index = parseInt(colIndex, 10);
+		return isNaN(index) ? null : index;
+	}
+
+	//The span declared AT colIndex, with no anchor resolution — the walk in
+	//getSpanAnchor uses this one, so it must not resolve or it would recurse.
+	_declaredSpan (rowIndex, colIndex) {
+		const cellModel = this._getDeclaredCellModel(rowIndex, colIndex);
+		const declared = normalizeColspan(cellModel && cellModel.colspan);
+		if (declared === 1) {
+			return 1;
+		}
+		const band = this._getColumnBand(colIndex);
+		return Math.max(1, Math.min(colIndex + declared, band.end) - colIndex);
+	}
+
+	//How many columns does the cell at (rowIndex, colIndex) occupy? Always at
+	//least 1, clamped to the last column of the cell's own pane band. A covered
+	//coordinate answers for the cell that actually owns it — a span declared
+	//inside another span renders nothing and so occupies nothing.
+	getColumnSpan (rowIndex, colIndex) {
+		if (!this._mayHaveSpans(rowIndex)) {
+			return 1;
+		}
+		const index = this._toColumnIndex(colIndex);
+		if (index === null) {
+			return 1;
+		}
+		return this._declaredSpan(rowIndex, this.getSpanAnchor(rowIndex, index));
+	}
+
+	//Which column actually owns (rowIndex, colIndex)? Returns colIndex itself
+	//when the coordinate is not covered by a span. The band is walked the same
+	//way layoutPaneCells walks it, so the answer always matches what rendered —
+	//including when two declared spans overlap.
+	getSpanAnchor (rowIndex, colIndex) {
+		if (!this._mayHaveSpans(rowIndex)) {
+			return colIndex;
+		}
+		const index = this._toColumnIndex(colIndex);
+		if (index === null) {
+			return colIndex;
+		}
+		const band = this._getColumnBand(index);
+		let c = band.start;
+		while (c < band.end) {
+			const span = this._declaredSpan(rowIndex, c);
+			if (index < c + span) {
+				return (index >= c) ? c : index;
+			}
+			c += span;
+		}
+		return index;
 	}
 
 	getCascadedCellProp (rowIndex, colIndex, propName) {
-		const cellModel = this.getCellModel(rowIndex, colIndex);
+		//Anchor once, here — everything below reads the DECLARED model at the
+		//resolved coordinate rather than re-entering the resolving accessor.
+		colIndex = this.getSpanAnchor(rowIndex, colIndex);
+		const cellModel = this._getDeclaredCellModel(rowIndex, colIndex);
 		if (cellModel && cellModel[propName]) {
 			return cellModel[propName];
 		}
@@ -306,6 +440,7 @@ export class Model extends EventDispatcher {
 	}
 
 	getCellClasses (rowIndex, colIndex) {
+		colIndex = this.getSpanAnchor(rowIndex, colIndex);
 		let output = [];
 		const colModel = this.getColumnModel(colIndex);
 		if (colModel) {
@@ -325,7 +460,7 @@ export class Model extends EventDispatcher {
 			}
 		}
 
-		const cellModel = this.getCellModel(rowIndex, colIndex);
+		const cellModel = this._getDeclaredCellModel(rowIndex, colIndex);
 		if (cellModel) {
 			if (cellModel.cssClass) {
 				output.unshift(cellModel.cssClass);
@@ -358,6 +493,7 @@ export class Model extends EventDispatcher {
 	}
 
 	getDataAt (rowIndex, colIndex) {
+		colIndex = this.getSpanAnchor(rowIndex, colIndex);
 		const source = this._toSource(rowIndex);
 		if (source.kind === 'header') {
 			const colModel = this.getColumnModel(colIndex);
@@ -387,6 +523,7 @@ export class Model extends EventDispatcher {
 	}
 
 	setDataAt (rowIndex, colIndex, data) {
+		colIndex = this.getSpanAnchor(rowIndex, colIndex);
 		const source = this._toSource(rowIndex);
 		if (source.kind !== 'data') {
 			return;
@@ -436,6 +573,14 @@ export class Model extends EventDispatcher {
 	}
 
 	calcTotalSize() {
+		//Whether ANY colspan is declared anywhere in the config. With none — the
+		//default — every span lookup short-circuits to "no span" and the layout,
+		//the cell count and the DOM are bit-for-bit what they were before column
+		//span existed. Recomputed here, not cached at construction, so a colspan
+		//set on the config after the fact is picked up by the same
+		//calcTotalSize() + reRender() a host already has to call.
+		this._hasDeclaredSpans = declaresSpan(this._config.cells) || declaresSpan(this._config.headerCells);
+
 		this._calcTotalWidth();
 		this._calcTotalHeight();
 		this._calcBottomFreezeSize();

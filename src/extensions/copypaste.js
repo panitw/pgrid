@@ -42,6 +42,16 @@ export class CopyPasteExtension {
         }
     }
 
+    //Is this coordinate covered by another cell's column span? False on a model
+    //without column span support, so nothing here depends on spans existing.
+    _isCovered(rowIndex, colIndex) {
+        const model = this._grid.model;
+        if (typeof model.getSpanAnchor !== 'function') {
+            return false;
+        }
+        return model.getSpanAnchor(rowIndex, colIndex) !== colIndex;
+    }
+
     _copy(clipboardData) {
         let selection = this._grid.state.get('selection');
         if (selection && selection.length > 0) {
@@ -50,7 +60,16 @@ export class CopyPasteExtension {
             for (let i=0; i<s.h; i++) {
                 let cols = [];
                 for (let j=0; j<s.w; j++) {
-                    cols.push(this._grid.model.getDataAt(s.r + i, s.c + j));
+                    const row = s.r + i;
+                    const col = s.c + j;
+                    if (this._isCovered(row, col)) {
+                        //Excel's convention: a merged cell copies as its value
+                        //followed by one empty field per column it covers, so
+                        //the clipboard stays rectangular for a spreadsheet.
+                        cols.push('');
+                    } else {
+                        cols.push(this._grid.model.getDataAt(row, col));
+                    }
                 }
                 rows.push(cols.join('\t'));
             }
@@ -73,6 +92,16 @@ export class CopyPasteExtension {
                     for (let j=0; j<cols.length; j++) {
                         let pasteRow =  s.r + i;
                         let pasteCol = s.c + j;
+                        if (cols[j] === '' && this._isCovered(pasteRow, pasteCol)) {
+                            //The blank a merged cell contributed on copy is
+                            //discarded rather than written, so a round trip
+                            //inside the grid is lossless. Only an EMPTY field is
+                            //dropped: clipboard text from an unmerged source
+                            //carries real values in those columns, and silently
+                            //losing them would be worse than writing them
+                            //through to the cell that owns the coordinate.
+                            continue;
+                        }
                         if (this._grid.model.canEdit(pasteRow, pasteCol)) {
                             this._grid.model.setDataAt(pasteRow, pasteCol, cols[j]);
                             this._grid.view.updateCell(pasteRow, pasteCol);

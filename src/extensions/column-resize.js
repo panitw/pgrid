@@ -18,6 +18,15 @@ export class ColumnResizeExtension {
         if (colModel && colModel.resizable === false) {
             return;
         }
+        //A merged header cell gets no handle: the handle pins to the right edge
+        //of the whole spanning cell — the last column it covers — while a drag
+        //would resize the anchor column, so it would move an edge the user did
+        //not grab. Columns under a merge stay resizable from any header row
+        //that does not merge them.
+        if (typeof this._grid.model.getColumnSpan === 'function' &&
+            this._grid.model.getColumnSpan(e.rowIndex, e.colIndex) > 1) {
+            return;
+        }
 
         const handle = document.createElement('div');
         handle.className = this._handleClass;

@@ -27,11 +27,15 @@ export class SelectionExtension {
 					rowIndex--;
 					break;
 				case 37: //Left
-					colIndex--;
+					//A span is one cell to navigate: stepping left out of it
+					//lands on the cell before the span, and stepping left INTO
+					//one lands on its anchor — never on a covered column, which
+					//has no node and would swallow the key.
+					colIndex = this._stepLeft(rowIndex, colIndex);
 					break;
 				case 39: //Right
 				case 9: //Tab
-					colIndex++;
+					colIndex = this._stepRight(rowIndex, colIndex);
 					break;
 				default:
 					return;
@@ -81,6 +85,39 @@ export class SelectionExtension {
 		}
 	}
 
+	//--- span-aware column stepping -------------------------------------
+	//All three helpers degrade to plain ±1 / identity on a model without column
+	//span support, so nothing here depends on spans existing.
+
+	_spanAnchor (rowIndex, colIndex) {
+		const model = this._grid.model;
+		if (typeof model.getSpanAnchor !== 'function') {
+			return colIndex;
+		}
+		return model.getSpanAnchor(rowIndex, colIndex);
+	}
+
+	_columnSpan (rowIndex, colIndex) {
+		const model = this._grid.model;
+		if (typeof model.getColumnSpan !== 'function') {
+			return 1;
+		}
+		return model.getColumnSpan(rowIndex, colIndex);
+	}
+
+	_stepRight (rowIndex, colIndex) {
+		const anchor = this._spanAnchor(rowIndex, colIndex);
+		return anchor + this._columnSpan(rowIndex, anchor);
+	}
+
+	_stepLeft (rowIndex, colIndex) {
+		const anchor = this._spanAnchor(rowIndex, colIndex);
+		if (anchor - 1 < 0) {
+			return -1;
+		}
+		return this._spanAnchor(rowIndex, anchor - 1);
+	}
+
     _mouseDownEventHandler (e) {
         let actualCell = e.target;
         if (actualCell.classList.contains('pgrid-cell-content')) {
@@ -98,6 +135,11 @@ export class SelectionExtension {
     }
 
 	_selectCell (cell, rowIndex, colIndex) {
+		//The selection is always stored at the spanning cell's own column, so
+		//`selection[0].c` matches the colIndex the cell renders under and the
+		//selection class survives a re-render.
+		colIndex = this._spanAnchor(rowIndex, colIndex);
+
 		//Clear old selection
 		if (this._currentSelection && this._currentSelection !== cell) {
 			this._currentSelection.classList.remove(this._selectionClass);
@@ -118,7 +160,10 @@ export class SelectionExtension {
 		selection.push({
 			r: rowIndex,
 			c: colIndex,
-			w: 1,
+			//A spanned cell is as many columns wide as it covers — that is what
+			//keeps a copy of it rectangular. Without a span this is 1, exactly
+			//as it always was.
+			w: this._columnSpan(rowIndex, colIndex),
 			h: 1
 		});
 

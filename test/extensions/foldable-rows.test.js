@@ -355,18 +355,45 @@ describe('FoldableRowsExtension', () => {
             ctx.cleanup();
         });
 
-        it('should blank every column that is neither gutter nor label', () => {
+        it('should render no cell at all in the columns the label spans', () => {
+            // The label cell spans to the end of the row, so there is nothing
+            // left to blank: cols 2 and 3 are covered and render no node.
             const ctx = render({ foldableRows: { groupBy: 'department' } });
             const groupRow = groupRowIndex(ctx.grid, ctx.ext, ['Eng']);
-            equal(cellAt(ctx.host, groupRow, 2).textContent, '');
-            equal(cellAt(ctx.host, groupRow, 3).textContent, '');
+            equal(cellAt(ctx.host, groupRow, 2), null);
+            equal(cellAt(ctx.host, groupRow, 3), null);
+            ctx.cleanup();
+        });
+
+        it('should span the label cell across the rest of the row', () => {
+            const ctx = render({ foldableRows: { groupBy: 'department' } });
+            const groupRow = groupRowIndex(ctx.grid, ctx.ext, ['Eng']);
+            const label = cellAt(ctx.host, groupRow, 1);
+            // 4 columns (gutter + 3 host columns); the label starts at 1.
+            equal(ctx.grid.model.getColumnSpan(groupRow, 1), 3);
+            equal(label.dataset.colspan, '3');
+            // 3 host columns at the default columnWidth of 80.
+            equal(label.style.width, '240px');
+            // ...and a covered coordinate resolves back to it.
+            equal(ctx.grid.view.getCell(groupRow, 3), label);
+            ctx.cleanup();
+        });
+
+        it('should leave record rows one cell per column', () => {
+            const ctx = render({ foldableRows: { groupBy: 'department' } });
+            const recordRow = ctx.grid.model.getRowIndex(ctx.grid.data.getRowId(0));
+            for (let c = 0; c < 4; c++) {
+                equal(ctx.grid.model.getColumnSpan(recordRow, c), 1, `col ${c}`);
+                notEqual(cellAt(ctx.host, recordRow, c), null, `col ${c}`);
+            }
             ctx.cleanup();
         });
 
         it('should put the group cssClass on every cell of the group row', () => {
             const ctx = render({ foldableRows: { groupBy: 'department' } });
             const groupRow = groupRowIndex(ctx.grid, ctx.ext, ['Eng']);
-            for (let c = 0; c < 4; c++) {
+            // The group row renders two cells: the gutter and the spanned label.
+            for (const c of [0, 1]) {
                 equal(cellAt(ctx.host, groupRow, c).classList.contains('pgrid-group-row'), true, `col ${c}`);
             }
             ctx.cleanup();
@@ -677,6 +704,92 @@ describe('FoldableRowsExtension', () => {
             spy.restore();
             // Ten toggles from expanded leaves it expanded again.
             equal(ctx.ext.isCollapsed(['Eng']), false);
+        });
+    });
+
+    //------------------------------------------------------------------
+    // The label cell spans the rest of the row so group labels read in full
+    //------------------------------------------------------------------
+    describe('label column span', () => {
+
+        it('should give the label the full width of the columns it covers', () => {
+            const ctx = render({ foldableRows: { groupBy: 'department' } });
+            const groupRow = groupRowIndex(ctx.grid, ctx.ext, ['Eng']);
+            const label = cellAt(ctx.host, groupRow, 1);
+            // The label would otherwise be clipped to one 80px column.
+            equal(label.style.width, '240px');
+            equal(label.textContent, 'Eng (3)');
+            ctx.cleanup();
+        });
+
+        it('should span the label at every nesting level', () => {
+            const ctx = render({ foldableRows: { groupBy: ['department', 'location'] } });
+            const outer = groupRowIndex(ctx.grid, ctx.ext, ['Eng']);
+            const inner = groupRowIndex(ctx.grid, ctx.ext, ['Eng', 'SF']);
+            equal(cellAt(ctx.host, outer, 1).dataset.colspan, '3');
+            equal(cellAt(ctx.host, inner, 1).dataset.colspan, '3');
+            equal(cellAt(ctx.host, inner, 1).textContent, 'SF (2)');
+            ctx.cleanup();
+        });
+
+        it('should leave the gutter chevron untouched', () => {
+            const ctx = render({ foldableRows: { groupBy: 'department' } });
+            const groupRow = groupRowIndex(ctx.grid, ctx.ext, ['Eng']);
+            const gutter = cellAt(ctx.host, groupRow, 0);
+            equal(gutter.dataset.colspan, undefined);
+            equal(gutter.style.width, '28px');
+            const chevron = gutter.querySelector('.pgrid-group-chevron');
+            notEqual(chevron, null);
+            chevron.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+            equal(ctx.ext.isCollapsed(['Eng']), true);
+            ctx.cleanup();
+        });
+
+        it('should survive a fold and unfold', () => {
+            const ctx = render({ foldableRows: { groupBy: 'department' } });
+            const groupRow = groupRowIndex(ctx.grid, ctx.ext, ['Eng']);
+            ctx.ext.collapse(['Eng']);
+            ctx.ext.expand(['Eng']);
+            const label = cellAt(ctx.host, groupRow, 1);
+            equal(label.dataset.colspan, '3');
+            equal(label.textContent, 'Eng (3)');
+            ctx.cleanup();
+        });
+
+        it('should stop the span at the frozen pane boundary', () => {
+            // The host froze 2 columns; the gutter makes it 3, so the label at
+            // column 1 can only reach column 2 — column 3 is a different pane.
+            const ctx = render({
+                freezePane: { left: 2 },
+                foldableRows: { groupBy: 'department' }
+            });
+            const groupRow = groupRowIndex(ctx.grid, ctx.ext, ['Eng']);
+            equal(ctx.grid.model.getColumnSpan(groupRow, 1), 2);
+            equal(cellAt(ctx.host, groupRow, 1).dataset.colspan, '2');
+            equal(cellAt(ctx.host, groupRow, 2), null);
+            // ...and the unfrozen column still renders its own (blank) cell.
+            notEqual(cellAt(ctx.host, groupRow, 3), null);
+            equal(cellAt(ctx.host, groupRow, 3).textContent, '');
+            ctx.cleanup();
+        });
+
+        it('should declare no span when the label is the last column', () => {
+            const ctx = render({
+                columns: [{ field: 'name', title: 'Name' }],
+                foldableRows: { groupBy: 'department' }
+            });
+            const groupRow = groupRowIndex(ctx.grid, ctx.ext, ['Eng']);
+            equal(ctx.grid.model.getColumnSpan(groupRow, 1), 1);
+            equal(cellAt(ctx.host, groupRow, 1).dataset.colspan, undefined);
+            ctx.cleanup();
+        });
+
+        it('should leave record rows unspanned', () => {
+            const ctx = render({ foldableRows: { groupBy: 'department' } });
+            const recordRow = ctx.grid.model.getRowIndex(ctx.grid.data.getRowId(0));
+            equal(ctx.grid.model.getColumnSpan(recordRow, 1), 1);
+            equal(cellAt(ctx.host, recordRow, 3).textContent, 'SF');
+            ctx.cleanup();
         });
     });
 
@@ -1258,6 +1371,37 @@ describe('FoldableRowsExtension', () => {
             doesNotThrow(() => ctx.ext.collapse(['Eng']));
             equal(ctx.grid.state.get('selection'), undefined);
         });
+
+        it('should re-anchor the column when the selection lands on a group row', () => {
+            // Column 2 is a normal cell on a record row but is covered by the
+            // label span on a group row: without re-anchoring the selection
+            // would point at a coordinate that renders no node at all.
+            const recordRow = ctx.grid.model.getRowIndex(ctx.grid.data.getRowId(0)); // r0, in Eng
+            select(recordRow, 2);
+            deepEqual(ctx.grid.state.get('selection')[0], { r: recordRow, c: 2, w: 1, h: 1 });
+
+            ctx.ext.collapse(['Eng']);
+
+            const selection = ctx.grid.state.get('selection')[0];
+            equal(ctx.grid.model.getRowMeta(selection.r).kind, 'group');
+            equal(selection.c, 1);
+            equal(selection.w, 3);
+            const cell = cellAt(ctx.host, selection.r, 1);
+            equal(cell.classList.contains('pgrid-cell-selection'), true);
+            equal(ctx.host.querySelectorAll('.pgrid-cell-selection').length, 1);
+        });
+
+        it('should re-anchor back to the plain column when the record reappears', () => {
+            const recordRow = ctx.grid.model.getRowIndex(ctx.grid.data.getRowId(0));
+            select(recordRow, 2);
+            ctx.ext.collapse(['Eng']);
+            ctx.ext.expand(['Eng']);
+            const selection = ctx.grid.state.get('selection')[0];
+            equal(ctx.grid.model.getRowMeta(selection.r).kind, 'group');
+            // The fallback anchored onto the group row and stays there; what
+            // matters is that the stored column always renders a node.
+            notEqual(cellAt(ctx.host, selection.r, selection.c), null);
+        });
     });
 
     //------------------------------------------------------------------
@@ -1296,7 +1440,10 @@ describe('FoldableRowsExtension', () => {
                 foldableRows: { groupBy: 'department' }
             });
             const groupRow = groupRowIndex(ctx.grid, ctx.ext, ['Eng']);
-            equal(cellAt(ctx.host, groupRow, 2).textContent, '');
+            // Column 2 of a group row is covered by the label span, so the
+            // formatter has no cell of its own to write into at all.
+            equal(cellAt(ctx.host, groupRow, 2), null);
+            equal(cellAt(ctx.host, groupRow, 1).textContent, 'Eng (3)');
             const recordRow = ctx.grid.model.getRowIndex(ctx.grid.data.getRowId(0));
             equal(cellAt(ctx.host, recordRow, 2).textContent, 'FORMATTED');
             ctx.cleanup();

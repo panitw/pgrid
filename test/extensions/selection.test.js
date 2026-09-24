@@ -172,6 +172,100 @@ describe('SelectionExtension', () => {
         });
     });
 
+    describe('navigation over a column span', () => {
+
+        // Four columns so there is somewhere to land past a span covering
+        // columns 1-2. `cells[].r` is a DATA row index: data row 0 is view row 1.
+        const spanCtx = () => renderInto(baseConfig({
+            columns: [
+                { field: 'a', title: 'A' }, { field: 'b', title: 'B' },
+                { field: 'c', title: 'C' }, { field: 'd', title: 'D' }
+            ],
+            cells: [{ r: 0, c: 1, colspan: 2 }],
+            dataModel: {
+                fields: ['a', 'b', 'c', 'd'],
+                data: [
+                    { a: 'a0', b: 'b0', c: 'c0', d: 'd0' },
+                    { a: 'a1', b: 'b1', c: 'c1', d: 'd1' }
+                ]
+            }
+        }));
+
+        let ctx;
+        beforeEach(() => { ctx = spanCtx(); });
+        afterEach(() => ctx.cleanup());
+
+        const press = (keyCode) => {
+            ctx.host.dispatchEvent(new KeyboardEvent('keydown', { keyCode, bubbles: true }));
+        };
+
+        it('should record a spanned selection as its full width', () => {
+            cellAt(ctx.host, 1, 1).dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+            deepEqual(ctx.grid.state.get('selection')[0], { r: 1, c: 1, w: 2, h: 1 });
+        });
+
+        it('should move past the whole span on ArrowRight', () => {
+            cellAt(ctx.host, 1, 1).dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+            press(39);
+            deepEqual(ctx.grid.state.get('selection')[0], { r: 1, c: 3, w: 1, h: 1 });
+        });
+
+        it('should move past the whole span on Tab', () => {
+            cellAt(ctx.host, 1, 1).dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+            press(9);
+            equal(ctx.grid.state.get('selection')[0].c, 3);
+        });
+
+        it('should land on the anchor when moving left into a span', () => {
+            cellAt(ctx.host, 1, 3).dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+            press(37);
+            deepEqual(ctx.grid.state.get('selection')[0], { r: 1, c: 1, w: 2, h: 1 });
+        });
+
+        it('should keep stepping out of the span to the left', () => {
+            cellAt(ctx.host, 1, 3).dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+            press(37);
+            press(37);
+            deepEqual(ctx.grid.state.get('selection')[0], { r: 1, c: 0, w: 1, h: 1 });
+        });
+
+        it('should keep the selection class on the spanning cell across a re-render', () => {
+            const cell = cellAt(ctx.host, 1, 1);
+            cell.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+            ctx.grid.view.reRender();
+            equal(cellAt(ctx.host, 1, 1).classList.contains('is-selected'), true);
+        });
+
+        it('should re-anchor when a vertical move lands on a covered column', () => {
+            // Row 2 has no span, so column 2 is a cell of its own there; row 1
+            // covers column 2 with the span anchored at column 1.
+            cellAt(ctx.host, 2, 2).dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+            deepEqual(ctx.grid.state.get('selection')[0], { r: 2, c: 2, w: 1, h: 1 });
+            press(38); // Up, onto the spanned row
+            deepEqual(ctx.grid.state.get('selection')[0], { r: 1, c: 1, w: 2, h: 1 });
+            equal(cellAt(ctx.host, 1, 1).classList.contains('is-selected'), true);
+            ctx.grid.view.reRender();
+            equal(cellAt(ctx.host, 1, 1).classList.contains('is-selected'), true);
+            equal(ctx.host.querySelectorAll('.is-selected').length, 1);
+        });
+
+        it('should re-anchor a programmatic selectCell on a covered column', () => {
+            const sel = ctx.grid.extension.getExtension('DEFAULT_EXT_SELECTION');
+            sel.selectCell(2, 1); // (colIndex, rowIndex) — column 2 is covered
+            deepEqual(ctx.grid.state.get('selection')[0], { r: 1, c: 1, w: 2, h: 1 });
+            equal(cellAt(ctx.host, 1, 1).classList.contains('is-selected'), true);
+            ctx.grid.view.reRender();
+            equal(cellAt(ctx.host, 1, 1).classList.contains('is-selected'), true);
+            equal(ctx.host.querySelectorAll('.is-selected').length, 1);
+        });
+
+        it('should still step one column at a time on rows without a span', () => {
+            cellAt(ctx.host, 2, 1).dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+            press(39);
+            deepEqual(ctx.grid.state.get('selection')[0], { r: 2, c: 2, w: 1, h: 1 });
+        });
+    });
+
     describe('cellAfterRecycled', () => {
 
         it('should detach the mousedown handler from a recycled cell', () => {

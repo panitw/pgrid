@@ -181,6 +181,20 @@ export class FoldableRowsExtension {
         this._groupLabel = (typeof options.groupLabel === 'function') ? options.groupLabel : null;
         this._groupRowHeight = (options.groupRowHeight !== undefined) ? options.groupRowHeight : config.rowHeight;
 
+        //The label cell spans the rest of the row, so a group label is never
+        //clipped to one column's width. Declared to the last column; Model
+        //clamps it to the end of the label column's own pane, which is what
+        //keeps the span inside the frozen block when the host froze columns.
+        //Shared and frozen: every group row hands back the same object.
+        const columnCount = Array.isArray(config.columns) ? config.columns.length : 0;
+        const labelSpan = columnCount - this._labelColumn;
+        this._labelCellModel = null;
+        if (labelSpan > 1) {
+            const cellModel = {};
+            cellModel[this._labelColumn] = Object.freeze({ colspan: labelSpan });
+            this._labelCellModel = Object.freeze(cellModel);
+        }
+
         //key -> {path, collapsed}
         this._foldState = {};
 
@@ -325,6 +339,9 @@ export class FoldableRowsExtension {
             return;
         }
 
+        //Columns covered by the label's span render no cell at all, so the only
+        //cells reaching here are the gutter, anything the host froze ahead of
+        //the label, and the label itself. Those still have to come up blank.
         const content = e.cellContent;
         while (content.firstChild) {
             content.removeChild(content.firstChild);
@@ -541,6 +558,7 @@ export class FoldableRowsExtension {
             const rowIndex = this._grid.model.getRowIndex(anchor.rowId);
             if (rowIndex >= 0) {
                 selection[0].r = rowIndex;
+                this._reanchorSelection(selection);
                 return;
             }
         }
@@ -549,10 +567,25 @@ export class FoldableRowsExtension {
             const group = this._groupRowByKey[anchor.ancestorKeys[i]];
             if (group && group.visibleIndex >= 0) {
                 selection[0].r = headerRowCount + group.visibleIndex;
+                this._reanchorSelection(selection);
                 return;
             }
         }
         selection.length = 0;
+    }
+
+    //Moving the selection to another row can land its column inside a span that
+    //row declares and the old one did not — a group row's label, above all. A
+    //covered column renders no node, so the highlight would vanish and every
+    //consumer keyed on the stored column would miss. Re-anchor after the move.
+    _reanchorSelection (selection) {
+        const model = this._grid.model;
+        if (typeof model.getSpanAnchor !== 'function') {
+            return;
+        }
+        const colIndex = model.getSpanAnchor(selection[0].r, selection[0].c);
+        selection[0].c = colIndex;
+        selection[0].w = model.getColumnSpan(selection[0].r, colIndex);
     }
 
     //Pass 1 gathers records into a tree keyed by value path (first-encounter
@@ -633,7 +666,11 @@ export class FoldableRowsExtension {
                 visibleIndex: hidden ? -1 : this._rows.length,
                 //Model#getRowModel hands this back for the row, which is how the
                 //group class reaches every cell of the row via getCellClasses.
-                rowModel: { cssClass: this._cssClass, editable: false }
+                rowModel: { cssClass: this._cssClass, editable: false },
+                //...and Model#getCellModel hands this back per column, which is
+                //how the label cell declares its span. Null when there is
+                //nothing to span across.
+                cellModel: this._labelCellModel
             };
 
             this._groups.push(groupRow);

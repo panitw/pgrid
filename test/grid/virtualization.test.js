@@ -257,6 +257,108 @@ describe('virtualization', () => {
         });
     });
 
+    describe('column span', () => {
+
+        // A fake model that also answers the two span accessors. `spans` is
+        // keyed "row,col" -> colspan, exactly the shape Model resolves to (it
+        // has already clamped to the column count and the pane band).
+        const spanModel = (rowHeights, colWidths, spans = {}) => {
+            const span = (r, c) => spans[r + ',' + c] || 1;
+            return {
+                getRowHeight: (i) => rowHeights[i],
+                getColumnWidth: (i) => colWidths[i],
+                getColumnSpan: span,
+                getSpanAnchor: (r, c) => {
+                    let i = 0;
+                    while (i < colWidths.length) {
+                        if (c < i + span(r, i)) return i;
+                        i += span(r, i);
+                    }
+                    return c;
+                }
+            };
+        };
+
+        const noScroll = { scrollLeft: 0, scrollTop: 0, width: 1000, height: 1000 };
+
+        it('should keep one entry per cell when nothing declares a span', () => {
+            const m = spanModel([30, 30], [100, 100, 100]);
+            const { cells } = layoutPaneCells(m, { rowStart: 0, rowEnd: 2, colStart: 0, colEnd: 3 }, noScroll);
+            equal(cells.length, 6);
+            equal(cells.every(c => c.colspan === undefined), true);
+        });
+
+        it('should widen the anchor to the summed width and skip the covered columns', () => {
+            const m = spanModel([30, 30], [100, 60, 40, 100], { '0,1': 3 });
+            const { cells } = layoutPaneCells(m, { rowStart: 0, rowEnd: 1, colStart: 0, colEnd: 4 }, noScroll);
+            deepEqual(cells.map(c => c.colIndex), [0, 1]);
+            const anchor = cells[1];
+            equal(anchor.width, 60 + 40 + 100);
+            equal(anchor.x, 100);
+            equal(anchor.colspan, 3);
+        });
+
+        it('should leave rows without a span untouched', () => {
+            const m = spanModel([30, 30], [100, 100, 100], { '0,0': 3 });
+            const { cells } = layoutPaneCells(m, { rowStart: 0, rowEnd: 2, colStart: 0, colEnd: 3 }, noScroll);
+            equal(cells.filter(c => c.rowIndex === 0).length, 1);
+            equal(cells.filter(c => c.rowIndex === 1).length, 3);
+        });
+
+        it('should keep totalWidth the sum of the columns, span or not', () => {
+            const m = spanModel([30], [100, 100, 100], { '0,0': 3 });
+            const { totalWidth } = layoutPaneCells(m, { rowStart: 0, rowEnd: 1, colStart: 0, colEnd: 3 }, noScroll);
+            equal(totalWidth, 300);
+        });
+
+        it('should clamp a span at the pane boundary rather than cross it', () => {
+            // leftFreeze 2: the left pane is cols 0-1, the centre pane cols 2-3.
+            const m = spanModel([30], [100, 100, 100, 100], { '0,1': 4 });
+            const ranges = getPaneRanges({ rowCount: 1, columnCount: 4, topFreeze: 0, leftFreeze: 2, bottomFreeze: 0 });
+            const left = layoutPaneCells(m, ranges.topLeft, noScroll);
+            equal(left.cells.length, 0); // topFreeze 0 → no rows in that pane
+            const leftBody = layoutPaneCells(m, ranges.left, noScroll);
+            deepEqual(leftBody.cells.map(c => c.colIndex), [0, 1]);
+            equal(leftBody.cells[1].width, 100); // clamped to its own pane's last column
+            equal(leftBody.cells[1].colspan, undefined);
+            // ...and the centre pane still renders its own cells from col 2.
+            const centre = layoutPaneCells(m, ranges.center, noScroll);
+            deepEqual(centre.cells.map(c => c.colIndex), [2, 3]);
+        });
+
+        it('should clamp a span that overruns the last column of the range', () => {
+            const m = spanModel([30], [10, 10, 10, 10, 10, 10, 10, 10], { '0,6': 5 });
+            const { cells } = layoutPaneCells(m, { rowStart: 0, rowEnd: 1, colStart: 0, colEnd: 8 }, noScroll);
+            const anchor = cells[cells.length - 1];
+            equal(anchor.colIndex, 6);
+            equal(anchor.colspan, 2);
+            equal(anchor.width, 20);
+        });
+
+        it('should keep a span visible while any part of it overlaps the viewport', () => {
+            const m = spanModel([30], [100, 100, 100, 100], { '0,0': 3 });
+            // The viewport starts past column 0 but inside the span.
+            const viewport = { scrollLeft: 250, scrollTop: 0, width: 100, height: 100 };
+            const { cells } = layoutPaneCells(m, { rowStart: 0, rowEnd: 1, colStart: 0, colEnd: 4 }, viewport);
+            equal(cells[0].colIndex, 0);
+            equal(cells[0].visible, true);
+            // Sanity: the same anchor WITHOUT the span would have scrolled out.
+            const narrow = spanModel([30], [100, 100, 100, 100]);
+            const plain = layoutPaneCells(narrow, { rowStart: 0, rowEnd: 1, colStart: 0, colEnd: 4 }, viewport);
+            equal(plain.cells[0].visible, false);
+        });
+
+        it('should widen getCellRect for a spanning cell', () => {
+            const m = spanModel([30, 30], [100, 60, 40, 100], { '1,1': 3 });
+            deepEqual(getCellRect(m, 1, 1), { x: 100, y: 30, width: 200, height: 30 });
+        });
+
+        it('should return the spanning cell rect for a covered coordinate', () => {
+            const m = spanModel([30, 30], [100, 60, 40, 100], { '1,1': 3 });
+            deepEqual(getCellRect(m, 1, 3), getCellRect(m, 1, 1));
+        });
+    });
+
     describe('integration: getPaneRanges + layoutPaneCells', () => {
 
         it('should give every pane a coordinate space starting at its own (0, 0)', () => {
