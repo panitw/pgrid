@@ -126,11 +126,27 @@ describe('Model', () => {
             equal(model.getRowHeight(0), 40);
         });
 
-        it('should honor a row-specific height when set', () => {
+        it('should honor a row-specific height when set, indexed by DATA row', () => {
+            // `config.rows[].i` is a zero-based *data* row index everywhere,
+            // getRowHeight included — view row 0 is the header row.
             const { model } = buildModel({
+                headerRowCount: 1,
+                rowHeight: 30,
                 rows: [{ i: 0, height: 90 }]
             });
-            equal(model.getRowHeight(0), 90);
+            equal(model.getRowHeight(0 /* header */), 30);
+            equal(model.getRowHeight(1 /* data row 0 */), 90);
+        });
+
+        it('should take header row heights from headerRows[].height', () => {
+            const { model } = buildModel({
+                headerRowCount: 2,
+                rowHeight: 30,
+                headerRows: [{ i: 1, height: 55 }]
+            });
+            equal(model.getRowHeight(0), 30);
+            equal(model.getRowHeight(1), 55);
+            equal(model.getRowHeight(2 /* data row 0 */), 30);
         });
     });
 

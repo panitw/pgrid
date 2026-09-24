@@ -5,3 +5,4 @@ export { PGrid } from './grid/grid';
 export { CheckboxColumnExtension } from './extensions/checkbox-column';
 export { ColumnResizeExtension } from './extensions/column-resize';
 export { TextOverflowExtension } from './extensions/text-overflow';
+export { FoldableRowsExtension } from './extensions/foldable-rows';

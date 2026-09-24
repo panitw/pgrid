@@ -138,8 +138,21 @@ grid.render(document.getElementById('grid'));</code></pre>
                     <tr><td><code>getRowIndex(rowId)</code> / <code>getRowId(rowIndex)</code></td><td>Coordinate conversion (header-row aware).</td></tr>
                     <tr><td><code>getColumnIndex(field)</code> / <code>getColumnField(colIndex)</code></td><td>Field ↔ index conversion.</td></tr>
                     <tr><td><code>canEdit(rowIndex, colIndex)</code></td><td>Resolve edit permission, including <code>cellEditableCheck</code> hooks.</td></tr>
+                    <tr><td><code>getRowMeta(rowIndex)</code></td><td>What is row N? Returns <code>{kind: 'header'}</code>, <code>{kind: 'data', dataRowIndex}</code>, or whatever entry an installed row projection resolved to &mdash; e.g. <code>{kind: 'group', path, label, level, count, collapsed}</code> from <code>FoldableRowsExtension</code>.</td></tr>
+                    <tr><td><code>setRowProjection(projection)</code></td><td>Install a row projection, or clear it with <code>null</code>. See below.</td></tr>
+                    <tr><td><code>getRowProjection()</code></td><td>The installed projection, or <code>null</code>.</td></tr>
                 </tbody>
             </table>
+
+            <h3>Row projections</h3>
+            <p>By default the Model maps visible row <code>n</code> straight onto data row <code>n - headerRowCount</code>. A <em>row projection</em> replaces that mapping, letting an extension present a row order that is not the DataTable's own &mdash; reordered rows, synthetic rows the data layer knows nothing about, or rows that are simply absent from the view. This is the seam <code>FoldableRowsExtension</code> is built on; the DataTable stays flat either way.</p>
+<pre><code>grid.model.setRowProjection({
+    getRowCount () { /* number of visible non-header rows */ },
+    resolve (i)   { /* {kind: 'data', dataRowIndex} | {kind: 'group', ...} */ },
+    getRowHeight (i) { /* optional; return undefined to fall through to config */ },
+    findDataRow (dataRowIndex) { /* reverse lookup, or -1 when not visible */ }
+});</code></pre>
+            <p>An entry from <code>resolve</code> may carry a <code>rowModel</code>, which <code>getRowModel</code> hands back for that row &mdash; that is how a synthetic row gets a <code>cssClass</code> onto every one of its cells. With nothing installed, every accessor behaves exactly as it always has. Call <code>grid.model.calcTotalSize()</code> after installing or changing one.</p>
 
             <h2 id="view">View — <code>grid.view</code></h2>
             <p>The DOM layer.</p>
@@ -182,6 +195,7 @@ grid.render(document.getElementById('grid'));</code></pre>
                     <tr><td><code>'DEFAULT_EXT_FORMATTER'</code></td><td>FormatterExtension.</td></tr>
                     <tr><td><code>'DEFAULT_EXT_COLUMN_RESIZE'</code></td><td>ColumnResizeExtension.</td></tr>
                     <tr><td><code>'DEFAULT_EXT_TEXT_OVERFLOW'</code></td><td>TextOverflowExtension.</td></tr>
+                    <tr><td><code>'DEFAULT_EXT_FOLDABLE_ROWS'</code></td><td>FoldableRowsExtension (when <code>foldableRows</code> is set). Exposes <code>expand</code>, <code>collapse</code>, <code>toggle</code>, <code>expandAll</code>, <code>collapseAll</code>, <code>isCollapsed</code>, <code>getGroups</code>, <code>setGroupBy</code>, <code>getState</code> and <code>setState</code>.</td></tr>
                 </tbody>
             </table>
 

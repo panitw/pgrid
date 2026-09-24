@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Row Grouping · PGrid</title>
+    <link rel="stylesheet" href="./_shared.css">
+    <style>
+        /* The library ships neutral group styling; this page dresses it up a bit
+           so the two nesting levels read clearly. */
+        .pgrid .pgrid-cell.pgrid-group-row {
+            background-color: #eef3f9;
+            color: #1f2d3d;
+            font-weight: 600;
+        }
+        .pgrid .pgrid-cell.pgrid-group-row[data-col-index="1"] {
+            letter-spacing: .01em;
+        }
+        .pgrid .pgrid-group-chevron {
+            color: #5b7288;
+            font-size: 9px;
+        }
+        .pgrid .pgrid-group-chevron:hover {
+            color: #16222e;
+        }
+        .sample-toolbar .stat {
+            font-variant-numeric: tabular-nums;
+        }
+    </style>
+</head>
+<body>
+    <div class="sample-page">
+
+        <header class="docs-top">
+            <a class="brand" href="../docs/index.html">PGrid <span class="tag">docs</span></a>
+            <nav>
+                <a href="../docs/getting-started.html">Getting Started</a>
+                <a href="../docs/configuration.html">Configuration</a>
+                <a href="../docs/data.html">Data</a>
+                <a href="../docs/styling.html">Styling</a>
+                <a href="../docs/extensions.html">Extensions</a>
+                <a href="../docs/api.html">API</a>
+                <a href="./index.html" class="active">Samples</a>
+                <a href="https://github.com/panitw/pgrid" target="_blank" rel="noopener">GitHub ↗</a>
+            </nav>
+        </header>
+
+        <div class="sample-header">
+            <a class="back" href="./index.html">← All demos</a>
+            <h1>Row Grouping</h1>
+            <span class="desc">
+                <code>foldableRows</code> groups records under synthetic group rows you can fold away.
+                Collapsed records leave the row projection entirely — they are <em>gone</em> from the DOM,
+                not hidden — so virtualization keeps working. Click a chevron, or select a group row and press
+                <kbd>Space</kbd>.
+            </span>
+        </div>
+
+        <div class="sample-toolbar">
+            <label>Group by:</label>
+            <select id="level1">
+                <option value="department" selected>Department</option>
+                <option value="location">Location</option>
+                <option value="role">Role</option>
+                <option value="status">Status</option>
+            </select>
+            <label>then</label>
+            <select id="level2">
+                <option value="">— nothing —</option>
+                <option value="location" selected>Location</option>
+                <option value="department">Department</option>
+                <option value="role">Role</option>
+                <option value="status">Status</option>
+            </select>
+            <span class="divider"></span>
+            <button id="expandAll">Expand all</button>
+            <button id="collapseAll">Collapse all</button>
+            <span class="divider"></span>
+            <button id="snapshot">Save fold state</button>
+            <button id="restore" disabled>Restore</button>
+            <span class="divider"></span>
+            <span class="desc stat" id="stats"></span>
+        </div>
+
+        <div class="sample-grid-wrap">
+            <div class="sample-grid"><div id="gridDiv"></div></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { PGrid } from "../src/index.js";
+        import { generateEmployees, EMPLOYEE_FIELDS } from "./_data.js";
+
+        const data = generateEmployees(200);
+
+        const grid = new PGrid({
+            rowHeight: 32,
+            columnWidth: 130,
+            selection: { cssClass: 'grid-cell-selection' },
+            editing: true,
+            autoUpdate: true,
+            textOverflow: 'ellipsis',
+            columns: [
+                { field: 'id',         title: 'ID',         width: 100 },
+                { field: 'name',       title: 'Name',       width: 190 },
+                { field: 'department', title: 'Department', width: 140 },
+                { field: 'location',   title: 'Location',   width: 150 },
+                { field: 'role',       title: 'Role',       width: 180 },
+                { field: 'status',     title: 'Status',     width: 110 },
+                { field: 'salary',     title: 'Salary',     width: 110, editable: true },
+                { field: 'hired',      title: 'Hired',      width: 120 }
+            ],
+            headerRows: [{ i: 0, cssClass: 'grid-header-row' }],
+            // `foldableRows` injects the chevron gutter column itself — every
+            // index above is still authored as if grouping were switched off.
+            foldableRows: {
+                groupBy: ['department', 'location'],
+                gutterWidth: 44,
+                indentSize: 16,
+                showCount: true
+            },
+            dataModel: { fields: EMPLOYEE_FIELDS, format: 'rows', data }
+        });
+
+        grid.render(document.getElementById('gridDiv'));
+
+        const folding = grid.extension.getExtension('DEFAULT_EXT_FOLDABLE_ROWS');
+        window.grid = grid;
+        window.folding = folding;
+
+        const level1 = document.getElementById('level1');
+        const level2 = document.getElementById('level2');
+        const statsEl = document.getElementById('stats');
+        const restoreBtn = document.getElementById('restore');
+        let saved = null;
+
+        const refreshStats = () => {
+            const groups = folding.getGroups();
+            const collapsed = groups.filter(g => g.collapsed).length;
+            const visibleRows = grid.model.getRowCount() - 1; // minus the header row
+            const cells = document.querySelectorAll('#gridDiv .pgrid-cell').length;
+            statsEl.textContent =
+                `${data.length} records · ${groups.length} groups (${collapsed} collapsed) · ` +
+                `${visibleRows} visible rows · ${cells} cells in the DOM`;
+        };
+
+        const regroup = () => {
+            const fields = [level1.value];
+            if (level2.value) {
+                fields.push(level2.value);
+            }
+            // Fold state migrates best-effort: surviving paths keep their state.
+            folding.setGroupBy(fields);
+            refreshStats();
+        };
+
+        level1.addEventListener('change', regroup);
+        level2.addEventListener('change', regroup);
+
+        document.getElementById('expandAll').addEventListener('click', () => {
+            folding.expandAll();
+            refreshStats();
+        });
+        document.getElementById('collapseAll').addEventListener('click', () => {
+            folding.collapseAll();
+            refreshStats();
+        });
+        document.getElementById('snapshot').addEventListener('click', () => {
+            saved = JSON.parse(JSON.stringify(folding.getState()));
+            restoreBtn.disabled = false;
+            statsEl.textContent =
+                `Saved ${saved.collapsed.length} collapsed path(s) under [${saved.groupBy.join(', ')}]. ` +
+                `Regroup or fold something else, then Restore.`;
+        });
+        restoreBtn.addEventListener('click', () => {
+            if (!saved) {
+                return;
+            }
+            // The snapshot carries the grouping it was taken under, so this puts
+            // the group-by selectors back too.
+            folding.setState(saved);
+            level1.value = saved.groupBy[0] || 'department';
+            level2.value = saved.groupBy[1] || '';
+            refreshStats();
+        });
+
+        // Chevron clicks and Space presses go straight through the extension, so
+        // poll the stats line after any interaction with the grid.
+        document.getElementById('gridDiv').addEventListener('click', () => setTimeout(refreshStats, 0));
+        document.getElementById('gridDiv').addEventListener('keyup', () => setTimeout(refreshStats, 0));
+
+        refreshStats();
+    </script>
+</body>
+</html>

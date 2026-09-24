@@ -13,6 +13,7 @@ import { ViewUpdaterExtension } from '../extensions/view-updater';
 import { FormatterExtension } from '../extensions/formatter';
 import { ColumnResizeExtension } from '../extensions/column-resize';
 import { TextOverflowExtension } from '../extensions/text-overflow';
+import { FoldableRowsExtension } from '../extensions/foldable-rows';
 
 export class PGrid extends EventDispatcher {
 
@@ -33,40 +34,62 @@ export class PGrid extends EventDispatcher {
 		//Extensions Store
 		this._extensions = new Extension(this, this._config);
 
+		//Instantiate extensions up front. They are not loaded yet — loading calls
+		//init(), and EditorExtension.init() talks to the view, which does not
+		//exist at this point.
+		const pending = [];
+		if (this._config.selection) {
+			pending.push({ ext: new SelectionExtension(), name: 'DEFAULT_EXT_SELECTION' });
+		}
+		if (this._config.editing) {
+			pending.push({ ext: new EditorExtension(), name: 'DEFAULT_EXT_EDITOR' });
+		}
+		if (this._config.copypaste) {
+			pending.push({ ext: new CopyPasteExtension(), name: 'DEFAULT_EXT_COPYPASTE' });
+		}
+		if (this._config.autoUpdate) {
+			pending.push({ ext: new ViewUpdaterExtension(), name: 'DEFAULT_EXT_VIEW_UPDATER' });
+		}
+		if (this._config.columnFormatter) {
+			pending.push({ ext: new FormatterExtension(), name: 'DEFAULT_EXT_FORMATTER' });
+		}
+		if (this._config.columnResize) {
+			pending.push({ ext: new ColumnResizeExtension(), name: 'DEFAULT_EXT_COLUMN_RESIZE' });
+		}
+		if (this._config.textOverflow) {
+			pending.push({ ext: new TextOverflowExtension(), name: 'DEFAULT_EXT_TEXT_OVERFLOW' });
+		}
+		//Loaded last on purpose: hooks run in load order, and the space key must
+		//reach EditorExtension (which backs off on canEdit === false) before
+		//FoldableRowsExtension folds the row out from under it.
+		if (this._config.foldableRows) {
+			pending.push({ ext: new FoldableRowsExtension(), name: 'DEFAULT_EXT_FOLDABLE_ROWS' });
+		}
+
+		//Queue initial external extensions
+		if (this._config.extensions && this._config.extensions.length > 0) {
+			this._config.extensions.forEach((ext) => {
+				pending.push({ ext });
+			});
+		}
+
+		//Config pre-pass — the only hookpoint that runs before the Model reads
+		//config.columns in its constructor.
+		pending.forEach(({ ext }) => {
+			if (ext.configure) {
+				ext.configure(this._config);
+			}
+		});
+
 		this._data = new DataTable(this._config.dataModel, this._extensions);
 		this._model = new Model(this._config, this._data, this._extensions);
 		this._view = new View(this._model, this._extensions);
 		this._state = new State();
 
-		//Load default extensions
-		if (this._config.selection) {
-			this._extensions.loadExtension(new SelectionExtension(), 'DEFAULT_EXT_SELECTION');
-		}
-		if (this._config.editing) {
-			this._extensions.loadExtension(new EditorExtension(), 'DEFAULT_EXT_EDITOR');
-		}
-		if (this._config.copypaste) {
-			this._extensions.loadExtension(new CopyPasteExtension(), 'DEFAULT_EXT_COPYPASTE');
-		}
-		if (this._config.autoUpdate) {
-			this._extensions.loadExtension(new ViewUpdaterExtension(), 'DEFAULT_EXT_VIEW_UPDATER');
-		}
-		if (this._config.columnFormatter) {
-			this._extensions.loadExtension(new FormatterExtension(), 'DEFAULT_EXT_FORMATTER');
-		}
-		if (this._config.columnResize) {
-			this._extensions.loadExtension(new ColumnResizeExtension(), 'DEFAULT_EXT_COLUMN_RESIZE');
-		}
-		if (this._config.textOverflow) {
-			this._extensions.loadExtension(new TextOverflowExtension(), 'DEFAULT_EXT_TEXT_OVERFLOW');
-		}
-
-		//Load initial external extensions
-		if (this._config.extensions && this._config.extensions.length > 0) {
-			this._config.extensions.forEach((ext) => {
-				this._extensions.loadExtension(ext);
-			});
-		}
+		//Load extensions (this is what calls init())
+		pending.forEach(({ ext, name }) => {
+			this._extensions.loadExtension(ext, name);
+		});
 	}
 
 	get view() {

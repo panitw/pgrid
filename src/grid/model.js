@@ -1,5 +1,10 @@
 import { EventDispatcher } from './event';
 
+//Shared, immutable resolver results. `_toSource` hands these back for rows that
+//carry no per-row payload, so the identity path allocates nothing extra.
+const HEADER_META = Object.freeze({ kind: 'header' });
+const NONE_META = Object.freeze({ kind: 'none' });
+
 export class Model extends EventDispatcher {
 
 	constructor (config, data, extension) {
@@ -7,6 +12,7 @@ export class Model extends EventDispatcher {
 		this._config = config;
 		this._data = data;
 		this._extension = extension;
+		this._rowProjection = null;
 
 		this._columnModel = [];
 		this._rowModel = {};
@@ -104,27 +110,43 @@ export class Model extends EventDispatcher {
 		return rowIndex < this._config.headerRowCount;
 	}
 
-	getColumnWidth (colIndex) {
-		let colModel = this._columnModel[colIndex];
-		if (colModel && colModel.width !== undefined) {
-			return colModel.width;
-		} else {
-			return this._config.columnWidth;
-		}
+	//Install (or clear, by passing null) a row projection. A projection lets an
+	//extension present a row order that is not the DataTable's own — synthetic
+	//rows, reordered rows, or rows that are simply absent from the view.
+	//
+	//	{
+	//		getRowCount (),              // number of visible non-header rows
+	//		resolve (i),                 // {kind:'data', dataRowIndex} | {kind:'group', ...}
+	//		getRowHeight (i),            // optional; undefined falls through to config
+	//		findDataRow (dataRowIndex)   // reverse lookup, or -1 when not visible
+	//	}
+	//
+	//With nothing installed every accessor resolves `rowIndex - headerRowCount`
+	//exactly as it always has.
+	setRowProjection (projection) {
+		this._rowProjection = projection || null;
 	}
 
-	getRowHeight (rowIndex) {
-		if (this.isHeaderRow(rowIndex)) {
+	getRowProjection () {
+		return this._rowProjection;
+	}
 
-		} else {
-			const dataRowIndex = rowIndex - this._config.headerRowCount;
-			let rowModel = this._rowModel[dataRowIndex];
-			if (rowModel && rowModel.height !== undefined) {
-				return rowModel.height;
-			} else {
-				return this._config.rowHeight;
-			}	
+	//What is row N? Answers 'header', 'data' (with dataRowIndex), or whatever
+	//entry the installed projection resolved to (e.g. a 'group' row).
+	getRowMeta (rowIndex) {
+		return this._toSource(rowIndex);
+	}
+
+	//The single place the visible-row → source-row mapping lives.
+	_toSource (rowIndex) {
+		if (rowIndex < this._config.headerRowCount) {
+			return HEADER_META;
 		}
+		const projectionIndex = rowIndex - this._config.headerRowCount;
+		if (this._rowProjection) {
+			return this._rowProjection.resolve(projectionIndex) || NONE_META;
+		}
+		return { kind: 'data', dataRowIndex: projectionIndex };
 	}
 
 	getColumnCount () {
@@ -133,6 +155,9 @@ export class Model extends EventDispatcher {
 
 	getRowCount () {
 		let headerRowCount = this._config.headerRowCount;
+		if (this._rowProjection) {
+			return headerRowCount + this._rowProjection.getRowCount();
+		}
 		return headerRowCount + this._data.getRowCount();
 	}
 
@@ -187,16 +212,37 @@ export class Model extends EventDispatcher {
 		return this._bottomFreezeSize;
 	}
 
-	getColumnWidth (index) {
-		if (this._columnModel[index] && this._columnModel[index].width !== undefined) {
-			return this._columnModel[index].width;
+	getColumnWidth (colIndex) {
+		if (this._columnModel[colIndex] && this._columnModel[colIndex].width !== undefined) {
+			return this._columnModel[colIndex].width;
 		}
 		return this._config.columnWidth;
 	}
 
-	getRowHeight (index) {
-		if (this._rowModel[index] && this._rowModel[index].height !== undefined) {
-			return this._rowModel[index].height;
+	//`config.rows[].i` is a DATA row index, matching what the configuration docs
+	//document; header row heights come from `config.headerRows[].height`.
+	getRowHeight (rowIndex) {
+		if (rowIndex < this._config.headerRowCount) {
+			const headerRowModel = this._headerRowModel[rowIndex];
+			if (headerRowModel && headerRowModel.height !== undefined) {
+				return headerRowModel.height;
+			}
+			return this._config.rowHeight;
+		}
+
+		if (this._rowProjection && this._rowProjection.getRowHeight) {
+			const projected = this._rowProjection.getRowHeight(rowIndex - this._config.headerRowCount);
+			if (projected !== undefined && projected !== null) {
+				return projected;
+			}
+		}
+
+		const source = this._toSource(rowIndex);
+		if (source.kind === 'data') {
+			const rowModel = this._rowModel[source.dataRowIndex];
+			if (rowModel && rowModel.height !== undefined) {
+				return rowModel.height;
+			}
 		}
 		return this._config.rowHeight;
 	}
@@ -210,12 +256,16 @@ export class Model extends EventDispatcher {
 	}
 
 	getRowModel (rowIndex) {
-		if (this.isHeaderRow(rowIndex)) {
+		const source = this._toSource(rowIndex);
+		if (source.kind === 'header') {
 			return this._headerRowModel[rowIndex];
-		} else {
-			const dataRowIndex = rowIndex - this._config.headerRowCount;
-			return this._rowModel[dataRowIndex];
 		}
+		if (source.kind === 'data') {
+			return this._rowModel[source.dataRowIndex];
+		}
+		//A projection-owned virtual row may carry its own row model (this is how
+		//a group row gets a cssClass onto every one of its cells).
+		return source.rowModel;
 	}
 
 	getColumnModel (colIndex) {
@@ -223,15 +273,16 @@ export class Model extends EventDispatcher {
 	}
 
 	getCellModel (rowIndex, colIndex) {
-		if (this.isHeaderRow(rowIndex)) {
+		const source = this._toSource(rowIndex);
+		if (source.kind === 'header') {
 			if (this._headerCellModel[colIndex]) {
 				return this._headerCellModel[colIndex][rowIndex];
 			}
-		} else {
-			const dataRowIndex = rowIndex - this._config.headerRowCount;
+		} else
+		if (source.kind === 'data') {
 			if (this._cellModel[colIndex]) {
-				return this._cellModel[colIndex][dataRowIndex];
-			}	
+				return this._cellModel[colIndex][source.dataRowIndex];
+			}
 		}
 	}
 
@@ -307,51 +358,66 @@ export class Model extends EventDispatcher {
 	}
 
 	getDataAt (rowIndex, colIndex) {
-		if (this.isHeaderRow(rowIndex)) {
+		const source = this._toSource(rowIndex);
+		if (source.kind === 'header') {
 			const colModel = this.getColumnModel(colIndex);
 			if (colModel && colModel.title) {
 				return colModel.title;
 			} else {
 				return undefined;
 			}
-		} else {
-			const dataRowIndex = rowIndex - this._config.headerRowCount;
+		} else
+		if (source.kind === 'data') {
 			const colModel = this.getColumnModel(colIndex);
 			if (colModel && colModel.field) {
-				return this._data.getDataAt(dataRowIndex, colModel.field);
+				return this._data.getDataAt(source.dataRowIndex, colModel.field);
 			} else {
 				return undefined;
-			}	
+			}
 		}
+		return undefined;
 	}
 
     getRowDataAt (rowIndex) {
-		if (this.isHeaderRow(rowIndex)) {
-            return undefined;
-		} else {
-			const dataRowIndex = rowIndex - this._config.headerRowCount;
-            return this._data.getRowDataAt(dataRowIndex);
+		const source = this._toSource(rowIndex);
+		if (source.kind === 'data') {
+			return this._data.getRowDataAt(source.dataRowIndex);
 		}
+		return undefined;
 	}
 
 	setDataAt (rowIndex, colIndex, data) {
-		const dataRowIndex = rowIndex - this._config.headerRowCount;
+		const source = this._toSource(rowIndex);
+		if (source.kind !== 'data') {
+			return;
+		}
 		const colModel = this.getColumnModel(colIndex);
 		if (colModel && colModel.field) {
-			this._data.setDataAt(dataRowIndex, colModel.field, data);
+			this._data.setDataAt(source.dataRowIndex, colModel.field, data);
 		}
 	}
 
 	getRowIndex (rowId) {
-		return this._config.headerRowCount + this._data.getRowIndex(rowId);
+		const dataRowIndex = this._data.getRowIndex(rowId);
+		if (this._rowProjection) {
+			if (dataRowIndex < 0) {
+				return -1;
+			}
+			const visibleIndex = this._rowProjection.findDataRow(dataRowIndex);
+			if (visibleIndex === undefined || visibleIndex === null || visibleIndex < 0) {
+				return -1;
+			}
+			return this._config.headerRowCount + visibleIndex;
+		}
+		return this._config.headerRowCount + dataRowIndex;
 	}
 
 	getRowId (rowIndex) {
-		if (rowIndex >= this._config.headerRowCount) {
-			return this._data.getRowId(rowIndex - this._config.headerRowCount);
-		} else {
-			return null;
+		const source = this._toSource(rowIndex);
+		if (source.kind === 'data') {
+			return this._data.getRowId(source.dataRowIndex);
 		}
+		return null;
 	}
 
 	getColumnIndex (field) {
@@ -398,6 +464,17 @@ export class Model extends EventDispatcher {
 			} else {
 				this._totalHeight += this._config.rowHeight;
 			}
+		}
+
+		if (this._rowProjection) {
+			//A projection can hide, add or resize rows, so the shortcut below no
+			//longer describes the visible row set — walk what is actually shown.
+			const headerRowCount = this._config.headerRowCount;
+			const visibleRowCount = this._rowProjection.getRowCount();
+			for (let i=0; i<visibleRowCount; i++) {
+				this._totalHeight += this.getRowHeight(headerRowCount + i);
+			}
+			return;
 		}
 
 		let rowModelCount = Object.keys(this._rowModel);

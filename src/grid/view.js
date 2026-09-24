@@ -87,7 +87,9 @@ export class View extends EventDispatcher {
 		this._centerInner.innerHTML = '';
 		this._bottomLeftInner.innerHTML = '';
         this._bottomInner.innerHTML = '';
-        this._cellReference = [];
+        //Keyed by "row,col" — an object, matching the constructor. This was an
+        //array literal, which worked only because arrays tolerate string keys.
+        this._cellReference = {};
 
         this._model.calcTotalSize();
 		this._resturecture();

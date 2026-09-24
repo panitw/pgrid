@@ -45,6 +45,7 @@
                 <li><a href="#headers">Headers</a></li>
                 <li><a href="#freeze">Freeze panes</a></li>
                 <li><a href="#features">Feature toggles</a></li>
+                <li><a href="#row-grouping">Row grouping</a></li>
             </ul>
         </aside>
 
@@ -169,6 +170,44 @@ new PGrid({
     extensions: [new CheckboxColumnExtension()]
 });</code></pre>
             <p>Live demo: <a href="../samples/checkbox-column.html" target="_blank" rel="noopener">Checkbox column</a>.</p>
+
+            <h2 id="row-grouping">Row grouping</h2>
+            <p>Setting <code>foldableRows</code> loads <code>FoldableRowsExtension</code>, which gathers records under synthetic group rows you can fold away. A collapsed group's records leave the row projection entirely &mdash; they are gone from the DOM, not hidden &mdash; so virtualization keeps working on large datasets. The DataTable itself stays flat: group rows are never inserted into your data.</p>
+<pre><code>foldableRows: {
+    groupBy: ['department', 'location']
+}</code></pre>
+            <p>The extension injects its own leading chevron gutter column and freezes it, then compensates every index-bearing option for you. <code>columns[].i</code>, <code>cells[].c</code>, <code>headerCells[].c</code>, <code>freezePane.left</code> and <code>labelColumn</code> all stay authored as if grouping were switched off. Use <code>model.getColumnIndex(field)</code> if you need the post-injection index of a column.</p>
+            <table>
+                <thead>
+                    <tr><th>Key</th><th>Type</th><th>Default</th><th>Description</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>groupBy</code></td><td><code>string | string[]</code></td><td><em>required</em></td><td>Field, or ordered list of fields, to group by. A list produces nested group rows, outermost first. With nothing to group by the extension injects no gutter and changes nothing.</td></tr>
+                    <tr><td><code>gutterWidth</code></td><td><code>number</code></td><td><code>28</code></td><td>Width of the injected chevron column. The chevron indents inside it, so deep nesting wants more.</td></tr>
+                    <tr><td><code>labelColumn</code></td><td><code>number</code></td><td><code>0</code></td><td>Which column carries the group label, numbered as you authored it &mdash; the default is your first column.</td></tr>
+                    <tr><td><code>collapsedByDefault</code></td><td><code>boolean</code></td><td><code>false</code></td><td>Initial fold state for every group.</td></tr>
+                    <tr><td><code>indentSize</code></td><td><code>number</code></td><td><code>16</code></td><td>Pixels of indent applied per nesting level, to both the chevron and the label.</td></tr>
+                    <tr><td><code>cssClass</code></td><td><code>string</code></td><td><code>'pgrid-group-row'</code></td><td>Class applied to every cell of a group row.</td></tr>
+                    <tr><td><code>showCount</code></td><td><code>boolean</code></td><td><code>true</code></td><td>Append the descendant record count to the group label.</td></tr>
+                    <tr><td><code>emptyLabel</code></td><td><code>string</code></td><td><code>'(none)'</code></td><td>Label used when the grouped field is <code>null</code>, <code>undefined</code> or <code>''</code>. Those records group together.</td></tr>
+                    <tr><td><code>groupLabel</code></td><td><code>(value, path, count) =&gt; string</code></td><td><em>identity</em></td><td>Formats the label text. Text only &mdash; this is not a cell renderer.</td></tr>
+                    <tr><td><code>groupRowHeight</code></td><td><code>number</code></td><td><code>config.rowHeight</code></td><td>Height of a group row.</td></tr>
+                </tbody>
+            </table>
+
+            <p>Reach the extension for programmatic control. Every method below rebuilds the projection and re-renders, except <code>isCollapsed</code>, <code>getGroups</code> and <code>getState</code>:</p>
+<pre><code>const folding = grid.extension.getExtension('DEFAULT_EXT_FOLDABLE_ROWS');
+
+folding.collapse(['Engineering', 'Berlin']);   // also expand() / toggle()
+folding.collapseAll();                         // also expandAll()
+folding.isCollapsed(['Engineering']);          // -&gt; boolean
+folding.getGroups();                           // [{path, label, level, count, collapsed}, ...]
+folding.setGroupBy(['location']);              // regroup at runtime
+
+const snapshot = folding.getState();           // {groupBy, collapsed: [path, ...]} &mdash; JSON-safe
+folding.setState(snapshot);                    // restores the grouping AND the fold state</code></pre>
+            <p>A user folds a group by clicking its chevron, or by selecting the group row and pressing <kbd>Space</kbd>. Spacebar folding needs <code>selection</code> enabled, since it works off the current selection.</p>
+            <p>Live demo: <a href="../samples/row-grouping.html" target="_blank" rel="noopener">Row grouping</a>.</p>
 
             <div class="docs-pagination">
                 <a href="./getting-started.html">

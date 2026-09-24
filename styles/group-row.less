@@ -1,0 +1,49 @@
+@import "theme.less";
+
+.groupRow() {
+
+	// A group row is still one cell per column — the core has no colspan — so the
+	// "spanning" look is made by dropping the internal vertical borders.
+	.pgrid-cell.pgrid-group-row {
+		background-color: @grid-group-row-bg;
+		color: @grid-group-row-color;
+		border-right-color: transparent;
+		font-weight: 600;
+	}
+
+	.pgrid-cell.pgrid-group-gutter {
+		border-right-color: transparent;
+	}
+
+	// The label carries the group name plus its count and is indented per nesting
+	// level, so it is the one group cell that can outgrow its column.
+	.pgrid-cell.pgrid-group-label {
+		overflow: hidden;
+
+		.pgrid-cell-content {
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+	}
+
+	.pgrid-group-chevron {
+		display: inline-block;
+		width: 14px;
+		height: 14px;
+		line-height: 14px;
+		text-align: center;
+		font-size: 9px;
+		color: @grid-group-chevron-color;
+		cursor: pointer;
+		pointer-events: all;
+		user-select: none;
+		-webkit-user-select: none;
+		-moz-user-select: none;
+		-ms-user-select: none;
+	}
+
+	.pgrid-group-chevron:hover {
+		color: @grid-group-chevron-hover-color;
+	}
+}

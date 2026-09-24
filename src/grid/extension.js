@@ -5,6 +5,10 @@ export class Extension {
 		this._config = config;
 		this._extensionTable = {};
 
+		//NOTE: `configure` is deliberately absent. It is a construction-only
+		//hookpoint that PGrid calls directly on each extension before the
+		//DataTable/Model/View exist. Registering it here would record it for
+		//extensions loaded later at runtime, where it can never be run.
 		this._extensions = {
 			cellRender: [],
 			cellAfterRender: [],
