@@ -23,12 +23,47 @@ const DEFAULTS = {
     indentSize: 16,
     cssClass: 'pgrid-group-row',
     showCount: true,
-    emptyLabel: '(none)'
+    emptyLabel: '(none)',
+    //A label starting in the frozen block reads across the whole visible width
+    //instead of being clipped at the frozen boundary (see Model#isStickySpan).
+    stickyLabel: true,
+    //Group rows take no cell selection or keyboard focus unless this is set;
+    //it is also what makes Space-to-fold reachable.
+    selectableGroupRows: false
 };
 
 const GUTTER_CLASS = 'pgrid-group-gutter';
 const LABEL_CLASS = 'pgrid-group-label';
 const CHEVRON_CLASS = 'pgrid-group-chevron';
+const CHEVRON_COLLAPSED_CLASS = 'pgrid-group-chevron-collapsed';
+
+//The chevron is a stroked SVG path, not a text glyph: ▶/▼ come out at a
+//different size and weight in every font, and some platforms swap ▶ for a
+//colour emoji. Drawn in currentColor on a 16-unit grid, so the theme colours
+//still apply and it scales with the box the stylesheet gives it.
+const SVG_NS = 'http://www.w3.org/2000/svg';
+const CHEVRON_PATH = {
+    expanded: 'M4 6l4 4 4-4',
+    collapsed: 'M6 4l4 4-4 4'
+};
+
+function createChevronIcon (collapsed) {
+    const svg = document.createElementNS(SVG_NS, 'svg');
+    svg.setAttribute('viewBox', '0 0 16 16');
+    svg.setAttribute('width', '12');
+    svg.setAttribute('height', '12');
+    svg.setAttribute('aria-hidden', 'true');
+    svg.setAttribute('focusable', 'false');
+    const path = document.createElementNS(SVG_NS, 'path');
+    path.setAttribute('d', collapsed ? CHEVRON_PATH.collapsed : CHEVRON_PATH.expanded);
+    path.setAttribute('fill', 'none');
+    path.setAttribute('stroke', 'currentColor');
+    path.setAttribute('stroke-width', '2');
+    path.setAttribute('stroke-linecap', 'round');
+    path.setAttribute('stroke-linejoin', 'round');
+    svg.appendChild(path);
+    return svg;
+}
 
 function toFieldList (groupBy) {
     if (Array.isArray(groupBy)) {
@@ -180,18 +215,27 @@ export class FoldableRowsExtension {
         this._collapsedByDefault = !!options.collapsedByDefault;
         this._groupLabel = (typeof options.groupLabel === 'function') ? options.groupLabel : null;
         this._groupRowHeight = (options.groupRowHeight !== undefined) ? options.groupRowHeight : config.rowHeight;
+        this._selectableGroupRows = !!options.selectableGroupRows;
 
         //The label cell spans the rest of the row, so a group label is never
         //clipped to one column's width. Declared to the last column; Model
-        //clamps it to the end of the label column's own pane, which is what
-        //keeps the span inside the frozen block when the host froze columns.
+        //clamps it to the end of the label column's own pane. When the label
+        //sits in the frozen block that clamp would clip it at the frozen
+        //boundary, so it is also declared sticky: View then lifts it into a
+        //span layer that runs to the grid's visible right edge and holds still
+        //on horizontal scroll. In the scrolling band, or with nothing frozen
+        //but the gutter, Model ignores the flag and the span clamps as before.
         //Shared and frozen: every group row hands back the same object.
         const columnCount = Array.isArray(config.columns) ? config.columns.length : 0;
         const labelSpan = columnCount - this._labelColumn;
         this._labelCellModel = null;
         if (labelSpan > 1) {
+            const labelModel = { colspan: labelSpan };
+            if (options.stickyLabel !== false) {
+                labelModel.stickySpan = true;
+            }
             const cellModel = {};
-            cellModel[this._labelColumn] = Object.freeze({ colspan: labelSpan });
+            cellModel[this._labelColumn] = Object.freeze(labelModel);
             this._labelCellModel = Object.freeze(cellModel);
         }
 
@@ -375,12 +419,13 @@ export class FoldableRowsExtension {
         //The chevron hangs off the cell, not the cell content — `.pgrid-cell-content`
         //is `pointer-events: none`, so a chevron rendered inside it gets no clicks.
         const chevron = document.createElement('span');
-        chevron.className = CHEVRON_CLASS;
-        chevron.textContent = meta.collapsed ? '▶' : '▼';
+        chevron.className = CHEVRON_CLASS + (meta.collapsed ? ' ' + CHEVRON_COLLAPSED_CLASS : '');
+        chevron.appendChild(createChevronIcon(meta.collapsed));
         chevron.setAttribute('role', 'button');
         chevron.setAttribute('aria-expanded', meta.collapsed ? 'false' : 'true');
+        chevron.setAttribute('aria-label', meta.collapsed ? 'Expand group' : 'Collapse group');
         chevron.style.position = 'absolute';
-        chevron.style.left = (4 + (meta.level * this._indentSize)) + 'px';
+        chevron.style.left = (3 + (meta.level * this._indentSize)) + 'px';
         chevron.style.top = '50%';
         chevron.style.transform = 'translateY(-50%)';
         chevron.style.zIndex = '2';
@@ -417,9 +462,10 @@ export class FoldableRowsExtension {
         }
     }
 
-    //Space folds the selected group row. This is only reachable because group
-    //rows report canEdit === false — EditorExtension claims space as a typing
-    //key and runs first, but backs off on canEdit.
+    //Space folds the selected group row — so it needs `selectableGroupRows`,
+    //without which a group row is never selected. It is also only reachable
+    //because group rows report canEdit === false: EditorExtension claims space
+    //as a typing key and runs first, but backs off on canEdit.
     keyDown (e) {
         if (e.keyCode !== 32) {
             return;
@@ -563,6 +609,13 @@ export class FoldableRowsExtension {
             }
         }
 
+        //Group rows cannot hold a selection unless the host opted in, so there
+        //is nowhere to fall back to — drop it rather than land it on a row the
+        //user cannot select.
+        if (!this._selectableGroupRows) {
+            selection.length = 0;
+            return;
+        }
         for (let i = anchor.ancestorKeys.length - 1; i >= 0; i--) {
             const group = this._groupRowByKey[anchor.ancestorKeys[i]];
             if (group && group.visibleIndex >= 0) {
@@ -666,7 +719,9 @@ export class FoldableRowsExtension {
                 visibleIndex: hidden ? -1 : this._rows.length,
                 //Model#getRowModel hands this back for the row, which is how the
                 //group class reaches every cell of the row via getCellClasses.
-                rowModel: { cssClass: this._cssClass, editable: false },
+                //`selectable: false` keeps SelectionExtension off every cell of
+                //the row — mouse, keyboard and selectCell alike.
+                rowModel: { cssClass: this._cssClass, editable: false, selectable: this._selectableGroupRows },
                 //...and Model#getCellModel hands this back per column, which is
                 //how the label cell declares its span. Null when there is
                 //nothing to span across.

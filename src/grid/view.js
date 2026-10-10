@@ -29,6 +29,20 @@ export class View extends EventDispatcher {
 							'	<div class="pgrid-bottom-pane" style="position: absolute;">' +
 							'		<div class="pgrid-bottom-inner" style="width: 100%; height: 100%; overflow: hidden; position: relative;"></div>' +
 							'	</div>' +
+							//Span layers, one per row band, laid over that band's frozen AND
+							//scrolling panes and never scrolled horizontally. They host sticky
+							//spans (see Model#isStickySpan): cells that start in the frozen
+							//block but read across the whole visible width. Click-through,
+							//except on the cells they hold.
+							'	<div class="pgrid-span-layer pgrid-top-span-layer" style="position: absolute; overflow: hidden; pointer-events: none;">' +
+							'		<div class="pgrid-top-span-inner" style="width: 100%; height: 100%; position: relative;"></div>' +
+							'	</div>' +
+							'	<div class="pgrid-span-layer pgrid-body-span-layer" style="position: absolute; overflow: hidden; pointer-events: none;">' +
+							'		<div class="pgrid-body-span-inner" style="width: 100%; height: 100%; position: relative;"></div>' +
+							'	</div>' +
+							'	<div class="pgrid-span-layer pgrid-bottom-span-layer" style="position: absolute; overflow: hidden; pointer-events: none;">' +
+							'		<div class="pgrid-bottom-span-inner" style="width: 100%; height: 100%; position: relative;"></div>' +
+							'	</div>' +
 							'</div>' +
 							'<div class="pgrid-hscroll" style="position: absolute; bottom: 0px; overflow-y: hidden; overflow-x: scroll;">' +
 							'	<div class="pgrid-hscroll-thumb"></div>' +
@@ -59,6 +73,12 @@ export class View extends EventDispatcher {
 		this._bottomInner = this._element.querySelector('.pgrid-bottom-inner');
 		this._bottomLeftPane = this._element.querySelector('.pgrid-bottom-left-pane');
 		this._bottomLeftInner = this._element.querySelector('.pgrid-bottom-left-inner');
+		this._topSpanLayer = this._element.querySelector('.pgrid-top-span-layer');
+		this._topSpanInner = this._element.querySelector('.pgrid-top-span-inner');
+		this._bodySpanLayer = this._element.querySelector('.pgrid-body-span-layer');
+		this._bodySpanInner = this._element.querySelector('.pgrid-body-span-inner');
+		this._bottomSpanLayer = this._element.querySelector('.pgrid-bottom-span-layer');
+		this._bottomSpanInner = this._element.querySelector('.pgrid-bottom-span-inner');
 
 		this._scrollWidth = this._measureScrollbarWidth();
 
@@ -87,6 +107,9 @@ export class View extends EventDispatcher {
 		this._centerInner.innerHTML = '';
 		this._bottomLeftInner.innerHTML = '';
         this._bottomInner.innerHTML = '';
+        this._topSpanInner.innerHTML = '';
+        this._bodySpanInner.innerHTML = '';
+        this._bottomSpanInner.innerHTML = '';
         //Keyed by "row,col" — an object, matching the constructor. This was an
         //array literal, which worked only because arrays tolerate string keys.
         this._cellReference = {};
@@ -119,6 +142,7 @@ export class View extends EventDispatcher {
         }
 		this._centerPane.scrollTop = y;
 		this._leftPane.scrollTop = y;
+		this._bodySpanLayer.scrollTop = y;
 		if (adjustScrollBar || adjustScrollBar === undefined) {
 			this._vScroll.scrollTop = y;
 		}
@@ -156,26 +180,36 @@ export class View extends EventDispatcher {
         if (createNewCell === false) {
             return null;
         } else {
+            //Scroll offsets are in the scrolling panes' own coordinates, which
+            //start at the frozen boundary, so the grid rect is shifted by the
+            //frozen size first and the band is decided by index, not by x/y.
+            //Only a cell in a scrolling band scrolls that axis, and the first
+            //scrolling column (x === frozen width) and first body row are in it.
             let leftFreezeSize = this._model.getLeftFreezeSize();
             let topFreezeSize = this._model.getTopFreezeSize();
-            let bottomFreezeSize = this._model.getBottomFreezeSize();
             let cellRect = this._getCellRect(rowIndex, colIndex);
-            let scrollX = this.getScrollX();
-            let scrollY = this.getScrollY();
-            let gridRect = this._element.getBoundingClientRect();
-            if (cellRect.x > leftFreezeSize) {
-                if (cellRect.x < (scrollX + leftFreezeSize)) {
-                    this.setScrollX(cellRect.x - leftFreezeSize);
+            if (colIndex >= this._model.getLeftFreezeRows()) {
+                let scrollX = this.getScrollX();
+                let paneX = cellRect.x - leftFreezeSize;
+                let paneWidth = this._centerPane.offsetWidth;
+                if (paneX < scrollX) {
+                    this.setScrollX(paneX);
                 } else
-                if (scrollX + gridRect.width < cellRect.x + cellRect.width) {
-                    this.setScrollX((cellRect.x + cellRect.width) - gridRect.width);
+                if (paneX + cellRect.width > scrollX + paneWidth) {
+                    this.setScrollX(Math.min(paneX, (paneX + cellRect.width) - paneWidth));
                 }
             }
-            if (cellRect.y < (scrollY + topFreezeSize)) {
-                this.setScrollY(cellRect.y);
-            } else
-            if ((scrollY + gridRect.height) - bottomFreezeSize < cellRect.y + cellRect.height) {
-                this.setScrollY((cellRect.y + cellRect.height) - gridRect.height);
+            if (rowIndex >= this._model.getTopFreezeRows() &&
+                rowIndex < this._model.getRowCount() - this._model.getBottomFreezeRows()) {
+                let scrollY = this.getScrollY();
+                let paneY = cellRect.y - topFreezeSize;
+                let paneHeight = this._centerPane.offsetHeight;
+                if (paneY < scrollY) {
+                    this.setScrollY(paneY);
+                } else
+                if (paneY + cellRect.height > scrollY + paneHeight) {
+                    this.setScrollY(Math.min(paneY, (paneY + cellRect.height) - paneHeight));
+                }
             }
             this._renderCells();
             return this._queryCell(rowIndex, colIndex);
@@ -184,8 +218,11 @@ export class View extends EventDispatcher {
 
     //Raw lookup by the coordinates a cell actually renders under. The caller is
     //responsible for having resolved a span anchor first.
+    //Goes through the live registry rather than the DOM: a recycled cell stays
+    //in the DOM, hidden, and a selector query could hand back that stale node
+    //instead of reporting "not rendered" — which made getCell skip scrolling.
     _queryCell (rowIndex, colIndex) {
-        return this._element.querySelector('[data-row-index="'+rowIndex+'"][data-col-index="'+colIndex+'"]');
+        return this._cellReference[rowIndex + ',' + colIndex] || null;
     }
 
 	updateCell (rowIndex, colIndex) {
@@ -320,6 +357,25 @@ export class View extends EventDispatcher {
 		this._bottomPane.style.width = 'calc(100% - ' + leftFreezeSize + 'px)';
 		this._bottomPane.style.height = bottomFreezeSize + 'px';
 
+		//Each span layer covers its band's full width, but never more than the
+		//columns actually reach, so a sticky span ends where the grid does.
+		const spanLayerMaxWidth = this._model.getTotalWidth() + 'px';
+		this._topSpanLayer.style.left = '0px';
+		this._topSpanLayer.style.top = '0px';
+		this._topSpanLayer.style.width = '100%';
+		this._topSpanLayer.style.maxWidth = spanLayerMaxWidth;
+		this._topSpanLayer.style.height = topFreezeSize + 'px';
+		this._bodySpanLayer.style.left = '0px';
+		this._bodySpanLayer.style.top = topFreezeSize + 'px';
+		this._bodySpanLayer.style.width = '100%';
+		this._bodySpanLayer.style.maxWidth = spanLayerMaxWidth;
+		this._bodySpanLayer.style.height = 'calc(100% - ' + (topFreezeSize + bottomFreezeSize) + 'px)';
+		this._bottomSpanLayer.style.left = '0px';
+		this._bottomSpanLayer.style.bottom = '0px';
+		this._bottomSpanLayer.style.width = '100%';
+		this._bottomSpanLayer.style.maxWidth = spanLayerMaxWidth;
+		this._bottomSpanLayer.style.height = bottomFreezeSize + 'px';
+
 		this._renderCells();
 		this._updateScrollBar();
 	}
@@ -393,16 +449,16 @@ export class View extends EventDispatcher {
         });
 
         const panes = {
-            topLeft:    { host: this._topLeftPane,    inner: this._topLeftInner,    setWidth: false, setHeight: false },
+            topLeft:    { host: this._topLeftPane,    inner: this._topLeftInner,    setWidth: false, setHeight: false, spanInner: this._topSpanInner },
             top:        { host: this._topPane,        inner: this._topInner,        setWidth: true,  setHeight: true  },
-            left:       { host: this._leftPane,       inner: this._leftInner,       setWidth: false, setHeight: true  },
+            left:       { host: this._leftPane,       inner: this._leftInner,       setWidth: false, setHeight: true,  spanInner: this._bodySpanInner },
             center:     { host: this._centerPane,     inner: this._centerInner,     setWidth: true,  setHeight: true  },
-            bottomLeft: { host: this._bottomLeftPane, inner: this._bottomLeftInner, setWidth: false, setHeight: false },
+            bottomLeft: { host: this._bottomLeftPane, inner: this._bottomLeftInner, setWidth: false, setHeight: false, spanInner: this._bottomSpanInner },
             bottom:     { host: this._bottomPane,     inner: this._bottomInner,     setWidth: true,  setHeight: true  }
         };
 
         for (const name of Object.keys(panes)) {
-            const { host, inner, setWidth, setHeight } = panes[name];
+            const { host, inner, setWidth, setHeight, spanInner } = panes[name];
             const viewport = {
                 scrollLeft: host.scrollLeft,
                 scrollTop:  host.scrollTop,
@@ -411,10 +467,13 @@ export class View extends EventDispatcher {
             };
             const { cells, totalWidth, totalHeight } = layoutPaneCells(this._model, ranges[name], viewport);
             for (const cell of cells) {
-                this._renderCell(cell, inner);
+                this._renderCell(cell, (cell.sticky && spanInner) ? spanInner : inner);
             }
             if (setWidth)  inner.style.width  = totalWidth  + 'px';
             if (setHeight) inner.style.height = totalHeight + 'px';
+            //The body span layer scrolls vertically in lockstep with the left
+            //pane, so its content has to be exactly as tall.
+            if (setHeight && spanInner) spanInner.style.height = totalHeight + 'px';
         }
     }
 
@@ -443,6 +502,7 @@ export class View extends EventDispatcher {
 		cell.style.top = y + 'px';
 		cell.style.width = width + 'px';
 		cell.style.height = height + 'px';
+        cell.style.pointerEvents = '';
         cell.dataset.rowIndex = rowIndex;
         cell.dataset.colIndex = colIndex;
         cell.dataset.key = key;
@@ -480,10 +540,17 @@ export class View extends EventDispatcher {
         this._recycledCells.push(cell);
 
         this._extensions.executeExtension('cellAfterRecycled', { cell });
+
+        //Drop the coordinates last (hooks above may still read them), so a DOM
+        //query by data-row-index / data-col-index only ever matches live cells.
+        delete cell.dataset.rowIndex;
+        delete cell.dataset.colIndex;
+        delete cell.dataset.key;
+        delete cell.dataset.colspan;
     }
 
 	_renderCell (cellInfo, pane) {
-        const { rowIndex, colIndex, x, y, width, height, visible, colspan } = cellInfo;
+        const { rowIndex, colIndex, x, y, width, height, visible, colspan, sticky } = cellInfo;
         let key = rowIndex + ',' + colIndex;
 
         //If the cell is outside of the viewport, then recycle the cell if it has already been created
@@ -511,6 +578,15 @@ export class View extends EventDispatcher {
 		let cell = this._createCell(rowIndex, colIndex, x, y, width, height, colspan);
 		let cellClasses = this._model.getCellClasses(rowIndex, colIndex);
 		cell.className = 'pgrid-cell ' + cellClasses.join(' ');
+        if (sticky) {
+            //Hosted in a span layer, which starts at x 0 like the frozen pane,
+            //so the same x lands it where it would have been; the width runs
+            //on to the layer's right edge. _createCell and the className line
+            //above reset all three when the node is next handed out.
+            cell.classList.add('pgrid-cell-sticky-span');
+            cell.style.width = 'calc(100% - ' + x + 'px)';
+            cell.style.pointerEvents = 'auto';
+        }
 
 		pane.appendChild(cell);
         let cellContent = cell.firstChild;

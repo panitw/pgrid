@@ -14,8 +14,8 @@ A virtualized, extensible JavaScript data grid with frozen panes, inline editing
 - **Custom editors** — dropdowns, date pickers, anything HTML — [demo](https://panitw.github.io/pgrid/samples/custom-editors.html)
 - **Cell formatters** — pills, currency, progress bars, stars — [demo](https://panitw.github.io/pgrid/samples/formatters.html)
 - **Themes** — toggle dark / compact / spreadsheet looks via a single CSS class — [demo](https://panitw.github.io/pgrid/samples/themes.html)
-- **Row grouping** — fold records under group rows by one or more fields; collapsed rows leave the DOM entirely, so virtualization keeps working — [demo](https://panitw.github.io/pgrid/samples/row-grouping.html)
-- **Column span** — declare `colspan` on any cell or header cell to merge it across columns — [demo](https://panitw.github.io/pgrid/samples/multi-row-headers.html)
+- **Row grouping** — fold records under group rows by one or more fields; collapsed rows leave the DOM entirely, so virtualization keeps working. A label that starts in frozen columns reads across the full width — [demo](https://panitw.github.io/pgrid/samples/row-grouping.html), [with frozen columns](https://panitw.github.io/pgrid/samples/grouped-frozen.html)
+- **Column span** — declare `colspan` on any cell or header cell to merge it across columns; `stickySpan` lets a frozen span read across the scrolling columns too — [demo](https://panitw.github.io/pgrid/samples/multi-row-headers.html)
 - **Extension API** — every built-in feature is itself an extension; add your own without touching core
 - **Sort / filter / search** at the data layer (`DataTable`) without losing original row order
 
@@ -24,6 +24,24 @@ A virtualized, extensible JavaScript data grid with frozen panes, inline editing
 ```bash
 npm install @panitw/pgrid
 ```
+
+## What's new in 3.1
+
+**Group labels in frozen columns read in full.** With `freezePane.left` and a `foldableRows` `labelColumn` inside the frozen block, a group label used to be clipped at the frozen boundary. It now starts at the label column (after the chevron gutter and indent), reads across the whole visible width of the grid, frozen and scrolling columns together, and holds still on horizontal scroll while following its row vertically. Ellipsis applies at the grid's right edge. This is on by default (`foldableRows.stickyLabel: true`). Labels in the scrolling columns, and grids with nothing frozen but the gutter, behave as before.
+
+```js
+freezePane: { left: 2 },
+foldableRows: {
+  groupBy: ['ProjectName'],
+  labelColumn: 0          // label starts at the left edge and reads across the grid
+}
+```
+
+It is built on a core feature you can use directly: a cell model with `colspan` and `stickySpan: true` that starts in the frozen block and reaches past `freezePane.left` is rendered across both panes the same way. Spans without the flag clamp at the frozen boundary exactly as before.
+
+**Group rows take no cell selection.** No cell of a group row (gutter, label, or the empty cells beside the label) can be selected by mouse, keyboard or `selectCell`; the arrow keys step over group rows, and a selection whose record is folded away is cleared instead of moving to the group row. Set `foldableRows.selectableGroupRows: true` to get the 3.0 behaviour back, including folding with <kbd>Space</kbd>. Any row or cell model can opt out of selection the same way with `selectable: false`.
+
+**`getCell` / `scrollToCell` reach the first scrolling column.** Once scrolled right, asking for the column right after the frozen block (its left edge equal to the frozen width) did not scroll back to it. That is fixed, along with the matching edges: scrolling a cell into view now measures against the scrolling pane itself, so it no longer under-scrolls at the right and bottom edges or scrolls for frozen top/bottom rows, and it no longer mistakes a recycled, hidden cell for a rendered one. Workarounds such as calling `view.setScrollX(0)` first can be removed.
 
 ## Upgrading to 3.0
 

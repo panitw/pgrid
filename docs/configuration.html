@@ -120,7 +120,7 @@
 ]</code></pre>
 
             <h2 id="rows">Rows</h2>
-            <p>Per-data-row overrides — typically used to apply CSS classes or set per-row height. Match by zero-based data row index <code>i</code>.</p>
+            <p>Per-data-row overrides — typically used to apply CSS classes or set per-row height. Match by zero-based data row index <code>i</code>. <code>selectable: false</code> keeps the selection extension off every cell of the row (mouse, arrow keys and <code>selectCell</code>); the arrow keys step over it.</p>
 <pre><code>rows: [
     { i: 0, cssClass: 'highlight-row', height: 48 },
     { i: 5, cssClass: 'forecast-row' }
@@ -131,6 +131,7 @@
 <pre><code>cells: [
     { r: 0, c: 2, cssClass: 'subtotal-cell', editable: false }
 ]</code></pre>
+            <p>A cell model also takes <code>selectable: false</code>, as a row does, and <code>stickySpan</code> &mdash; see <a href="#colspan">Column span</a>.</p>
 
             <h2 id="colspan">Column span</h2>
             <p>A cell can be declared <code>colspan</code> columns wide. The spanning cell is rendered once at its anchor column with the summed width of the columns it covers; those covered columns render no cell of their own. Spanning is known to the layout math, not to CSS, so a span stays rendered while any part of it overlaps the viewport.</p>
@@ -147,6 +148,7 @@ headerCells: [
                 <li><strong>Opt-in.</strong> With no <code>colspan</code> anywhere, every rect, cell count and DOM node is exactly what it was without the feature.</li>
                 <li><strong>Clamped to the column count.</strong> A span running past the last column ends at the last column.</li>
                 <li><strong>Clamped to the pane.</strong> Columns split into the frozen block and the scrolling block, and each is rendered into its own pane, so a span never crosses <code>freezePane.left</code> — it ends at the boundary instead.</li>
+                <li><strong>Unless it is sticky.</strong> Add <code>stickySpan: true</code> to a span that starts in the frozen block and reaches past <code>freezePane.left</code>, and it is rendered into a span layer laid over both panes instead: it starts at its own column, runs to the grid's visible right edge (ellipsis applies there, not at the frozen boundary), holds still on horizontal scroll like the frozen columns, and follows its row vertically. <code>getColumnSpan</code> still reports the span clamped to the frozen block, and the scrolling columns still render their own cells underneath. Anywhere else &mdash; no frozen columns, a span starting in the scrolling block, a span ending inside the frozen block &mdash; the flag is ignored. Group labels use this; see <a href="#row-grouping">Row grouping</a>.</li>
                 <li><strong>Degenerate values mean no span.</strong> A <code>colspan</code> of 0, 1, a negative, a fraction below 2 or a non-number is ignored; nothing throws. A fractional value above 2 is floored.</li>
                 <li><strong>The anchor owns the cell.</strong> The spanning cell uses its anchor column's field, cell model, <code>cssClass</code> and editability. The covered columns' own models are not consulted.</li>
                 <li><strong>One cell to the keyboard.</strong> Moving right off a span lands on the first column after it; moving left into a span lands on the anchor.</li>
@@ -201,7 +203,7 @@ new PGrid({
 <pre><code>foldableRows: {
     groupBy: ['department', 'location']
 }</code></pre>
-            <p>A group row renders two cells, not one per column: the chevron gutter, and the label cell, which carries a <a href="#colspan">column span</a> across the rest of the row so the label and its count read in full instead of being clipped to <code>labelColumn</code>'s width. Like any span it stops at <code>freezePane.left</code>, so with frozen columns the label spans to the last frozen column and the scrolling columns render their own (blank) cells. The columns the span covers render no cell at all &mdash; there is nothing there for a <code>cellRender</code> hook or a column formatter to write into.</p>
+            <p>A group row renders two cells, not one per column: the chevron gutter, and the label cell, which carries a <a href="#colspan">column span</a> across the rest of the row so the label and its count read in full instead of being clipped to <code>labelColumn</code>'s width. When <code>labelColumn</code> is inside the frozen block the label is a <a href="#colspan">sticky span</a> (<code>stickyLabel</code>): it reads across the whole visible width of the grid, frozen and scrolling columns alike, and holds still on horizontal scroll. When <code>labelColumn</code> is in the scrolling block it spans to the last column and scrolls with it, and with <code>stickyLabel: false</code> a frozen label stops at <code>freezePane.left</code> as any span does. The columns the span covers render no cell at all &mdash; there is nothing there for a <code>cellRender</code> hook or a column formatter to write into.</p>
             <p>The extension injects its own leading chevron gutter column and freezes it, then compensates every index-bearing option for you. <code>columns[].i</code>, <code>cells[].c</code>, <code>headerCells[].c</code>, <code>freezePane.left</code> and <code>labelColumn</code> all stay authored as if grouping were switched off. Use <code>model.getColumnIndex(field)</code> if you need the post-injection index of a column.</p>
             <table>
                 <thead>
@@ -218,6 +220,8 @@ new PGrid({
                     <tr><td><code>emptyLabel</code></td><td><code>string</code></td><td><code>'(none)'</code></td><td>Label used when the grouped field is <code>null</code>, <code>undefined</code> or <code>''</code>. Those records group together.</td></tr>
                     <tr><td><code>groupLabel</code></td><td><code>(value, path, count) =&gt; string</code></td><td><em>identity</em></td><td>Formats the label text. Text only &mdash; this is not a cell renderer.</td></tr>
                     <tr><td><code>groupRowHeight</code></td><td><code>number</code></td><td><code>config.rowHeight</code></td><td>Height of a group row.</td></tr>
+                    <tr><td><code>stickyLabel</code></td><td><code>boolean</code></td><td><code>true</code></td><td>When <code>labelColumn</code> is in the frozen block, let the label read across the whole visible width and hold still on horizontal scroll instead of clipping at the frozen boundary. No effect when the label is in the scrolling block.</td></tr>
+                    <tr><td><code>selectableGroupRows</code></td><td><code>boolean</code></td><td><code>false</code></td><td>Let group rows take cell selection. Off by default: no cell of a group row can be selected, the arrow keys step over group rows, and a selection whose record is folded away is cleared. Turn it on for <kbd>Space</kbd> folding.</td></tr>
                 </tbody>
             </table>
 
@@ -232,8 +236,8 @@ folding.setGroupBy(['location']);              // regroup at runtime
 
 const snapshot = folding.getState();           // {groupBy, collapsed: [path, ...]} &mdash; JSON-safe
 folding.setState(snapshot);                    // restores the grouping AND the fold state</code></pre>
-            <p>A user folds a group by clicking its chevron, or by selecting the group row and pressing <kbd>Space</kbd>. Spacebar folding needs <code>selection</code> enabled, since it works off the current selection.</p>
-            <p>Live demo: <a href="../samples/row-grouping.html" target="_blank" rel="noopener">Row grouping</a>.</p>
+            <p>A user folds a group by clicking its chevron, or by selecting the group row and pressing <kbd>Space</kbd>. Spacebar folding needs <code>selection</code> enabled and <code>selectableGroupRows: true</code>, since it works off the current selection.</p>
+            <p>Live demos: <a href="../samples/row-grouping.html" target="_blank" rel="noopener">Row grouping</a>, <a href="../samples/grouped-frozen.html" target="_blank" rel="noopener">Grouping + frozen columns</a>.</p>
 
             <div class="docs-pagination">
                 <a href="./getting-started.html">

@@ -417,6 +417,38 @@ export class Model extends EventDispatcher {
 		return index;
 	}
 
+	//Is the cell at (rowIndex, colIndex) a sticky span? A cell model opts in
+	//with `stickySpan: true` next to its colspan. It is honoured only where
+	//the clamp above would otherwise cut the span short: on a span anchor in
+	//the frozen band whose declared colspan reaches past the frozen boundary.
+	//Such a cell is rendered by View into a span layer above both panes, from
+	//its own left edge to the visible right edge of the grid, and holds still
+	//on horizontal scroll. Everywhere else — no frozen pane, a span that
+	//starts in the scrolling band, a span that ends inside the frozen band —
+	//this answers false and the span clamps exactly as it always has.
+	//getColumnSpan keeps reporting the clamped (frozen-band) span either way.
+	isStickySpan (rowIndex, colIndex) {
+		if (!this._mayHaveSpans(rowIndex)) {
+			return false;
+		}
+		const index = this._toColumnIndex(colIndex);
+		if (index === null) {
+			return false;
+		}
+		const leftFreeze = Math.min(this.getLeftFreezeRows(), this.getColumnCount());
+		if (leftFreeze <= 0 || index >= leftFreeze) {
+			return false;
+		}
+		const cellModel = this._getDeclaredCellModel(rowIndex, index);
+		if (!cellModel || !cellModel.stickySpan) {
+			return false;
+		}
+		if (index + normalizeColspan(cellModel.colspan) <= leftFreeze) {
+			return false;
+		}
+		return this.getSpanAnchor(rowIndex, index) === index;
+	}
+
 	getCascadedCellProp (rowIndex, colIndex, propName) {
 		//Anchor once, here — everything below reads the DECLARED model at the
 		//resolved coordinate rather than re-entering the resolving accessor.
