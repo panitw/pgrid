@@ -2,8 +2,10 @@
 
 .groupRow() {
 
-	// A group row is still one cell per column — the core has no colspan — so the
-	// "spanning" look is made by dropping the internal vertical borders.
+	// The label spans the rest of its pane (or, frozen, the whole visible width
+	// as a sticky span), but the gutter and any scrolling columns behind a
+	// frozen label are still cells of their own, so the "one bar" look is made
+	// by dropping the internal vertical borders.
 	.pgrid-cell.pgrid-group-row {
 		background-color: @grid-group-row-bg;
 		color: @grid-group-row-color;

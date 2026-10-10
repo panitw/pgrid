@@ -19,12 +19,15 @@ export class SelectionExtension {
 			let colIndex = selection[0].c;
 			let alignTop = true;
 			switch (e.keyCode) {
+				//Rows that take no selection (a group row, say) are stepped
+				//over, not landed on; with nothing selectable that way the key
+				//leaves the selection where it is.
 				case 40: //Down
-					rowIndex++;
+					rowIndex = this._stepRow(rowIndex, colIndex, 1);
 					alignTop = false;
 					break;
 				case 38: //Up
-					rowIndex--;
+					rowIndex = this._stepRow(rowIndex, colIndex, -1);
 					break;
 				case 37: //Left
 					//A span is one cell to navigate: stepping left out of it
@@ -40,18 +43,13 @@ export class SelectionExtension {
 				default:
 					return;
 			}
-			if (rowIndex >= 0 && rowIndex < this._grid.model.getRowCount() &&
-				colIndex >= 0 && colIndex < this._grid.model.getColumnCount()) {
-				const isHeader = this._grid.model.isHeaderRow(rowIndex);
-				const rowModel = this._grid.model.getRowModel(rowIndex);
-				if (!rowModel || !isHeader) {
-					let cell = this._grid.view.getCell(rowIndex, colIndex);
-					if (cell) {
-						this._selectCell(cell, rowIndex, colIndex);
-						this._grid.view.scrollToCell(rowIndex, colIndex, alignTop);
-						e.preventDefault();
-						e.stopPropagation();
-					}
+			if (this._isSelectable(rowIndex, colIndex)) {
+				let cell = this._grid.view.getCell(rowIndex, colIndex);
+				if (cell) {
+					this._selectCell(cell, rowIndex, colIndex);
+					this._grid.view.scrollToCell(rowIndex, colIndex, alignTop);
+					e.preventDefault();
+					e.stopPropagation();
 				}
 			}
 		}
@@ -71,18 +69,49 @@ export class SelectionExtension {
 	}
 	
 	selectCell (colIndex, rowIndex) {
-		if (rowIndex >= 0 && rowIndex < this._grid.model.getRowCount() &&
-			colIndex >= 0 && colIndex < this._grid.model.getColumnCount()) {
-			const isHeader = this._grid.model.isHeaderRow(rowIndex);
-			const rowModel = this._grid.model.getRowModel(rowIndex);
-			if (!rowModel || !isHeader) {
-				let cell = this._grid.view.getCell(rowIndex, colIndex);
-				if (cell) {
-					this._selectCell(cell, rowIndex, colIndex);
-					this._grid.view.scrollToCell(rowIndex, colIndex, false);
-				}
+		if (this._isSelectable(rowIndex, colIndex)) {
+			let cell = this._grid.view.getCell(rowIndex, colIndex);
+			if (cell) {
+				this._selectCell(cell, rowIndex, colIndex);
+				this._grid.view.scrollToCell(rowIndex, colIndex, false);
 			}
 		}
+	}
+
+	//Can (rowIndex, colIndex) take the selection? In range, not a header row
+	//that carries a row model (the long-standing rule), and not opted out with
+	//`selectable: false` on its row model or on the cell model that owns it.
+	_isSelectable (rowIndex, colIndex) {
+		const model = this._grid.model;
+		if (!(rowIndex >= 0 && rowIndex < model.getRowCount() &&
+			colIndex >= 0 && colIndex < model.getColumnCount())) {
+			return false;
+		}
+		const rowModel = model.getRowModel(rowIndex);
+		if (rowModel && model.isHeaderRow(rowIndex)) {
+			return false;
+		}
+		if (rowModel && rowModel.selectable === false) {
+			return false;
+		}
+		if (typeof model.getCellModel === 'function') {
+			const cellModel = model.getCellModel(rowIndex, colIndex);
+			if (cellModel && cellModel.selectable === false) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	//The next row in `direction` that can take the selection, or an
+	//out-of-range index when there is none.
+	_stepRow (rowIndex, colIndex, direction) {
+		const rowCount = this._grid.model.getRowCount();
+		let r = rowIndex + direction;
+		while (r >= 0 && r < rowCount && !this._isSelectable(r, colIndex)) {
+			r += direction;
+		}
+		return r;
 	}
 
 	//--- span-aware column stepping -------------------------------------
@@ -125,9 +154,7 @@ export class SelectionExtension {
         }
         const actualRow = parseInt(actualCell.dataset.rowIndex);
         const actualCol = parseInt(actualCell.dataset.colIndex);
-        const rowModel = this._grid.model.getRowModel(actualRow);
-        const isHeader = this._grid.model.isHeaderRow(actualRow);
-        if (!rowModel || !isHeader) {
+        if (this._isSelectable(actualRow, actualCol)) {
             if (actualCell.classList.contains('pgrid-cell')) {
                 this._selectCell(actualCell, actualRow, actualCol);
             }

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Grouping + Frozen Columns · PGrid</title>
+    <link rel="stylesheet" href="./_shared.css">
+    <style>
+        .pgrid .pgrid-cell.pgrid-group-row {
+            background-color: #eef3f9;
+            color: #1f2d3d;
+            font-weight: 600;
+        }
+        .pgrid .pgrid-left-pane {
+            box-shadow: 1px 0 0 #9fb3c8;
+        }
+    </style>
+</head>
+<body>
+    <div class="sample-page">
+
+        <header class="docs-top">
+            <a class="brand" href="../docs/index.html">PGrid <span class="tag">docs</span></a>
+            <nav>
+                <a href="../docs/getting-started.html">Getting Started</a>
+                <a href="../docs/configuration.html">Configuration</a>
+                <a href="../docs/data.html">Data</a>
+                <a href="../docs/styling.html">Styling</a>
+                <a href="../docs/extensions.html">Extensions</a>
+                <a href="../docs/api.html">API</a>
+                <a href="./index.html" class="active">Samples</a>
+                <a href="https://github.com/panitw/pgrid" target="_blank" rel="noopener">GitHub ↗</a>
+            </nav>
+        </header>
+
+        <div class="sample-header">
+            <a class="back" href="./index.html">← All demos</a>
+            <h1>Grouping + Frozen Columns</h1>
+            <span class="desc">
+                Two frozen columns and <code>foldableRows</code> with <code>labelColumn: 0</code>.
+                The group label starts in the frozen block but reads across the whole visible width
+                (<code>stickyLabel</code>, on by default), holds still when you scroll sideways, and
+                follows its row vertically. Group rows take no cell selection.
+            </span>
+        </div>
+
+        <div class="sample-toolbar">
+            <label><input type="checkbox" id="sticky" checked> stickyLabel</label>
+            <span class="divider"></span>
+            <button id="scrollRight">Scroll right</button>
+            <button id="toFirst">getCell(first scrolling column)</button>
+            <span class="divider"></span>
+            <button id="expandAll">Expand all</button>
+            <button id="collapseAll">Collapse all</button>
+            <label>Group by:</label>
+            <select id="groupBy">
+                <option value="department" selected>Department</option>
+                <option value="location">Location</option>
+                <option value="department,location">Department, Location</option>
+            </select>
+        </div>
+
+        <div class="sample-grid-wrap">
+            <div class="sample-grid"><div id="gridDiv"></div></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { PGrid } from "../src/index.js";
+        import { generateEmployees, EMPLOYEE_FIELDS } from "./_data.js";
+
+        const data = generateEmployees(300);
+        const host = document.getElementById('gridDiv');
+        let grid = null;
+        let folding = null;
+
+        const build = (stickyLabel) => {
+            host.innerHTML = '';
+            grid = new PGrid({
+                rowHeight: 32,
+                columnWidth: 160,
+                selection: { cssClass: 'grid-cell-selection' },
+                textOverflow: 'ellipsis',
+                // Select box + ID frozen, like a line-item grid.
+                freezePane: { left: 2 },
+                columns: [
+                    { field: 'remote',     title: 'Remote',     width: 60 },
+                    { field: 'id',         title: 'ID',         width: 70 },
+                    { field: 'name',       title: 'Name',       width: 190 },
+                    { field: 'email',      title: 'Email',      width: 260 },
+                    { field: 'department', title: 'Department' },
+                    { field: 'location',   title: 'Location' },
+                    { field: 'role',       title: 'Role',       width: 190 },
+                    { field: 'status',     title: 'Status' },
+                    { field: 'salary',     title: 'Salary' },
+                    { field: 'hired',      title: 'Hired' }
+                ],
+                headerRows: [{ i: 0, cssClass: 'grid-header-row' }],
+                foldableRows: {
+                    groupBy: document.getElementById('groupBy').value.split(','),
+                    gutterWidth: 40,
+                    labelColumn: 0,
+                    showCount: true,
+                    stickyLabel,
+                    // Far wider than the 130px frozen block on purpose.
+                    groupLabel: (value, path) =>
+                        (path.length === 1 ? '18.6000' + (value || '').length + ' - ' : '') +
+                        value + ' — a deliberately long group label that runs well past the frozen columns'
+                },
+                dataModel: { fields: EMPLOYEE_FIELDS, format: 'rows', data }
+            });
+            grid.render(host);
+            folding = grid.extension.getExtension('DEFAULT_EXT_FOLDABLE_ROWS');
+            window.grid = grid;
+            window.folding = folding;
+        };
+
+        build(true);
+
+        document.getElementById('sticky').addEventListener('change', (e) => build(e.target.checked));
+        document.getElementById('groupBy').addEventListener('change', (e) => folding.setGroupBy(e.target.value.split(',')));
+        document.getElementById('scrollRight').addEventListener('click', () => {
+            grid.view.setScrollX(grid.view.getScrollX() + 300);
+        });
+        // Column 3 = the first scrolling column (gutter + 2 frozen host columns).
+        document.getElementById('toFirst').addEventListener('click', () => {
+            const firstRecord = grid.model.getRowIndex(grid.data.getRowId(0));
+            grid.extension.getExtension('DEFAULT_EXT_SELECTION').selectCell(3, firstRecord);
+        });
+        document.getElementById('expandAll').addEventListener('click', () => folding.expandAll());
+        document.getElementById('collapseAll').addEventListener('click', () => folding.collapseAll());
+    </script>
+</body>
+</html>

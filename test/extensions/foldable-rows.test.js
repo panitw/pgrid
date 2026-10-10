@@ -946,7 +946,7 @@ describe('FoldableRowsExtension', () => {
                 { field: 'department', title: 'Dept' },
                 { field: 'location', title: 'Loc' }
             ],
-            foldableRows: { groupBy: 'department' }
+            foldableRows: { groupBy: 'department', selectableGroupRows: true }
         }, over);
 
         let ctx;
@@ -1306,7 +1306,7 @@ describe('FoldableRowsExtension', () => {
 
         let ctx;
         beforeEach(() => {
-            ctx = render({ selection: {}, foldableRows: { groupBy: 'department' } });
+            ctx = render({ selection: {}, foldableRows: { groupBy: 'department', selectableGroupRows: true } });
         });
         afterEach(() => ctx.cleanup());
 
@@ -1342,7 +1342,7 @@ describe('FoldableRowsExtension', () => {
         });
 
         it('should climb to the nearest surviving ancestor in a nested tree', () => {
-            const nested = render({ selection: {}, foldableRows: { groupBy: ['department', 'location'] } });
+            const nested = render({ selection: {}, foldableRows: { groupBy: ['department', 'location'], selectableGroupRows: true } });
             const recordRow = nested.grid.model.getRowIndex(nested.grid.data.getRowId(0)); // r0, Eng/SF
             cellAt(nested.host, recordRow, 1).dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
             nested.ext.collapse(['Eng', 'SF']);

@@ -116,7 +116,10 @@
                 groupBy: ['department', 'location'],
                 gutterWidth: 44,
                 indentSize: 16,
-                showCount: true
+                showCount: true,
+                // Group rows take no selection by default; opting in is what
+                // lets a group row be selected and folded with Space.
+                selectableGroupRows: true
             },
             dataModel: { fields: EMPLOYEE_FIELDS, format: 'rows', data }
         });

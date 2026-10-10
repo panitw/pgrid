@@ -23,7 +23,13 @@ const DEFAULTS = {
     indentSize: 16,
     cssClass: 'pgrid-group-row',
     showCount: true,
-    emptyLabel: '(none)'
+    emptyLabel: '(none)',
+    //A label starting in the frozen block reads across the whole visible width
+    //instead of being clipped at the frozen boundary (see Model#isStickySpan).
+    stickyLabel: true,
+    //Group rows take no cell selection or keyboard focus unless this is set;
+    //it is also what makes Space-to-fold reachable.
+    selectableGroupRows: false
 };
 
 const GUTTER_CLASS = 'pgrid-group-gutter';
@@ -180,18 +186,27 @@ export class FoldableRowsExtension {
         this._collapsedByDefault = !!options.collapsedByDefault;
         this._groupLabel = (typeof options.groupLabel === 'function') ? options.groupLabel : null;
         this._groupRowHeight = (options.groupRowHeight !== undefined) ? options.groupRowHeight : config.rowHeight;
+        this._selectableGroupRows = !!options.selectableGroupRows;
 
         //The label cell spans the rest of the row, so a group label is never
         //clipped to one column's width. Declared to the last column; Model
-        //clamps it to the end of the label column's own pane, which is what
-        //keeps the span inside the frozen block when the host froze columns.
+        //clamps it to the end of the label column's own pane. When the label
+        //sits in the frozen block that clamp would clip it at the frozen
+        //boundary, so it is also declared sticky: View then lifts it into a
+        //span layer that runs to the grid's visible right edge and holds still
+        //on horizontal scroll. In the scrolling band, or with nothing frozen
+        //but the gutter, Model ignores the flag and the span clamps as before.
         //Shared and frozen: every group row hands back the same object.
         const columnCount = Array.isArray(config.columns) ? config.columns.length : 0;
         const labelSpan = columnCount - this._labelColumn;
         this._labelCellModel = null;
         if (labelSpan > 1) {
+            const labelModel = { colspan: labelSpan };
+            if (options.stickyLabel !== false) {
+                labelModel.stickySpan = true;
+            }
             const cellModel = {};
-            cellModel[this._labelColumn] = Object.freeze({ colspan: labelSpan });
+            cellModel[this._labelColumn] = Object.freeze(labelModel);
             this._labelCellModel = Object.freeze(cellModel);
         }
 
@@ -417,9 +432,10 @@ export class FoldableRowsExtension {
         }
     }
 
-    //Space folds the selected group row. This is only reachable because group
-    //rows report canEdit === false — EditorExtension claims space as a typing
-    //key and runs first, but backs off on canEdit.
+    //Space folds the selected group row — so it needs `selectableGroupRows`,
+    //without which a group row is never selected. It is also only reachable
+    //because group rows report canEdit === false: EditorExtension claims space
+    //as a typing key and runs first, but backs off on canEdit.
     keyDown (e) {
         if (e.keyCode !== 32) {
             return;
@@ -563,6 +579,13 @@ export class FoldableRowsExtension {
             }
         }
 
+        //Group rows cannot hold a selection unless the host opted in, so there
+        //is nowhere to fall back to — drop it rather than land it on a row the
+        //user cannot select.
+        if (!this._selectableGroupRows) {
+            selection.length = 0;
+            return;
+        }
         for (let i = anchor.ancestorKeys.length - 1; i >= 0; i--) {
             const group = this._groupRowByKey[anchor.ancestorKeys[i]];
             if (group && group.visibleIndex >= 0) {
@@ -666,7 +689,9 @@ export class FoldableRowsExtension {
                 visibleIndex: hidden ? -1 : this._rows.length,
                 //Model#getRowModel hands this back for the row, which is how the
                 //group class reaches every cell of the row via getCellClasses.
-                rowModel: { cssClass: this._cssClass, editable: false },
+                //`selectable: false` keeps SelectionExtension off every cell of
+                //the row — mouse, keyboard and selectCell alike.
+                rowModel: { cssClass: this._cssClass, editable: false, selectable: this._selectableGroupRows },
                 //...and Model#getCellModel hands this back per column, which is
                 //how the label cell declares its span. Null when there is
                 //nothing to span across.

@@ -106,6 +106,11 @@ export function layoutPaneCells(model, range, viewport) {
             if (span > 1) {
                 entry.colspan = span;
             }
+            //A sticky span still lays out (and is judged visible) inside its
+            //own pane; the view just hosts it in the span layer instead.
+            if (typeof model.isStickySpan === 'function' && model.isStickySpan(r, c)) {
+                entry.sticky = true;
+            }
             cells.push(entry);
             leftRunner += cellWidth;
             c += span;
