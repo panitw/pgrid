@@ -35,6 +35,35 @@ const DEFAULTS = {
 const GUTTER_CLASS = 'pgrid-group-gutter';
 const LABEL_CLASS = 'pgrid-group-label';
 const CHEVRON_CLASS = 'pgrid-group-chevron';
+const CHEVRON_COLLAPSED_CLASS = 'pgrid-group-chevron-collapsed';
+
+//The chevron is a stroked SVG path, not a text glyph: ▶/▼ come out at a
+//different size and weight in every font, and some platforms swap ▶ for a
+//colour emoji. Drawn in currentColor on a 16-unit grid, so the theme colours
+//still apply and it scales with the box the stylesheet gives it.
+const SVG_NS = 'http://www.w3.org/2000/svg';
+const CHEVRON_PATH = {
+    expanded: 'M4 6l4 4 4-4',
+    collapsed: 'M6 4l4 4-4 4'
+};
+
+function createChevronIcon (collapsed) {
+    const svg = document.createElementNS(SVG_NS, 'svg');
+    svg.setAttribute('viewBox', '0 0 16 16');
+    svg.setAttribute('width', '12');
+    svg.setAttribute('height', '12');
+    svg.setAttribute('aria-hidden', 'true');
+    svg.setAttribute('focusable', 'false');
+    const path = document.createElementNS(SVG_NS, 'path');
+    path.setAttribute('d', collapsed ? CHEVRON_PATH.collapsed : CHEVRON_PATH.expanded);
+    path.setAttribute('fill', 'none');
+    path.setAttribute('stroke', 'currentColor');
+    path.setAttribute('stroke-width', '2');
+    path.setAttribute('stroke-linecap', 'round');
+    path.setAttribute('stroke-linejoin', 'round');
+    svg.appendChild(path);
+    return svg;
+}
 
 function toFieldList (groupBy) {
     if (Array.isArray(groupBy)) {
@@ -390,12 +419,13 @@ export class FoldableRowsExtension {
         //The chevron hangs off the cell, not the cell content — `.pgrid-cell-content`
         //is `pointer-events: none`, so a chevron rendered inside it gets no clicks.
         const chevron = document.createElement('span');
-        chevron.className = CHEVRON_CLASS;
-        chevron.textContent = meta.collapsed ? '▶' : '▼';
+        chevron.className = CHEVRON_CLASS + (meta.collapsed ? ' ' + CHEVRON_COLLAPSED_CLASS : '');
+        chevron.appendChild(createChevronIcon(meta.collapsed));
         chevron.setAttribute('role', 'button');
         chevron.setAttribute('aria-expanded', meta.collapsed ? 'false' : 'true');
+        chevron.setAttribute('aria-label', meta.collapsed ? 'Expand group' : 'Collapse group');
         chevron.style.position = 'absolute';
-        chevron.style.left = (4 + (meta.level * this._indentSize)) + 'px';
+        chevron.style.left = (3 + (meta.level * this._indentSize)) + 'px';
         chevron.style.top = '50%';
         chevron.style.transform = 'translateY(-50%)';
         chevron.style.zIndex = '2';

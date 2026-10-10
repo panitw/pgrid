@@ -684,11 +684,39 @@ describe('FoldableRowsExtension', () => {
             equal(ctx.grid.model.getRowCount(), 1 + 4);
         });
 
-        it('should flip its glyph with the fold state', () => {
+        it('should flip its icon, class and ARIA state with the fold state', () => {
             const groupRow = groupRowIndex(ctx.grid, ctx.ext, ['Eng']);
-            equal(cellAt(ctx.host, groupRow, 0).querySelector('.pgrid-group-chevron').textContent, '▼');
+            const chevronAt = () => cellAt(ctx.host, groupRow, 0).querySelector('.pgrid-group-chevron');
+            let chevron = chevronAt();
+            equal(chevron.querySelector('svg path').getAttribute('d'), 'M4 6l4 4 4-4');
+            equal(chevron.classList.contains('pgrid-group-chevron-collapsed'), false);
+            equal(chevron.getAttribute('aria-expanded'), 'true');
+            equal(chevron.getAttribute('aria-label'), 'Collapse group');
             ctx.ext.collapse(['Eng']);
-            equal(cellAt(ctx.host, groupRow, 0).querySelector('.pgrid-group-chevron').textContent, '▶');
+            chevron = chevronAt();
+            equal(chevron.querySelector('svg path').getAttribute('d'), 'M6 4l4 4-4 4');
+            equal(chevron.classList.contains('pgrid-group-chevron-collapsed'), true);
+            equal(chevron.getAttribute('aria-expanded'), 'false');
+            equal(chevron.getAttribute('aria-label'), 'Expand group');
+        });
+
+        it('should draw the icon as SVG, not a text glyph', () => {
+            const groupRow = groupRowIndex(ctx.grid, ctx.ext, ['Eng']);
+            const chevron = cellAt(ctx.host, groupRow, 0).querySelector('.pgrid-group-chevron');
+            equal(chevron.textContent, '');
+            const svg = chevron.querySelector('svg');
+            equal(svg.namespaceURI, 'http://www.w3.org/2000/svg');
+            equal(svg.getAttribute('aria-hidden'), 'true');
+            equal(svg.querySelector('path').getAttribute('stroke'), 'currentColor');
+        });
+
+        it('should indent the chevron per nesting level', () => {
+            const nested = render({ foldableRows: { groupBy: ['department', 'location'] } });
+            const outer = groupRowIndex(nested.grid, nested.ext, ['Eng']);
+            const inner = groupRowIndex(nested.grid, nested.ext, ['Eng', 'SF']);
+            equal(cellAt(nested.host, outer, 0).querySelector('.pgrid-group-chevron').style.left, '3px');
+            equal(cellAt(nested.host, inner, 0).querySelector('.pgrid-group-chevron').style.left, '19px');
+            nested.cleanup();
         });
 
         it('should not accumulate listeners across ten collapse/expand cycles', () => {

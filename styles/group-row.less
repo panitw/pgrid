@@ -29,13 +29,17 @@
 		}
 	}
 
+	// A 20px hit target around a 12px stroked SVG chevron (drawn in
+	// currentColor, so `color` themes it). Size the icon with
+	// `.pgrid-group-chevron svg`; `.pgrid-group-chevron-collapsed` marks the
+	// collapsed state.
 	.pgrid-group-chevron {
-		display: inline-block;
-		width: 14px;
-		height: 14px;
-		line-height: 14px;
-		text-align: center;
-		font-size: 9px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 20px;
+		height: 20px;
+		border-radius: 4px;
 		color: @grid-group-chevron-color;
 		cursor: pointer;
 		pointer-events: all;
@@ -43,9 +47,17 @@
 		-webkit-user-select: none;
 		-moz-user-select: none;
 		-ms-user-select: none;
+		transition: color .12s ease, background-color .12s ease;
+
+		svg {
+			display: block;
+			width: 12px;
+			height: 12px;
+		}
 	}
 
 	.pgrid-group-chevron:hover {
 		color: @grid-group-chevron-hover-color;
+		background-color: @grid-group-chevron-hover-bg;
 	}
 }

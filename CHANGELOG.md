@@ -13,6 +13,7 @@
 ### Changed
 
 - **Group rows no longer take cell selection.** Mouse, arrow keys and `selectCell` all skip every cell of a group row, including the empty frozen cells beside the label, which used to show the selection outline. When a selected record is folded away, the selection is cleared instead of moving to its group row. `foldableRows.selectableGroupRows: true` restores the 3.0 behaviour, including folding with Space.
+- **The group chevron is now an SVG icon.** The `▶`/`▼` text glyphs rendered at a different size and weight in every font, and some platforms drew `▶` as a colour emoji. The chevron is now a 12px stroked SVG chevron (down when expanded, right when collapsed) in `currentColor`, centred in a 20px click target with a hover background. It gains `aria-label` ("Expand group" / "Collapse group") and a `.pgrid-group-chevron-collapsed` class. If your CSS sized the chevron with `font-size`, size `.pgrid-group-chevron svg` instead; `color` still applies.
 
 ### Fixed
 
